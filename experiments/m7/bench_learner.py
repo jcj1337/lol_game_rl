@@ -16,10 +16,14 @@ from pathlib import Path
 import torch
 from torch import nn
 
+from experiments.m7.provenance import stamp
+
 OBS_DIM = 256
 N_ACTIONS = 64
 HIDDEN = 256
 RUNS = 7
+SEED = 0
+THREADS = (1, 6)
 RESULTS = Path(__file__).parent / "results" / "learner.json"
 
 
@@ -79,8 +83,9 @@ def summarize(samples: list[float]) -> dict:
 
 
 def main() -> None:
+    torch.manual_seed(SEED)
     out = {"torch": torch.__version__, "obs_dim": OBS_DIM, "n_actions": N_ACTIONS, "hidden": HIDDEN, "device": "cpu"}
-    for threads in (1, 6):
+    for threads in THREADS:
         torch.set_num_threads(threads)
         net = make_net()
         key = f"threads_{threads}"
@@ -91,6 +96,7 @@ def main() -> None:
             "update_minibatch_2048_transitions_per_s": summarize([time_update(net, 2048) for _ in range(RUNS)]),
         }
         print(key, json.dumps(out[key], indent=1))
+    out["run"] = stamp([SEED], {"runs": RUNS, "threads": THREADS, "obs_dim": OBS_DIM, "n_actions": N_ACTIONS, "hidden": HIDDEN})
     RESULTS.parent.mkdir(exist_ok=True)
     RESULTS.write_text(json.dumps(out, indent=1) + "\n")
 

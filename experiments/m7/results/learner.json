@@ -6,54 +6,86 @@
  "device": "cpu",
  "threads_1": {
   "inference_batch_10_decisions_per_s": {
-   "median": 39863,
-   "min": 38007,
-   "max": 40261,
+   "median": 44132,
+   "min": 43759,
+   "max": 44427,
    "runs": 7
   },
   "inference_batch_640_decisions_per_s": {
-   "median": 187590,
-   "min": 185437,
-   "max": 189273,
+   "median": 203672,
+   "min": 202374,
+   "max": 204458,
    "runs": 7
   },
   "update_minibatch_256_transitions_per_s": {
-   "median": 71629,
-   "min": 70098,
-   "max": 72823,
+   "median": 85661,
+   "min": 84784,
+   "max": 86323,
    "runs": 7
   },
   "update_minibatch_2048_transitions_per_s": {
-   "median": 120465,
-   "min": 120016,
-   "max": 120846,
+   "median": 130109,
+   "min": 127319,
+   "max": 130807,
    "runs": 7
   }
  },
  "threads_6": {
   "inference_batch_10_decisions_per_s": {
-   "median": 35606,
-   "min": 34714,
-   "max": 36322,
+   "median": 40518,
+   "min": 39026,
+   "max": 41833,
    "runs": 7
   },
   "inference_batch_640_decisions_per_s": {
-   "median": 300265,
-   "min": 292585,
-   "max": 305400,
+   "median": 392270,
+   "min": 378433,
+   "max": 407034,
    "runs": 7
   },
   "update_minibatch_256_transitions_per_s": {
-   "median": 91716,
-   "min": 82059,
-   "max": 92473,
+   "median": 127019,
+   "min": 122570,
+   "max": 132554,
    "runs": 7
   },
   "update_minibatch_2048_transitions_per_s": {
-   "median": 235522,
-   "min": 232554,
-   "max": 237885,
+   "median": 326236,
+   "min": 307100,
+   "max": 341285,
    "runs": 7
+  }
+ },
+ "run": {
+  "command": "python -m experiments.m7.bench_learner",
+  "created_utc": "2026-11-11T18:53:07+00:00",
+  "git_head": "810829441600fef900d386ea4c14647dbb5df464",
+  "git_dirty": true,
+  "code_id": "adbf658da63741f3",
+  "sources": {
+   "experiments/m7/bench_learner.py": "bedcdaab20fa7b7f2f6a7fc376a98a151e111e19d755476acbb70ddd2a1f494d",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {
+   "numpy": "2.5.4",
+   "torch": "2.15.0+cpu"
+  },
+  "seeds": [
+   0
+  ],
+  "config": {
+   "runs": 7,
+   "threads": [
+    1,
+    6
+   ],
+   "obs_dim": 256,
+   "n_actions": 64,
+   "hidden": 256
   }
  }
 }

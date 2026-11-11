@@ -6,6 +6,10 @@ from functools import cache
 ROLES = ("top", "jungle", "mid", "carry", "support")
 ROLE_LANE = {"top": "top", "mid": "mid", "carry": "bot", "support": "bot"}
 
+# Role duty of section 5.10. Both are assumed starting values. Nothing has tuned them.
+ROAM_CAP_S = 90.0     # seconds a laner may roam on a full allowance
+ROAM_REFILL = 0.25    # seconds of allowance regained per second on the home lane
+
 STATS = ("max_hp", "dps", "range", "speed", "slow_frac", "slow_s", "slow_cd_s",
          "hit_damage", "attack_speed", "aoe_dps", "camp_dps")
 LEVEL_SCALED = frozenset(("max_hp", "dps", "hit_damage", "aoe_dps", "camp_dps"))

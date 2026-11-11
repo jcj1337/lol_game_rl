@@ -3,18 +3,27 @@
 Nodes are named junctions with League coordinates. An edge is a straight route
 between two nodes. `Pos(edge, offset)` is `offset` units from the edge's first
 node. A lane is a chain of edges from the blue base to the red base, so waves,
-towers, and champions on a lane share one lane coordinate `s`. Every range in
-the rules (attack, XP, sight) is a route distance in the same units.
+towers, and champions on a lane share one lane coordinate `s`.
+
+Three measures, all in League units. Movement uses `distance`, the shortest
+route. Interaction ranges (attack, XP, tower, ward placement) use `separation`,
+the straight line between map coordinates, which terrain does not block. Sight
+uses `sees`: within the radius by `separation` and `sight_clear`.
+
+Sight terrain: open ground is every point within an edge's half-width of its
+straight segment, and a wall is a segment no sight line may cross.
 """
 
 import math
 import tomllib
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
 MAP_DIR = Path(__file__).parent / "rulesets"
 REFERENCE_MAP = "map_summoners_rift"
+SIGHT_STEP = 50.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,19 +47,45 @@ class Lane:
     length: float
 
 
+def _in_corridor(corridor: tuple[float, ...], x: float, y: float) -> bool:
+    ax, ay, dx, dy, per_length_sq, half_width_sq = corridor
+    f = ((x - ax) * dx + (y - ay) * dy) * per_length_sq
+    f = 0.0 if f < 0.0 else 1.0 if f > 1.0 else f
+    ex, ey = x - ax - f * dx, y - ay - f * dy
+    return ex * ex + ey * ey <= half_width_sq
+
+
+def _crosses(ax: float, ay: float, bx: float, by: float, wall: tuple[float, ...]) -> bool:
+    cx, cy, dx, dy = wall
+    side_c = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+    side_d = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax)
+    if side_c * side_d >= 0.0:
+        return False
+    side_a = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx)
+    side_b = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx)
+    return side_a * side_b < 0.0
+
+
 class RiftMap:
     def __init__(self, nodes: dict[str, tuple[float, float]], edges: list[tuple[str, str, float]],
-                 lanes: dict[str, list[str]]):
+                 lanes: dict[str, list[str]], half_widths: Sequence[float] | None = None,
+                 walls: Sequence[Sequence[Sequence[float]]] = ()):
+        """`half_widths` gives each edge's open ground, in the order of `edges`. Without it all ground is open."""
         self.node_names = list(nodes)
         self.node_xy = [nodes[n] for n in self.node_names]
         self._node_id = {n: i for i, n in enumerate(self.node_names)}
         self.edges: list[Edge] = []
         self._edge_between: dict[tuple[int, int], int] = {}
-        for a_name, b_name, detour in edges:
+        self._corridors: list[tuple[float, ...]] = []
+        for i, (a_name, b_name, detour) in enumerate(edges):
             a, b = self._node_id[a_name], self._node_id[b_name]
             (ax, ay), (bx, by) = self.node_xy[a], self.node_xy[b]
             self._edge_between[(a, b)] = self._edge_between[(b, a)] = len(self.edges)
             self.edges.append(Edge(a, b, math.hypot(bx - ax, by - ay) * detour))
+            dx, dy = bx - ax, by - ay
+            half_width = math.inf if half_widths is None else half_widths[i]
+            self._corridors.append((ax, ay, dx, dy, 1.0 / (dx * dx + dy * dy), half_width * half_width))
+        self._walls = [(x1, y1, x2, y2) for (x1, y1), (x2, y2) in walls]
         self._solve_all_pairs()
         self.lanes = {name: self._build_lane(name, chain) for name, chain in lanes.items()}
         self._lane_of_edge = {e: lane for lane in self.lanes.values() for e in lane.edges}
@@ -156,6 +191,41 @@ class RiftMap:
         last = self.edges[dest.edge]
         return Pos(dest.edge, step if last.a == node else last.length - step)
 
+    def separation(self, a: Pos, b: Pos) -> float:
+        """Straight-line distance between two positions. Terrain does not shorten or block it."""
+        (ax, ay), (bx, by) = self.xy(a), self.xy(b)
+        return math.hypot(bx - ax, by - ay)
+
+    def sight_clear(self, a: Pos, b: Pos) -> bool:
+        """True when the straight segment between two positions crosses no wall and stays on open ground.
+
+        Open ground is sampled every `SIGHT_STEP` units, so terrain thinner than that can be stepped over.
+        """
+        # One sample order for both argument orders keeps the answer exactly symmetric.
+        if (b.edge, b.offset) < (a.edge, a.offset):
+            a, b = b, a
+        (ax, ay), (bx, by) = self.xy(a), self.xy(b)
+        for wall in self._walls:
+            if _crosses(ax, ay, bx, by, wall):
+                return False
+        if a.edge == b.edge:
+            return True
+        steps = math.ceil(math.hypot(bx - ax, by - ay) / SIGHT_STEP)
+        near = self._corridors[a.edge]
+        for i in range(1, steps):
+            x, y = ax + (bx - ax) * i / steps, ay + (by - ay) * i / steps
+            if not _in_corridor(near, x, y):
+                for near in (self._corridors[b.edge], *self._corridors):
+                    if _in_corridor(near, x, y):
+                        break
+                else:
+                    return False
+        return True
+
+    def sees(self, a: Pos, b: Pos, radius: float) -> bool:
+        """True when `b` is within `radius` of `a` in a straight line and no terrain lies between them."""
+        return self.separation(a, b) <= radius and self.sight_clear(a, b)
+
     def lane_s(self, lane: str, pos: Pos) -> float | None:
         """Lane coordinate of `pos` (distance from the lane's blue end), or None if off that lane."""
         ln = self.lanes[lane]
@@ -215,8 +285,15 @@ def load_map(name: str = REFERENCE_MAP) -> MapData:
     detour = data["detour"]
     edges = [(a, b, detour["lane"]) for chain in data["lanes"].values() for a, b in zip(chain, chain[1:])]
     edges += [(a, b, detour["lane"]) for a, b in data["edges"]["base"]]
-    edges += [(a, b, detour["jungle"]) for a, b in data["edges"]["jungle"]]
-    rift = RiftMap(nodes, edges, data["lanes"])
+    jungle = data["edges"]["jungle"]
+    terrain = data["terrain"]
+    half_width, river = terrain["half_width"], {frozenset(e) for e in terrain["river"]}
+    if not river <= {frozenset(e) for e in jungle}:
+        raise ValueError("terrain.river must name edges listed under edges.jungle")
+    half_widths = [half_width["lane"]] * len(edges)
+    half_widths += [half_width["river" if frozenset(e) in river else "jungle"] for e in jungle]
+    edges += [(a, b, detour["jungle"]) for a, b in jungle]
+    rift = RiftMap(nodes, edges, data["lanes"], half_widths, terrain["walls"])
     towers = []
     for tower_name, (x, y) in data["towers"].items():
         team, lane, tier = tower_name.split("_")

@@ -95,6 +95,34 @@ jungle = [   # A
     ["bot_river", "bot_corner"],
 ]
 
+# Sight terrain. No wall data has been taken from the game files, so every value here is a simulator assumption.
+# Open ground is every point within half_width of an edge's straight segment. Everything else blocks sight.
+# lane: lanes are about 1,000 to 1,400 across (no source). Towers stand 169 to 373 off the minion path (reference tables).
+# river: the two RiverWall Faelight sites lie 468 and 547 off the river edges (reference tables).
+# jungle: jungle paths are about 400 to 600 across (no source).
+[terrain.half_width]
+lane = 600                     # A
+river = 500                    # A
+jungle = 250                   # A
+
+[terrain]
+river = [   # A
+    ["top_river", "mid_river"],
+    ["bot_river", "mid_river"],
+    ["top_river", "top_corner"],
+    ["bot_river", "bot_corner"],
+]
+# A wall blocks every sight line that crosses it, also inside open ground. These four are the lane-side
+# walls of the gromp and raptor alcoves, the only camps within champion sight range of a lane line.
+# Each is built from the camp and lane coordinates, not from terrain data: parallel to the lane at the
+# point nearest the camp, one lane half-width from the lane line, 500 either side.
+walls = [   # A
+    [[1839, 8941], [1808, 7941]],
+    [[6968, 6181], [6217, 5521]],
+    [[13134, 5941], [13120, 6941]],
+    [[7880, 8797], [8631, 9458]],
+]
+
 [towers]
 blue_top_outer = [981, 10441]          # F1
 blue_top_inner = [1512, 6699]          # F1

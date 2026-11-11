@@ -263,3 +263,38 @@ def test_one_extra_caster_wins_the_fight_with_more_than_half_its_wave_left():
             metrics, _ = scenarios.fight(red_casters=1)(scenarios.maker(mechanics), seed, 1.0)
             assert metrics["blue_left"] == 0
             assert metrics["red_left"] >= 4
+
+
+def test_a_mortal_champion_walks_no_faster_than_its_speed_and_stays_behind_its_own_lead_minion_unless_it_holds():
+    sim = LaneSim(TOP, seed=0, dt=0.5, mechanics=RECOMMENDED)
+    champion = scenarios.Laner(BLUE, TOP.tower_s[BLUE])
+    events, spots = [], []
+    while sim.time < 150.0:
+        before = champion.s
+        events = sim.step(champion.act(sim, events, Mode.LAST_HIT))
+        spots.append((champion.s - before, scenarios.post(sim, BLUE, False), sim.front().lead[BLUE], champion.s))
+    assert max(abs(step) for step, _, _, _ in spots) <= scenarios.LANER_SPEED * sim.dt + 1e-9
+    assert all(lead is None or wanted <= max(lead, TOP.tower_s[BLUE]) + 1e-9 for _, wanted, lead, _ in spots)
+    assert max(s for _, _, _, s in spots) > TOP.centre - 600
+
+
+def test_a_champion_takes_minion_damage_only_while_it_stands_in_the_waves_path():
+    def health_after(hold: bool) -> float:
+        sim = LaneSim(TOP, seed=0, dt=0.5, mechanics=RECOMMENDED, start_time=181.0)
+        sim.add_minion(RED, Kind.CASTER, TOP.tower_s[BLUE] + 2500.0, count=6)
+        champion = scenarios.Laner(BLUE, scenarios.post(sim, BLUE, hold))
+        events = []
+        while sim.time < 196.0:
+            events = sim.step(champion.act(sim, events, Mode.NONE, hold=hold))
+        champion.act(sim, events, Mode.NONE, hold=hold)
+        return champion.hp
+
+    assert health_after(hold=False) == scenarios.LANER_HP
+    assert health_after(hold=True) < scenarios.LANER_HP - 100
+
+
+def test_a_holding_champion_leaves_the_wave_below_the_retreat_threshold_instead_of_dying():
+    metrics, _ = scenarios.CASES["S5c k=6 hold"](scenarios.maker(RECOMMENDED), 0, 0.5)
+    assert metrics["champion_retreats"] >= 1
+    assert not metrics["champion_died"]
+    assert 0 < metrics["champion_lowest_health"] < scenarios.RETREAT_BELOW

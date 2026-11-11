@@ -1,0 +1,96 @@
+{
+ "q5_starting_values": {
+  "cpu_load_percent_before": 11.0,
+  "lane": "real",
+  "tick_s": 0.5,
+  "decision_every_s": 2,
+  "game_s": 900,
+  "work_per_game": {
+   "minion_deaths": 1073,
+   "camp_clears": 51,
+   "champion_deaths": 29,
+   "recalls": 70,
+   "agent_decisions": 4500
+  },
+  "single_process_game_seconds_per_s": {
+   "median": 591.0,
+   "min": 578.0,
+   "max": 605.0,
+   "runs": 7
+  },
+  "processes_5": {
+   "games_per_hour": {
+    "median": 10637.0,
+    "min": 10432.0,
+    "max": 10661.0,
+    "runs": 3
+   },
+   "agent_decisions_per_s": {
+    "median": 13296.0,
+    "min": 13040.0,
+    "max": 13327.0,
+    "runs": 3
+   }
+  },
+  "processes_6": {
+   "games_per_hour": {
+    "median": 11696.0,
+    "min": 11450.0,
+    "max": 11706.0,
+    "runs": 3
+   },
+   "agent_decisions_per_s": {
+    "median": 14620.0,
+    "min": 14313.0,
+    "max": 14632.0,
+    "runs": 3
+   }
+  }
+ },
+ "run": {
+  "command": "python -m experiments.m7.kernel.bench start",
+  "created_utc": "2026-11-11T18:55:20+00:00",
+  "git_head": "810829441600fef900d386ea4c14647dbb5df464",
+  "git_dirty": true,
+  "code_id": "4bb490c2863edf55",
+  "sources": {
+   "experiments/m7/kernel/bench.py": "d003777f5c8390ca0c41020e92861b78f10607eaac11c142704037aba7e909d0",
+   "experiments/m7/kernel/lanes.py": "0f30edc437eb226930bed2eec56e3d3b6db24e318d54a6adb85523e190914991",
+   "experiments/m7/kernel/observe.py": "a6f726b0b069cee2fb3f7fb045607dffb190b36593fafa20675c92ca50a0ab70",
+   "experiments/m7/kernel/policy.py": "d85e5741e6269e99a92aef51f89baef3d5ec7debf834e14d1312dea5972ea7b0",
+   "experiments/m7/kernel/profiles.py": "91638576291efcc4f96031da2e6555c46d603ac80359f2348040fafc5e8c8e51",
+   "experiments/m7/kernel/world.py": "534704345e3d3842ce2c774cf3004e629c358465059d47560b2a01c48c4b08d3",
+   "experiments/m7/waves/lane.py": "52c0351e6f976d017138b3f6d4fee1c09a581fbf033716c366280c7c59be8c5e",
+   "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
+   "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
+   "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {
+   "numpy": "2.5.4"
+  },
+  "seeds": [
+   0
+  ],
+  "config": {
+   "tick_s": 0.5,
+   "decision_every_s": 2,
+   "game_s": 900,
+   "single_process_runs": 7,
+   "games_per_process": 6,
+   "timed_batches": 3,
+   "lanes": [
+    "real"
+   ],
+   "processes": [
+    5,
+    6
+   ]
+  }
+ }
+}

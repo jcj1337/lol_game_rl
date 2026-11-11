@@ -1,0 +1,2310 @@
+{
+ "q1_timing": {
+  "a_ticks_compared": 300,
+  "a_interval_n_equals_interval_1_with_keep": {
+   "2": true,
+   "4": true,
+   "10": true
+  },
+  "a_intents_ended_in_the_window": {
+   "2": {
+    "ABSENT": 31,
+    "CLEARED": 14,
+    "DIED": 7,
+    "KILLED": 2,
+    "PLACED": 4,
+    "RECALLED": 26
+   },
+   "4": {
+    "ABSENT": 16,
+    "CLEARED": 12,
+    "DIED": 7,
+    "KILLED": 2,
+    "PLACED": 6,
+    "RECALLED": 21
+   },
+   "10": {
+    "ABSENT": 8,
+    "CLEARED": 8,
+    "DIED": 10,
+    "KILLED": 5,
+    "PLACED": 4,
+    "RECALLED": 17
+   }
+  },
+  "a_reactive_policy_differs_between_interval_1_and_10": true,
+  "a_fixed_orders_differ_between_interval_1_and_10": true,
+  "b_walked_units": 10200.0,
+  "b_speed_times_time": 10200.0,
+  "b_first_step_on_new_route_units": 340.0,
+  "c_uninterrupted": {
+   "dt_0.5": {
+    "seconds_from_first_cast": 8.5,
+    "seconds_from_last_cast": 8.5,
+    "outcome_at_fountain": "RECALLED"
+   },
+   "dt_1.0": {
+    "seconds_from_first_cast": 9.0,
+    "seconds_from_last_cast": 9.0,
+    "outcome_at_fountain": "RECALLED"
+   }
+  },
+  "c_cancelled_at_7s_then_restarted": {
+   "seconds_from_first_cast": 15.5,
+   "seconds_from_last_cast": 8.5,
+   "outcome_at_fountain": "RECALLED"
+  },
+  "d_hit_once_at_5s": {
+   "outcome": "INTERRUPTED",
+   "outcome_s": 5.0,
+   "intent_after": "HOLD",
+   "channel_s": 0.0,
+   "hp_lost": 27.5,
+   "at_fountain_after_17s_without_a_new_order": false,
+   "recall_issued_again_s": 22.5,
+   "seconds_from_first_cast": 31.0,
+   "seconds_from_last_cast": 8.5,
+   "outcome_at_fountain": "RECALLED"
+  }
+ },
+ "q2_fights": {
+  "a_retreat_at_half_hp": [
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": false,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": true,
+    "seconds": 9.0
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": false,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": true,
+    "seconds": 9.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": true,
+    "seconds": 9.0
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": true,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": true,
+    "seconds": 9.0
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": true,
+    "seconds": 9.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": true,
+    "seconds": 9.0
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 128,
+    "chaser_dead": true,
+    "seconds": 13.0
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 128,
+    "chaser_dead": true,
+    "seconds": 13.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": false,
+    "seconds": 42.0
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 100,
+    "chaser_dead": true,
+    "seconds": 14.0
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 128,
+    "chaser_dead": true,
+    "seconds": 13.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": false,
+    "seconds": 42.0
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": false,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": true,
+    "seconds": 18.0
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": false,
+    "units_to_own_tower": 4000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 18,
+    "chaser_dead": true,
+    "seconds": 17.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 4000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": false,
+    "seconds": 47.0
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": true,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "seconds": 18.0
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": true,
+    "seconds": 18.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 4000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 238,
+    "chaser_dead": false,
+    "seconds": 47.0
+   }
+  ],
+  "a_escapes": 15,
+  "a_deaths": 3,
+  "b_alone": {
+   "ally_start_units": null,
+   "foe_dead": false,
+   "a_dead": true,
+   "ally_dead": false
+  },
+  "b_largest_ally_distance_side_wins": 2000,
+  "b_largest_ally_distance_a_survives": null,
+  "c_same_duel": [
+   {
+    "under_defender_tower": false,
+    "winner": "attacker",
+    "attacker_hp": 97,
+    "defender_hp": 0,
+    "seconds": 11.0
+   },
+   {
+    "under_defender_tower": true,
+    "winner": "defender",
+    "attacker_hp": 0,
+    "defender_hp": 472,
+    "seconds": 3.0
+   }
+  ],
+  "d_gank": [
+   {
+    "laner_at": "own outer tower",
+    "decision_interval_ticks": 1,
+    "laner_start_hp": 650,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 650,
+    "jungler_survives": true,
+    "seconds": 47.0
+   },
+   {
+    "laner_at": "own outer tower",
+    "decision_interval_ticks": 5,
+    "laner_start_hp": 650,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 650,
+    "jungler_survives": true,
+    "seconds": 48.0
+   },
+   {
+    "laner_at": "enemy outer tower",
+    "decision_interval_ticks": 1,
+    "laner_start_hp": 650,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 260,
+    "jungler_survives": false,
+    "seconds": 27.0
+   },
+   {
+    "laner_at": "enemy outer tower",
+    "decision_interval_ticks": 5,
+    "laner_start_hp": 650,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 290,
+    "jungler_survives": false,
+    "seconds": 28.0
+   },
+   {
+    "laner_at": "own outer tower",
+    "decision_interval_ticks": 1,
+    "laner_start_hp": 390,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 390,
+    "jungler_survives": true,
+    "seconds": 47.0
+   },
+   {
+    "laner_at": "own outer tower",
+    "decision_interval_ticks": 5,
+    "laner_start_hp": 390,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 390,
+    "jungler_survives": true,
+    "seconds": 48.0
+   },
+   {
+    "laner_at": "enemy outer tower",
+    "decision_interval_ticks": 1,
+    "laner_start_hp": 390,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": false,
+    "laner_lowest_hp": 0,
+    "jungler_survives": false,
+    "seconds": 27.0
+   },
+   {
+    "laner_at": "enemy outer tower",
+    "decision_interval_ticks": 5,
+    "laner_start_hp": 390,
+    "jungler_first_seen_s": 14.0,
+    "laner_survives": true,
+    "laner_lowest_hp": 30,
+    "jungler_survives": false,
+    "seconds": 28.0
+   }
+  ],
+  "e_seat_order": {
+   "duel": {
+    "ticks_compared": 11,
+    "same_length": true,
+    "ended_in_a_death": true,
+    "differences": [
+     {
+      "tick": 10,
+      "role": "top",
+      "field": "gold",
+      "top_side_visited_first": "800.0",
+      "mid_side_visited_first": "900.0"
+     },
+     {
+      "tick": 10,
+      "role": "top",
+      "field": "xp",
+      "top_side_visited_first": "0.0",
+      "mid_side_visited_first": "100.0"
+     },
+     {
+      "tick": 10,
+      "role": "mid",
+      "field": "gold",
+      "top_side_visited_first": "900.0",
+      "mid_side_visited_first": "800.0"
+     },
+     {
+      "tick": 10,
+      "role": "mid",
+      "field": "xp",
+      "top_side_visited_first": "100.0",
+      "mid_side_visited_first": "0.0"
+     }
+    ]
+   },
+   "kite": {
+    "ticks_compared": 18,
+    "same_length": true,
+    "ended_in_a_death": true,
+    "differences": []
+   },
+   "two_on_one": {
+    "ticks_compared": 6,
+    "same_length": true,
+    "ended_in_a_death": true,
+    "differences": []
+   },
+   "both_die_on_one_tick": {
+    "ticks_compared": 1,
+    "same_length": true,
+    "ended_in_a_death": true,
+    "differences": [
+     {
+      "tick": 0,
+      "role": "top",
+      "field": "gold",
+      "top_side_visited_first": "800.0",
+      "mid_side_visited_first": "900.0"
+     },
+     {
+      "tick": 0,
+      "role": "top",
+      "field": "xp",
+      "top_side_visited_first": "0.0",
+      "mid_side_visited_first": "100.0"
+     },
+     {
+      "tick": 0,
+      "role": "mid",
+      "field": "gold",
+      "top_side_visited_first": "900.0",
+      "mid_side_visited_first": "800.0"
+     },
+     {
+      "tick": 0,
+      "role": "mid",
+      "field": "xp",
+      "top_side_visited_first": "100.0",
+      "mid_side_visited_first": "0.0"
+     }
+    ]
+   }
+  }
+ },
+ "q3_information": {
+  "a_hidden_state": {
+   "hidden_camp": "red_raptors",
+   "jungler_units_apart": 7558.000000000002,
+   "worlds_differ": true,
+   "hidden_things_stayed_unseen_by_blue": true,
+   "ticks_compared": 31,
+   "blue_observation_mismatches": 0,
+   "blue_observations_differing_after_reveal": 5
+  },
+  "b_last_seen": {
+   "last_visible_tick": 2,
+   "record_tick_20s_later": 2,
+   "record_pos_is_last_visible_pos": true,
+   "units_moved_since": 7140.0,
+   "observation_visible": false,
+   "observation_age_s": 22.0
+  },
+  "c_camp_timers": [
+   {
+    "camp": "blue_gromp",
+    "ticks_ended_absent_before_the_spawn": 68,
+    "outcome_at_clear": "CLEARED",
+    "clear_s": 81.0,
+    "respawn_s": 216.0,
+    "window_s": 10,
+    "clearing_team_knows_s": 216.0,
+    "enemy_believes_before_looking_s": 67,
+    "enemy_knows_on_first_look_s": null,
+    "enemy_learns_at_s": 206.0,
+    "enemy_learns_s": 216.0
+   },
+   {
+    "camp": "blue_blue",
+    "ticks_ended_absent_before_the_spawn": 56,
+    "outcome_at_clear": "CLEARED",
+    "clear_s": 71.0,
+    "respawn_s": 371.0,
+    "window_s": 60,
+    "clearing_team_knows_s": 371.0,
+    "enemy_believes_before_looking_s": 55,
+    "enemy_knows_on_first_look_s": null,
+    "enemy_learns_at_s": 311.0,
+    "enemy_learns_s": 371.0
+   }
+  ],
+  "d_ward": {
+   "hidden_before_ward": true,
+   "ward_placed_s": 2.0,
+   "revealed_until_s": 92.0,
+   "revealed_for_s": 90.0,
+   "ticks_seen_with_ward_as_only_source": 89,
+   "hidden_after_expiry": true,
+   "charges_left": 1
+  },
+  "e_pursuit_of_a_target_in_fog": {
+   "target_stays_in_fog": {
+    "target_visible": false,
+    "last_seen_pos_is_where_the_target_stood": true,
+    "pursuer_attack_range": 175.0,
+    "pursuer_units_from_last_seen_spot": 175.0,
+    "pursuer_units_from_true_position": 16353.370093948648,
+    "same_path_with_the_target_hidden_elsewhere": true,
+    "arrived_s": 3.0,
+    "outcome": "LOST",
+    "outcome_s": 4.0,
+    "intent_after": "HOLD"
+   },
+   "target_reappears_before_arrival": {
+    "ticks_in_fog": 2,
+    "units_from_last_seen_spot_when_the_target_reappeared": 280.0000000000009,
+    "outcome": "NONE",
+    "intent": "FIGHT",
+    "target_hp_lost": 27.5,
+    "first_hit_s": 3.0
+   }
+  }
+ },
+ "q4_snapshot": {
+  "a_ticks_replayed": 300,
+  "a_ticks_matching": 300,
+  "a_snapshot_bytes": 9126,
+  "b_window_s": 300.0,
+  "b_top_lane_first_differs_after_s": 0.0,
+  "b_bot_lane_first_differs_after_s": null
+ },
+ "q1_timing_real_lane": {
+  "a_ticks_compared": 300,
+  "a_interval_n_equals_interval_1_with_keep": {
+   "2": true,
+   "4": true,
+   "10": true
+  },
+  "a_intents_ended_in_the_window": {
+   "2": {
+    "ABSENT": 31,
+    "CLEARED": 13,
+    "DIED": 2,
+    "KILLED": 1,
+    "PLACED": 5,
+    "RECALLED": 32
+   },
+   "4": {
+    "ABSENT": 16,
+    "CLEARED": 14,
+    "DIED": 10,
+    "INTERRUPTED": 1,
+    "KILLED": 3,
+    "PLACED": 6,
+    "RECALLED": 17
+   },
+   "10": {
+    "ABSENT": 8,
+    "CLEARED": 8,
+    "DIED": 14,
+    "KILLED": 2,
+    "PLACED": 4,
+    "RECALLED": 15
+   }
+  },
+  "a_reactive_policy_differs_between_interval_1_and_10": true,
+  "a_fixed_orders_differ_between_interval_1_and_10": true
+ },
+ "q4_snapshot_real_lane": {
+  "a_ticks_replayed": 300,
+  "a_ticks_matching": 300,
+  "a_snapshot_bytes": 18683,
+  "b_window_s": 300.0,
+  "b_top_lane_first_differs_after_s": 0.0,
+  "b_bot_lane_first_differs_after_s": null
+ },
+ "role_duty": {
+  "roam_cap_s": 90.0,
+  "roam_refill_per_s_on_lane": 0.25,
+  "share_limit": 0.2,
+  "a_soak": {
+   "tick_1.0_decision_5": {
+    "abandoner_nearest_exit": {
+     "game_s": 1800.0,
+     "tick_s": 1.0,
+     "decision_every_s": 5.0,
+     "champions": [
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1176.0,
+        "EXCUSED": 241.0,
+        "ROAMING": 383.0
+       },
+       "off_lane_alive_s": 624.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 293.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 0,
+       "role": "top",
+       "roaming_share": 0.2127777777777778,
+       "off_lane_alive_share": 0.3466666666666667,
+       "roaming_share_after_exhaustion": 0.17164616285881665,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 1.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000002,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 1,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1238.0,
+        "EXCUSED": 162.0,
+        "ROAMING": 400.0
+       },
+       "off_lane_alive_s": 562.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -3.5,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 310.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 2,
+       "role": "mid",
+       "roaming_share": 0.2222222222222222,
+       "off_lane_alive_share": 0.31222222222222223,
+       "roaming_share_after_exhaustion": 0.18160515524311657,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1167.0,
+        "EXCUSED": 247.0,
+        "ROAMING": 386.0
+       },
+       "off_lane_alive_s": 633.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 296.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 3,
+       "role": "carry",
+       "roaming_share": 0.21444444444444444,
+       "off_lane_alive_share": 0.3516666666666667,
+       "roaming_share_after_exhaustion": 0.17340363210310486,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -4.25
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1172.0,
+        "EXCUSED": 246.0,
+        "ROAMING": 382.0
+       },
+       "off_lane_alive_s": 628.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 292.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 4,
+       "role": "support",
+       "roaming_share": 0.21222222222222223,
+       "off_lane_alive_share": 0.3488888888888889,
+       "roaming_share_after_exhaustion": 0.17106033977738722,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 1.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1181.0,
+        "EXCUSED": 233.0,
+        "ROAMING": 386.0
+       },
+       "off_lane_alive_s": 619.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.5,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 296.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 5,
+       "role": "top",
+       "roaming_share": 0.21444444444444444,
+       "off_lane_alive_share": 0.3438888888888889,
+       "roaming_share_after_exhaustion": 0.17340363210310486,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.75
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000002,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 6,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1236.0,
+        "EXCUSED": 163.0,
+        "ROAMING": 401.0
+       },
+       "off_lane_alive_s": 564.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 311.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 7,
+       "role": "mid",
+       "roaming_share": 0.22277777777777777,
+       "off_lane_alive_share": 0.31333333333333335,
+       "roaming_share_after_exhaustion": 0.18219097832454598,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -2.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1185.0,
+        "EXCUSED": 226.0,
+        "ROAMING": 389.0
+       },
+       "off_lane_alive_s": 615.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -3.5,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 299.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 8,
+       "role": "carry",
+       "roaming_share": 0.21611111111111111,
+       "off_lane_alive_share": 0.3416666666666667,
+       "roaming_share_after_exhaustion": 0.1751611013473931,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -2.75
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1185.0,
+        "EXCUSED": 228.0,
+        "ROAMING": 387.0
+       },
+       "off_lane_alive_s": 615.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -3.5,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 297.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 9,
+       "role": "support",
+       "roaming_share": 0.215,
+       "off_lane_alive_share": 0.3416666666666667,
+       "roaming_share_after_exhaustion": 0.17398945518453426,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.75
+      }
+     ]
+    },
+    "abandoner_anywhere": {
+     "game_s": 1800.0,
+     "tick_s": 1.0,
+     "decision_every_s": 5.0,
+     "champions": [
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1170.0,
+        "EXCUSED": 250.0,
+        "ROAMING": 380.0
+       },
+       "off_lane_alive_s": 630.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 290.0,
+       "largest_step_over_speed": 1.0000000000000009,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 0,
+       "role": "top",
+       "roaming_share": 0.2111111111111111,
+       "off_lane_alive_share": 0.35,
+       "roaming_share_after_exhaustion": 0.1698886936145284,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 2.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 1,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1233.0,
+        "EXCUSED": 168.0,
+        "ROAMING": 399.0
+       },
+       "off_lane_alive_s": 567.0,
+       "longest_roam_between_lane_visits_s": 77.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 188.0,
+       "roamed_after_exhaustion_s": 291.0,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 2,
+       "role": "mid",
+       "roaming_share": 0.22166666666666668,
+       "off_lane_alive_share": 0.315,
+       "roaming_share_after_exhaustion": 0.1805210918114144,
+       "window_after_exhaustion_s": 1612.0,
+       "final_allowance_s": -2.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1157.0,
+        "EXCUSED": 268.0,
+        "ROAMING": 375.0
+       },
+       "off_lane_alive_s": 643.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 285.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 3,
+       "role": "carry",
+       "roaming_share": 0.20833333333333334,
+       "off_lane_alive_share": 0.3572222222222222,
+       "roaming_share_after_exhaustion": 0.16695957820738136,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 4.25
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1159.0,
+        "EXCUSED": 260.0,
+        "ROAMING": 381.0
+       },
+       "off_lane_alive_s": 641.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 291.0,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 4,
+       "role": "support",
+       "roaming_share": 0.21166666666666667,
+       "off_lane_alive_share": 0.3561111111111111,
+       "roaming_share_after_exhaustion": 0.1704745166959578,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -1.25
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1178.0,
+        "EXCUSED": 237.0,
+        "ROAMING": 385.0
+       },
+       "off_lane_alive_s": 622.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 295.0,
+       "largest_step_over_speed": 1.000000000000001,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 5,
+       "role": "top",
+       "roaming_share": 0.21388888888888888,
+       "off_lane_alive_share": 0.34555555555555556,
+       "roaming_share_after_exhaustion": 0.17281780902167546,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 6,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1204.0,
+        "EXCUSED": 213.0,
+        "ROAMING": 383.0
+       },
+       "off_lane_alive_s": 596.0,
+       "longest_roam_between_lane_visits_s": 27.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 200.0,
+       "roamed_after_exhaustion_s": 274.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 7,
+       "role": "mid",
+       "roaming_share": 0.2127777777777778,
+       "off_lane_alive_share": 0.33111111111111113,
+       "roaming_share_after_exhaustion": 0.17125,
+       "window_after_exhaustion_s": 1600.0,
+       "final_allowance_s": 4.75
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1151.0,
+        "EXCUSED": 271.0,
+        "ROAMING": 378.0
+       },
+       "off_lane_alive_s": 649.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.75,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 288.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 8,
+       "role": "carry",
+       "roaming_share": 0.21,
+       "off_lane_alive_share": 0.3605555555555556,
+       "roaming_share_after_exhaustion": 0.1687170474516696,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.25
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1176.0,
+        "EXCUSED": 241.0,
+        "ROAMING": 383.0
+       },
+       "off_lane_alive_s": 624.0,
+       "longest_roam_between_lane_visits_s": 92.0,
+       "lowest_allowance_s": -4.5,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 293.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 9,
+       "role": "support",
+       "roaming_share": 0.2127777777777778,
+       "off_lane_alive_share": 0.3466666666666667,
+       "roaming_share_after_exhaustion": 0.17164616285881665,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 1.0
+      }
+     ]
+    },
+    "scripted": {
+     "game_s": 1800.0,
+     "tick_s": 1.0,
+     "decision_every_s": 5.0,
+     "champions": [
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1366.0,
+        "EXCUSED": 434.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 216.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 20,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 0,
+       "role": "top",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.12,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000002,
+       "deaths_or_recalls": 7,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 1,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1350.0,
+        "EXCUSED": 450.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 182.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000002,
+       "deaths_or_recalls": 16,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 2,
+       "role": "mid",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.10111111111111111,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1524.0,
+        "EXCUSED": 276.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 127.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 13,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 3,
+       "role": "carry",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.07055555555555555,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1086.0,
+        "EXCUSED": 454.0,
+        "ROAMING": 260.0
+       },
+       "off_lane_alive_s": 531.0,
+       "longest_roam_between_lane_visits_s": 54.0,
+       "lowest_allowance_s": 36.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 17,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 4,
+       "role": "support",
+       "roaming_share": 0.14444444444444443,
+       "off_lane_alive_share": 0.295,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 78.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1414.0,
+        "EXCUSED": 386.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 227.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 18,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 5,
+       "role": "top",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.12611111111111112,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 6,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 6,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1402.0,
+        "EXCUSED": 398.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 191.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 17,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 7,
+       "role": "mid",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.10611111111111111,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1247.0,
+        "EXCUSED": 553.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 162.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 19,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 8,
+       "role": "carry",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.09,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1113.0,
+        "EXCUSED": 391.0,
+        "ROAMING": 296.0
+       },
+       "off_lane_alive_s": 624.0,
+       "longest_roam_between_lane_visits_s": 65.0,
+       "lowest_allowance_s": 25.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 16,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 9,
+       "role": "support",
+       "roaming_share": 0.16444444444444445,
+       "off_lane_alive_share": 0.3466666666666667,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 60.25
+      }
+     ]
+    }
+   },
+   "tick_0.5_decision_4": {
+    "abandoner_nearest_exit": {
+     "game_s": 1800.0,
+     "tick_s": 0.5,
+     "decision_every_s": 2.0,
+     "champions": [
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1183.5,
+        "EXCUSED": 230.5,
+        "ROAMING": 386.0
+       },
+       "off_lane_alive_s": 616.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 296.0,
+       "largest_step_over_speed": 1.0000000000000009,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 0,
+       "role": "top",
+       "roaming_share": 0.21444444444444444,
+       "off_lane_alive_share": 0.3425,
+       "roaming_share_after_exhaustion": 0.17340363210310486,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.125
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000002,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 1,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1173.0,
+        "EXCUSED": 243.0,
+        "ROAMING": 384.0
+       },
+       "off_lane_alive_s": 627.0,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 294.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 2,
+       "role": "mid",
+       "roaming_share": 0.21333333333333335,
+       "off_lane_alive_share": 0.34833333333333333,
+       "roaming_share_after_exhaustion": 0.17223198594024605,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.75
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1178.0,
+        "EXCUSED": 239.0,
+        "ROAMING": 383.0
+       },
+       "off_lane_alive_s": 622.0,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 293.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 3,
+       "role": "carry",
+       "roaming_share": 0.2127777777777778,
+       "off_lane_alive_share": 0.34555555555555556,
+       "roaming_share_after_exhaustion": 0.17164616285881665,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 1.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1198.5,
+        "EXCUSED": 211.0,
+        "ROAMING": 390.5
+       },
+       "off_lane_alive_s": 601.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 300.5,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 4,
+       "role": "support",
+       "roaming_share": 0.21694444444444444,
+       "off_lane_alive_share": 0.33416666666666667,
+       "roaming_share_after_exhaustion": 0.1760398359695372,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.875
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1226.0,
+        "EXCUSED": 177.5,
+        "ROAMING": 396.5
+       },
+       "off_lane_alive_s": 574.0,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 306.5,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 5,
+       "role": "top",
+       "roaming_share": 0.22027777777777777,
+       "off_lane_alive_share": 0.3188888888888889,
+       "roaming_share_after_exhaustion": 0.17955477445811366,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 0.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000002,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 6,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1184.0,
+        "EXCUSED": 229.5,
+        "ROAMING": 386.5
+       },
+       "off_lane_alive_s": 616.0,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.375,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 296.5,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 7,
+       "role": "mid",
+       "roaming_share": 0.21472222222222223,
+       "off_lane_alive_share": 0.3422222222222222,
+       "roaming_share_after_exhaustion": 0.17369654364381956,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1181.5,
+        "EXCUSED": 231.5,
+        "ROAMING": 387.0
+       },
+       "off_lane_alive_s": 618.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 297.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 8,
+       "role": "carry",
+       "roaming_share": 0.215,
+       "off_lane_alive_share": 0.3436111111111111,
+       "roaming_share_after_exhaustion": 0.17398945518453426,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -1.625
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1182.5,
+        "EXCUSED": 231.0,
+        "ROAMING": 386.5
+       },
+       "off_lane_alive_s": 617.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 296.5,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 9,
+       "role": "support",
+       "roaming_share": 0.21472222222222223,
+       "off_lane_alive_share": 0.34305555555555556,
+       "roaming_share_after_exhaustion": 0.17369654364381956,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -0.875
+      }
+     ]
+    },
+    "abandoner_anywhere": {
+     "game_s": 1800.0,
+     "tick_s": 0.5,
+     "decision_every_s": 2.0,
+     "champions": [
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1178.0,
+        "EXCUSED": 236.0,
+        "ROAMING": 386.0
+       },
+       "off_lane_alive_s": 622.0,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 296.0,
+       "largest_step_over_speed": 1.0000000000000018,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 0,
+       "role": "top",
+       "roaming_share": 0.21444444444444444,
+       "off_lane_alive_share": 0.34555555555555556,
+       "roaming_share_after_exhaustion": 0.17340363210310486,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -1.5
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000022,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 1,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1308.0,
+        "EXCUSED": 78.5,
+        "ROAMING": 413.5
+       },
+       "off_lane_alive_s": 492.0,
+       "longest_roam_between_lane_visits_s": 57.5,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 223.0,
+       "roamed_after_exhaustion_s": 300.5,
+       "largest_step_over_speed": 1.0000000000000024,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 2,
+       "role": "mid",
+       "roaming_share": 0.22972222222222222,
+       "off_lane_alive_share": 0.2733333333333333,
+       "roaming_share_after_exhaustion": 0.19055168040583387,
+       "window_after_exhaustion_s": 1577.0,
+       "final_allowance_s": -0.375
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1196.5,
+        "EXCUSED": 214.5,
+        "ROAMING": 389.0
+       },
+       "off_lane_alive_s": 603.5,
+       "longest_roam_between_lane_visits_s": 89.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 111.5,
+       "roamed_after_exhaustion_s": 295.0,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 3,
+       "role": "carry",
+       "roaming_share": 0.21611111111111111,
+       "off_lane_alive_share": 0.3352777777777778,
+       "roaming_share_after_exhaustion": 0.1747112822031389,
+       "window_after_exhaustion_s": 1688.5,
+       "final_allowance_s": 0.125
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1204.5,
+        "EXCUSED": 202.5,
+        "ROAMING": 393.0
+       },
+       "off_lane_alive_s": 595.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 303.0,
+       "largest_step_over_speed": 1.0000000000000024,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 4,
+       "role": "support",
+       "roaming_share": 0.21833333333333332,
+       "off_lane_alive_share": 0.3308333333333333,
+       "roaming_share_after_exhaustion": 0.17750439367311072,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": -1.875
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1188.5,
+        "EXCUSED": 231.0,
+        "ROAMING": 380.5
+       },
+       "off_lane_alive_s": 611.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 290.5,
+       "largest_step_over_speed": 1.0000000000000024,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 5,
+       "role": "top",
+       "roaming_share": 0.21138888888888888,
+       "off_lane_alive_share": 0.3397222222222222,
+       "roaming_share_after_exhaustion": 0.1701816051552431,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 6.625
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000018,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 6,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1302.0,
+        "EXCUSED": 85.5,
+        "ROAMING": 412.5
+       },
+       "off_lane_alive_s": 498.0,
+       "longest_roam_between_lane_visits_s": 42.5,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 502.5,
+       "roamed_after_exhaustion_s": 243.0,
+       "largest_step_over_speed": 1.0000000000000024,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 7,
+       "role": "mid",
+       "roaming_share": 0.22916666666666666,
+       "off_lane_alive_share": 0.27666666666666667,
+       "roaming_share_after_exhaustion": 0.18728323699421964,
+       "window_after_exhaustion_s": 1297.5,
+       "final_allowance_s": -0.125
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1179.5,
+        "EXCUSED": 238.5,
+        "ROAMING": 382.0
+       },
+       "off_lane_alive_s": 620.5,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 292.0,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 8,
+       "role": "carry",
+       "roaming_share": 0.21222222222222223,
+       "off_lane_alive_share": 0.3447222222222222,
+       "roaming_share_after_exhaustion": 0.17106033977738722,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 2.875
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1181.0,
+        "EXCUSED": 234.5,
+        "ROAMING": 384.5
+       },
+       "off_lane_alive_s": 619.0,
+       "longest_roam_between_lane_visits_s": 91.0,
+       "lowest_allowance_s": -1.875,
+       "exhausted_at_s": 93.0,
+       "roamed_after_exhaustion_s": 294.5,
+       "largest_step_over_speed": 1.000000000000002,
+       "deaths_or_recalls": 0,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 9,
+       "role": "support",
+       "roaming_share": 0.2136111111111111,
+       "off_lane_alive_share": 0.3438888888888889,
+       "roaming_share_after_exhaustion": 0.17252489748096075,
+       "window_after_exhaustion_s": 1707.0,
+       "final_allowance_s": 0.75
+      }
+     ]
+    },
+    "scripted": {
+     "game_s": 1800.0,
+     "tick_s": 0.5,
+     "decision_every_s": 2.0,
+     "champions": [
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1476.5,
+        "EXCUSED": 323.5,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 323.5,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000009,
+       "deaths_or_recalls": 23,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 0,
+       "role": "top",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.17972222222222223,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 8,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 1,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1396.0,
+        "EXCUSED": 404.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 310.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000007,
+       "deaths_or_recalls": 24,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 2,
+       "role": "mid",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.17222222222222222,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1307.5,
+        "EXCUSED": 492.5,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 199.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 20,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 3,
+       "role": "carry",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.11055555555555556,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1085.0,
+        "EXCUSED": 405.5,
+        "ROAMING": 309.5
+       },
+       "off_lane_alive_s": 684.0,
+       "longest_roam_between_lane_visits_s": 52.0,
+       "lowest_allowance_s": 8.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.000000000000002,
+       "deaths_or_recalls": 20,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 4,
+       "role": "support",
+       "roaming_share": 0.17194444444444446,
+       "off_lane_alive_share": 0.38,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 51.75
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1508.0,
+        "EXCUSED": 292.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 292.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000009,
+       "deaths_or_recalls": 22,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 5,
+       "role": "top",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.1622222222222222,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 1800.0,
+        "IN_LANE": 0.0,
+        "EXCUSED": 0.0,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 0.0,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000004,
+       "deaths_or_recalls": 7,
+       "always_unrestricted": true,
+       "illegal_choices": 0,
+       "seat": 6,
+       "role": "jungle",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.0,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1401.5,
+        "EXCUSED": 398.5,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 294.5,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0000000000000013,
+       "deaths_or_recalls": 25,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 7,
+       "role": "mid",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.16361111111111112,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1525.5,
+        "EXCUSED": 274.5,
+        "ROAMING": 0.0
+       },
+       "off_lane_alive_s": 98.5,
+       "longest_roam_between_lane_visits_s": 0.0,
+       "lowest_allowance_s": 90.0,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.0,
+       "deaths_or_recalls": 14,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 8,
+       "role": "carry",
+       "roaming_share": 0.0,
+       "off_lane_alive_share": 0.05472222222222222,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 90.0
+      },
+      {
+       "in_state_s": {
+        "FREE": 0.0,
+        "IN_LANE": 1094.5,
+        "EXCUSED": 390.0,
+        "ROAMING": 315.5
+       },
+       "off_lane_alive_s": 684.5,
+       "longest_roam_between_lane_visits_s": 52.0,
+       "lowest_allowance_s": 8.375,
+       "exhausted_at_s": null,
+       "roamed_after_exhaustion_s": 0.0,
+       "largest_step_over_speed": 1.000000000000002,
+       "deaths_or_recalls": 21,
+       "always_unrestricted": false,
+       "illegal_choices": 0,
+       "seat": 9,
+       "role": "support",
+       "roaming_share": 0.17527777777777778,
+       "off_lane_alive_share": 0.38027777777777777,
+       "roaming_share_after_exhaustion": null,
+       "window_after_exhaustion_s": null,
+       "final_allowance_s": 48.125
+      }
+     ]
+    }
+   }
+  },
+  "a_lowest_and_highest_laner_share_if_the_allowance_stopped_at_zero": {
+   "tick_1.0_decision_5": {
+    "abandoner_nearest_exit": {
+     "roaming_share_after_exhaustion": [
+      0.29994141769185706,
+      0.29994141769185706
+     ],
+     "off_lane_alive_share": [
+      0.575,
+      0.575
+     ]
+    },
+    "abandoner_anywhere": {
+     "roaming_share_after_exhaustion": [
+      0.26362038664323373,
+      0.3151728178090217
+     ],
+     "off_lane_alive_share": [
+      0.45166666666666666,
+      0.5961111111111111
+     ]
+    }
+   },
+   "tick_0.5_decision_4": {
+    "abandoner_nearest_exit": {
+     "roaming_share_after_exhaustion": [
+      0.37404803749267723,
+      0.4985354422964265
+     ],
+     "off_lane_alive_share": [
+      0.6452777777777777,
+      0.8816666666666667
+     ]
+    },
+    "abandoner_anywhere": {
+     "roaming_share_after_exhaustion": [
+      0.22042389210019267,
+      0.29056824838898654
+     ],
+     "off_lane_alive_share": [
+      0.3113888888888889,
+      0.5283333333333333
+     ]
+    }
+   }
+  },
+  "d_realistic_roam": {
+   "walk_units_each_way_off_the_lane": 4387.47064975938,
+   "arrived_s": 17.5,
+   "back_on_lane_s": 47.5,
+   "decisions": 24,
+   "legal_decisions": 24,
+   "seconds_charged_as_roaming": 30.0,
+   "allowance_left_s": 60.125,
+   "allowance_cap_s": 90.0
+  }
+ },
+ "hindsight": {
+  "decision": {
+   "seat": 0,
+   "game_s": 240.0,
+   "tick_s": 1.0,
+   "decision_every_s": 5.0,
+   "horizon_s": 45.0,
+   "rollouts": 16,
+   "alternatives": [
+    "farm",
+    "retreat"
+   ],
+   "red_jungler_last_seen_s_ago": 6.0,
+   "laner_health_share": 0.55
+  },
+  "w1_w2": {
+   "hidden_fields_changed_w1_to_w2": {
+    "red_jungler_hp": [
+     518.4,
+     194.4
+    ],
+    "red_jungler_gold": [
+     100.0,
+     900.0
+    ],
+    "red_jungler_upgrades": [
+     1,
+     2
+    ],
+    "red_raptors_alive": [
+     true,
+     false
+    ],
+    "red_memory_of_the_blue_jungler_tick": [
+     null,
+     0
+    ]
+   },
+   "worlds_differ": true,
+   "blue_observations_and_masks_identical": true,
+   "blue_knowledge_identical": true
+  },
+  "a_position_only": {
+   "w1": {
+    "farm": {
+     "survived": 0.5625,
+     "health": 613.03125,
+     "gold": 541.0499999999984,
+     "xp": 938.71875
+    },
+    "retreat": {
+     "survived": 1.0,
+     "health": 378.0,
+     "gold": 801.799999999998,
+     "xp": 651.0
+    }
+   },
+   "w2": {
+    "farm": {
+     "survived": 1.0,
+     "health": 386.1,
+     "gold": 920.799999999998,
+     "xp": 1069.5
+    },
+    "retreat": {
+     "survived": 1.0,
+     "health": 386.1,
+     "gold": 801.799999999998,
+     "xp": 651.0
+    }
+   },
+   "reports_identical": false,
+   "rollouts_that_differ": {
+    "farm": 7,
+    "retreat": 2
+   },
+   "deciding_team_sees_the_source_state_in_every_rollout_world": true
+  },
+  "b_truth_blind": {
+   "w1": {
+    "farm": {
+     "survived": 0.3125,
+     "health": 705.00625,
+     "gold": 434.6749999999983,
+     "xp": 883.5
+    },
+    "retreat": {
+     "survived": 1.0,
+     "health": 358.59375,
+     "gold": 801.799999999998,
+     "xp": 651.0
+    }
+   },
+   "w2": {
+    "farm": {
+     "survived": 0.3125,
+     "health": 705.00625,
+     "gold": 434.6749999999983,
+     "xp": 883.5
+    },
+    "retreat": {
+     "survived": 1.0,
+     "health": 358.59375,
+     "gold": 801.799999999998,
+     "xp": 651.0
+    }
+   },
+   "reports_identical": true,
+   "rollouts_that_differ": {
+    "farm": 0,
+    "retreat": 0
+   },
+   "deciding_team_sees_the_source_state_in_every_rollout_world": true
+  }
+ },
+ "run": {
+  "command": "python -m experiments.m7.kernel.scenarios",
+  "created_utc": "2026-11-11T18:48:16+00:00",
+  "git_head": "810829441600fef900d386ea4c14647dbb5df464",
+  "git_dirty": true,
+  "code_id": "44ed41ff46723432",
+  "sources": {
+   "experiments/m7/kernel/hindsight.py": "c18ff107f273c1933902d3c59417c2c18fddf1563dfc17983b92f70250b8ab88",
+   "experiments/m7/kernel/lanes.py": "0f30edc437eb226930bed2eec56e3d3b6db24e318d54a6adb85523e190914991",
+   "experiments/m7/kernel/observe.py": "a6f726b0b069cee2fb3f7fb045607dffb190b36593fafa20675c92ca50a0ab70",
+   "experiments/m7/kernel/policy.py": "d85e5741e6269e99a92aef51f89baef3d5ec7debf834e14d1312dea5972ea7b0",
+   "experiments/m7/kernel/profiles.py": "91638576291efcc4f96031da2e6555c46d603ac80359f2348040fafc5e8c8e51",
+   "experiments/m7/kernel/scenarios.py": "dbccaf345456c90b8dc01162782ae379585ed7a93576a12640f59f4f077f4552",
+   "experiments/m7/kernel/world.py": "534704345e3d3842ce2c774cf3004e629c358465059d47560b2a01c48c4b08d3",
+   "experiments/m7/waves/lane.py": "52c0351e6f976d017138b3f6d4fee1c09a581fbf033716c366280c7c59be8c5e",
+   "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
+   "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
+   "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {
+   "numpy": "2.5.4"
+  },
+  "seeds": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15
+  ],
+  "config": {
+   "tick_s": 1.0,
+   "decision_interval_ticks": 5,
+   "exceptions": "staged scenes take orders by hand on any tick, recall and the realistic roam run at a 0.5 s tick, the role duty soak runs at both clocks, and the interval test runs at intervals 1, 2, 4, and 10",
+   "lane_model": "stub, and real for the two *_real_lane sections",
+   "interval_ticks_compared": 300,
+   "roam_cap_s": 90.0,
+   "roam_refill": 0.25,
+   "role_duty_soak_game_s": 1800.0,
+   "hindsight_rollouts": 16,
+   "hindsight_horizon_s": 45.0,
+   "seeds_by_use": {
+    "staged": 1,
+    "interval": 3,
+    "role_duty_soak": 4,
+    "hidden_state": 5,
+    "snapshot": 7,
+    "hindsight_base_game": 11,
+    "scripted_policy_noise": 0,
+    "hindsight_draws": 0,
+    "hindsight_rollout_worlds": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ]
+   }
+  }
+ }
+}

@@ -4,6 +4,7 @@
 TeamMemory, the clock, and which towers stand. `encode` and `legal_mask` take the Observation alone.
 """
 
+from enum import IntEnum
 from functools import cache
 from typing import NamedTuple
 
@@ -11,15 +12,17 @@ import numpy as np
 
 from riftgame.map import Pos
 
-from experiments.m7.kernel.profiles import ROLES, stats
-from experiments.m7.kernel.world import CAMPS, HOLD, LANES, RECALL, RECALL_S, RIFT, Intent, Kind, World
+from experiments.m7.kernel.profiles import ROAM_CAP_S, ROLE_LANE, ROLES, stats
+from experiments.m7.kernel.world import (CAMPS, HOLD, KEEP, LANES, RECALL, RECALL_S, RIFT, Duty, Intent, Kind, Outcome, World,
+                                         duty, on_lane)
 
 MODES = ("last_hit", "thin", "push")
 NODES = tuple(RIFT.at(name) for name in RIFT.node_names)
 SPAN = 15000.0
-FIGHT_AT = 2 + len(NODES) + len(LANES) * len(MODES) + len(CAMPS)
+HELD = tuple(k for k in Kind if k != Kind.KEEP)
+FIGHT_AT = 3 + len(NODES) + len(LANES) * len(MODES) + len(CAMPS)
 N_ACTIONS = FIGHT_AT + 5 + len(NODES)
-OBS_SIZE = 6 + 5 * 18 + 5 * 8 + len(CAMPS) * 6 + len(LANES) * 3 + 18 + 4
+OBS_SIZE = 6 + len(Outcome) + 1 + 1 + len(Duty) + 5 * 18 + 5 * 8 + len(CAMPS) * 6 + len(LANES) * 3 + 18 + 4
 
 
 class ChampView(NamedTuple):
@@ -41,6 +44,10 @@ class ChampView(NamedTuple):
     dead_s: float
     kills: int
     deaths: int
+    outcome: Outcome
+    outcome_age_s: float
+    roam: float
+    duty: Duty
 
 
 class EnemyView(NamedTuple):
@@ -69,7 +76,8 @@ def observe(world: World, cid: int) -> Observation:
 
     def own(c) -> ChampView:
         return ChampView(c.id, c.pos, *RIFT.xy(c.pos), c.hp, c.max_hp, c.speed, c.level, c.xp, c.gold, c.upgrades, c.intent,
-                         c.channel, tick < c.slow_until, c.wards, max(0, c.respawn_tick - tick) * dt, c.kills, c.deaths)
+                         c.channel, tick < c.slow_until, c.wards, max(0, c.respawn_tick - tick) * dt, c.kills, c.deaths,
+                         c.outcome, (tick - c.outcome_tick) * dt, c.roam, duty(c))
 
     def enemy(i: int) -> EnemyView | None:
         seen = memory.enemies.get(i)
@@ -93,10 +101,12 @@ def observe(world: World, cid: int) -> Observation:
 
 def encode(o: Observation) -> np.ndarray:
     team = (o.me, *o.mates)
-    f: list[float] = [o.time / 900.0, *(i == o.me.id % 5 for i in range(5))]
+    f: list[float] = [o.time / 900.0, *(i == o.me.id % 5 for i in range(5)),
+                      *(o.me.outcome == k for k in Outcome), min(1.0, o.me.outcome_age_s / 60),
+                      o.me.roam / ROAM_CAP_S, *(o.me.duty == k for k in Duty)]
     for c in team:
         f += (c.x / SPAN, c.y / SPAN, c.hp / c.max_hp, c.level / 18, c.xp / 1000, c.gold / 3000, c.upgrades / 4,
-              c.channel / RECALL_S, c.slowed, c.wards / 2, c.dead_s / 60, *(c.intent.kind == k for k in Kind))
+              c.channel / RECALL_S, c.slowed, c.wards / 2, c.dead_s / 60, *(c.intent.kind == k for k in HELD))
     for e in o.enemies:
         f += (0.0,) * 8 if e is None else (1.0, e.visible, e.x / SPAN, e.y / SPAN, min(1.0, e.age_s / 300),
                                            e.hp / e.max_hp, e.level / 18, e.upgrades / 4)
@@ -114,18 +124,60 @@ def encode(o: Observation) -> np.ndarray:
 
 @cache
 def actions(team: int) -> tuple[Intent, ...]:
-    return (HOLD, RECALL, *(Intent(Kind.MOVE, p) for p in NODES),
+    return (KEEP, HOLD, RECALL, *(Intent(Kind.MOVE, p) for p in NODES),
             *(Intent(Kind.FARM, (lane, mode)) for lane in LANES for mode in MODES),
             *(Intent(Kind.CAMP, name) for name in CAMPS),
             *(Intent(Kind.FIGHT, i) for i in range(5 - team * 5, 10 - team * 5)),
             *(Intent(Kind.WARD, p) for p in NODES))
 
 
+class Leash(IntEnum):
+    """What the laning role lets a champion do, from its duty state and its roam allowance."""
+
+    NONE = 0        # a jungler, or a laner with allowance left: anything except farming another lane
+    HOME_LANE = 1   # no allowance, on the home lane: only actions whose target lies on that lane
+    RETURN = 2      # no allowance, off the home lane: farm the home lane or recall
+
+
+def leash(me: ChampView) -> Leash:
+    if me.duty == Duty.FREE or me.roam > 0:
+        return Leash.NONE
+    return Leash.HOME_LANE if me.duty == Duty.IN_LANE else Leash.RETURN
+
+
+def permits(state: Leash, home: str | None, a: Intent, enemies: tuple = ()) -> bool:
+    """Whether a champion with home lane `home` may hold intent `a` under this leash."""
+    if home is None:
+        return True
+    if a.kind == Kind.FARM:
+        return a.target[0] == home
+    if state == Leash.NONE:
+        return True
+    if state == Leash.RETURN:
+        return a.kind == Kind.RECALL
+    if a.kind == Kind.FIGHT:
+        foe = enemies[a.target % 5]
+        return foe is not None and on_lane(home, foe.pos)
+    return a.kind in (Kind.HOLD, Kind.RECALL) or (a.kind in (Kind.MOVE, Kind.WARD) and on_lane(home, a.target))
+
+
+@cache
+def _unleashed(team: int, home: str | None) -> np.ndarray:
+    return np.array([permits(Leash.NONE, home, a) for a in actions(team)])
+
+
 def legal_mask(o: Observation) -> np.ndarray:
-    """Aligned with `actions(team)`. FIGHT needs a visible target, WARD needs a charge, everything else is always legal."""
+    """Aligned with `actions(team)`. FIGHT needs a target that is visible now, WARD needs a charge, and the role must permit it.
+
+    KEEP is legal when the role permits the intent that it keeps.
+    """
+    me = o.me
+    team, home, state = me.id // 5, ROLE_LANE.get(ROLES[me.id % 5]), leash(me)
     mask = np.ones(N_ACTIONS, dtype=bool)
     mask[FIGHT_AT:FIGHT_AT + 5] = [e is not None and e.visible for e in o.enemies]
-    mask[FIGHT_AT + 5:] = o.me.wards > 0
+    mask[FIGHT_AT + 5:] = me.wards > 0
+    mask &= _unleashed(team, home) if state == Leash.NONE else [permits(state, home, a, o.enemies) for a in actions(team)]
+    mask[0] = permits(state, home, me.intent, o.enemies)
     return mask
 
 

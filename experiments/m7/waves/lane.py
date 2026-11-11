@@ -91,10 +91,13 @@ class Mechanics:
     champion_aggro: a minion with no enemy minion or tower in acquisition range attacks the closest targetable enemy champion.
     lateral_slots: a minion keeps a lateral slot in its wave, and among enemies equally far along the lane it picks the
     laterally closest. Draws for the ties that remain are keyed without the tick.
+    current_hp_damage: a minion blow on a minion adds the reference patch's share of the target's current health.
+    Turning it off is a sensitivity run on that sourced constant, not a candidate rule.
     """
 
     champion_aggro: bool = False
     lateral_slots: bool = False
+    current_hp_damage: bool = True
 
 
 BASELINE = Mechanics()
@@ -559,7 +562,7 @@ class LaneSim(Lane):
         elif type(target) is ChampionTarget:
             tick.events.append(ChampionDamage(tick.t0 + now, target.inp.champ_id, m.ad * DAMAGE_TO_CHAMPIONS))
         else:
-            self._hurt(target, m.ad + m.rules.pct_current_hp * target.hp, None, now, tick)
+            self._hurt(target, m.ad + m.rules.pct_current_hp * target.hp * self.mechanics.current_hp_damage, None, now, tick)
 
     def _tower_attack(self, tower: Tower, now: float, tick: Tick) -> None:
         target = self._tower_target(tower) if tower.hp > 0 else None

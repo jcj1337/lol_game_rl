@@ -1,4 +1,7 @@
-"""M7 feasibility kernel: one game per World, a fixed tick, intents as standing orders. A prototype, not the M8 build."""
+"""M7 feasibility kernel: one game per World, a fixed tick, one intent per champion that ends when it completes.
+
+A prototype, not the M8 build.
+"""
 
 import hashlib
 import math
@@ -13,7 +16,7 @@ from riftgame.ruleset import interpolated
 
 from experiments.m7.kernel.lanes import ChampionInput, StubLane
 from experiments.m7.kernel.profiles import ASSUMPTIONS as A
-from experiments.m7.kernel.profiles import ROLES, STATS, next_cost, stats
+from experiments.m7.kernel.profiles import ROAM_CAP_S, ROAM_REFILL, ROLE_LANE, ROLES, STATS, next_cost, stats
 
 R = ruleset.load()
 E, V, F, T = R["economy"], R["vision"], R["fountain"], R["towers"]
@@ -35,10 +38,14 @@ class Kind(IntEnum):
     FIGHT = 4
     RECALL = 5
     WARD = 6
+    KEEP = 7
 
 
 class Intent(NamedTuple):
-    """MOVE and WARD target a Pos, FARM a (lane, mode), CAMP a camp name, FIGHT an enemy champion id."""
+    """MOVE and WARD target a Pos, FARM a (lane, mode), CAMP a camp name, FIGHT an enemy champion id.
+
+    KEEP is an action only. A champion never holds it.
+    """
 
     kind: Kind
     target: object = None
@@ -46,6 +53,22 @@ class Intent(NamedTuple):
 
 HOLD = Intent(Kind.HOLD)
 RECALL = Intent(Kind.RECALL)
+KEEP = Intent(Kind.KEEP)
+
+
+class Outcome(IntEnum):
+    """How a champion's last finished intent ended. FARM and HOLD never finish by themselves."""
+
+    NONE = 0
+    ARRIVED = 1
+    CLEARED = 2
+    ABSENT = 3
+    KILLED = 4
+    LOST = 5
+    PLACED = 6
+    RECALLED = 7
+    INTERRUPTED = 8
+    DIED = 9
 
 
 class CampInfo(NamedTuple):
@@ -83,12 +106,14 @@ OFF_LANE = frozenset(name for name, info in CAMPS.items()
 
 class Champion:
     __slots__ = ("id", "team", "role", "pos", "hp", "level", "xp", "gold", "upgrades", "intent", "channel", "slow",
-                 "slow_until", "lockdown_at", "respawn_tick", "wards", "ward_timer", "kills", "deaths", *STATS)
+                 "slow_until", "lockdown_at", "respawn_tick", "wards", "ward_timer", "kills", "deaths", "outcome", "outcome_tick",
+                 "roam", *STATS)
 
     def __init__(self, cid: int):
         self.id, self.team, self.role, self.pos = cid, cid // 5, ROLES[cid % 5], FOUNTAIN[cid // 5]
         self.level, self.xp, self.gold, self.upgrades = 1, 0.0, float(E["starting_gold"]), 0
-        self.intent, self.channel = HOLD, 0.0
+        self.intent, self.channel, self.outcome, self.outcome_tick = HOLD, 0.0, Outcome.NONE, -1
+        self.roam = ROAM_CAP_S
         self.slow, self.slow_until, self.lockdown_at, self.respawn_tick = 0.0, 0, 0, -1
         self.wards, self.ward_timer, self.kills, self.deaths = V["ward_charges"], 0.0, 0, 0
         self.refresh()
@@ -97,6 +122,40 @@ class Champion:
     def refresh(self) -> None:
         for name, value in zip(STATS, stats(self.role, self.level, self.upgrades)):
             setattr(self, name, value)
+
+
+class Duty(IntEnum):
+    """Where a champion stands against its laning role. `ROAM_RATE` is what each state does to the roam allowance."""
+
+    FREE = 0      # a jungler, who has no home lane
+    IN_LANE = 1   # on its home lane
+    EXCUSED = 2   # off it, but dead, recalling, on its fountain, or under a FARM order for its home lane
+    ROAMING = 3
+
+
+ROAM_RATE = {Duty.FREE: 0.0, Duty.IN_LANE: ROAM_REFILL, Duty.EXCUSED: 0.0, Duty.ROAMING: -1.0}
+LANE_EDGES = {name: frozenset(lane.edges) for name, lane in RIFT.lanes.items()}
+LANE_NODE_IDS = {name: frozenset(n for e in edges for n in (RIFT.edges[e].a, RIFT.edges[e].b)) for name, edges in LANE_EDGES.items()}
+
+
+def on_lane(lane: str, pos: Pos) -> bool:
+    """True on an edge of the lane, and at one of its nodes even when the position names a neighbouring edge."""
+    if pos.edge in LANE_EDGES[lane]:
+        return True
+    edge = RIFT.edges[pos.edge]
+    return (pos.offset <= 0.0 and edge.a in LANE_NODE_IDS[lane]) or (pos.offset >= edge.length and edge.b in LANE_NODE_IDS[lane])
+
+
+def duty(c: Champion) -> Duty:
+    home = ROLE_LANE.get(c.role)
+    if home is None:
+        return Duty.FREE
+    if c.respawn_tick >= 0:
+        return Duty.EXCUSED
+    if on_lane(home, c.pos):
+        return Duty.IN_LANE
+    returning = c.intent.kind == Kind.RECALL or (c.intent.kind == Kind.FARM and c.intent.target[0] == home)
+    return Duty.EXCUSED if returning or RIFT.distance(c.pos, FOUNTAIN[c.team]) <= F["regen_radius"] else Duty.ROAMING
 
 
 class Camp:
@@ -146,6 +205,14 @@ class View:
     """What one team sees this tick. `fronts[lane]` is (own front s, most advanced visible enemy minion s or -1)."""
 
     __slots__ = ("enemies", "camps", "fronts", "wards")
+
+
+def in_sight(sources: list, x: float, y: float, pos: Pos) -> bool:
+    # A route is never shorter than the straight line, so the cheap test can only reject.
+    for sx, sy, spos, sight in sources:
+        if (sx - x) ** 2 + (sy - y) ** 2 <= sight * sight and RIFT.distance(spos, pos) <= sight:
+            return True
+    return False
 
 
 def _canon(o, visited: dict):
@@ -205,10 +272,16 @@ class World:
     def digest(self) -> str:
         return fingerprint((self.seed, self.dt, [getattr(self, name) for name in self.STATE]))
 
-    def submit(self, cid: int, intent: Intent) -> None:
+    def submit(self, cid: int, action: Intent) -> None:
         c = self.champs[cid]
-        if intent != c.intent:
-            c.intent, c.channel = intent, 0.0
+        if action.kind == Kind.KEEP or action == c.intent:
+            return
+        if action.kind == Kind.FIGHT and action.target not in self.views[c.team].enemies:
+            raise ValueError(f"champion {cid} cannot start a fight with {action.target}, who is out of its team's view")
+        c.intent, c.channel = action, 0.0
+
+    def _finish(self, c: Champion, outcome: Outcome) -> None:
+        c.intent, c.channel, c.outcome, c.outcome_tick = HOLD, 0.0, outcome, self.tick
 
     def step(self) -> None:
         now = self.tick * self.dt
@@ -246,7 +319,8 @@ class World:
                 continue
             kind, target = c.intent
             if kind == Kind.MOVE:
-                self._approach(c, target, 0.0)
+                if self._approach(c, target, 0.0):
+                    self._finish(c, Outcome.ARRIVED)
             elif kind == Kind.FARM:
                 lane, mode = target
                 self._approach(c, RIFT.lane_pos(lane, views[c.team].fronts[lane][0]), 0.0)
@@ -254,40 +328,54 @@ class World:
                 if s is not None:
                     inputs[lane].append(ChampionInput(c.id, c.team, s, mode, c.hit_damage, c.attack_speed, c.range, c.aoe_dps, 1.0))
             elif kind == Kind.CAMP:
-                camp = self.camps[target]
-                if self._approach(c, CAMPS[target].pos, c.range) and camp.alive:
-                    camp.hp -= c.camp_dps * dt
-                    camp.aggro = c.id
+                if self._approach(c, CAMPS[target].pos, c.range):
+                    # The champion acts on what its team saw at the end of the last tick, as a policy does.
+                    if self.memory[c.team].camps[target].alive:
+                        camp = self.camps[target]
+                        camp.hp -= c.camp_dps * dt
+                        camp.aggro = c.id
+                    else:
+                        self._finish(c, Outcome.ABSENT)
             elif kind == Kind.RECALL:
-                if RIFT.distance(c.pos, FOUNTAIN[c.team]) > F["regen_radius"]:
+                if RIFT.distance(c.pos, FOUNTAIN[c.team]) <= F["regen_radius"]:
+                    self._finish(c, Outcome.RECALLED)
+                else:
                     c.channel += dt
                     if c.channel >= RECALL_S - 1e-9:
-                        c.pos, c.channel = FOUNTAIN[c.team], 0.0
+                        c.pos = FOUNTAIN[c.team]
                         self.counts["recalls"] += 1
+                        self._finish(c, Outcome.RECALLED)
             elif kind == Kind.WARD:
                 if self._approach(c, target, V["ward_place_range"]) and c.wards > 0:
                     self._place_ward(c, target)
+                    self._finish(c, Outcome.PLACED)
             elif kind == Kind.FIGHT:
                 fighters.append(c)
         # Pursuers move after everyone else and aim at where each target stood before any pursuer moved,
-        # so the result does not depend on champion order. A target out of sight is chased to its last-seen spot only.
+        # so the result does not depend on champion order.
         stood = [c.pos for c in self.champs]
         for c in fighters:
             foe = c.intent.target
             if foe in views[c.team].enemies:
                 self._approach(c, stood[foe], c.range * A["fight_standoff"])
-            elif foe in self.memory[c.team].enemies:
-                self._approach(c, self.memory[c.team].enemies[foe].pos, 0.0)
+                continue
+            # The target is in fog, so the team's last-seen record is the only place the pursuer may go.
+            # It gives up one tick after it arrives, so that the view it gives up on was taken from that spot.
+            last_seen = self.memory[c.team].enemies[foe].pos
+            if RIFT.distance(c.pos, last_seen) <= c.range + 1e-6:
+                self._finish(c, Outcome.LOST)
+            else:
+                self._approach(c, last_seen, c.range)
         hits = []
         for c in fighters:
+            if c.intent.kind != Kind.FIGHT:
+                continue
             foe = self.champs[c.intent.target]
             if foe.id in views[c.team].enemies and RIFT.distance(c.pos, foe.pos) <= c.range:
                 hits.append((c, foe, c.dps * dt * (1.0 if c.pos is stood[c.id] else A["chase_dps_factor"])))
         return inputs, hits
 
     def _place_ward(self, c: Champion, target: Pos) -> None:
-        if any(s.ward and s.team == c.team and s.pos == target for s in self.sources):
-            return
         c.wards -= 1
         expires = self.tick + round(V["ward_duration_s"][0] / self.dt)
         self.sources.append(Source(c.team, target, *RIFT.xy(target), V["ward_sight_range"], expires, True))
@@ -342,6 +430,10 @@ class World:
         killer.gold += info.gold
         self._gain_xp(killer, info.xp)
         self.counts["camp_clears"] += 1
+        # Only a champion standing at the camp learns of the clear this way. One still on its way finds the camp empty.
+        for c in self.champs:
+            if c.intent == (Kind.CAMP, camp.name) and RIFT.distance(c.pos, info.pos) <= c.range + 1e-6:
+                self._finish(c, Outcome.CLEARED)
         if info.kind != "scuttler":
             return
         S = R["scuttler"]
@@ -366,7 +458,8 @@ class World:
             if damage <= 0:
                 continue
             victim.hp -= damage
-            victim.channel = 0.0
+            if victim.intent.kind == Kind.RECALL:
+                self._finish(victim, Outcome.INTERRUPTED)
             if attacker is not None and attacker.slow_frac > 0 and tick >= attacker.lockdown_at:
                 victim.slow, victim.slow_until = attacker.slow_frac, tick + 1 + round(attacker.slow_s / dt)
                 attacker.lockdown_at = tick + round(attacker.slow_cd_s / dt)
@@ -387,14 +480,20 @@ class World:
                     c.gold -= next_cost(c.role, c.upgrades)
                     c.upgrades += 1
                     c.refresh()
+            # No floor. A laner that overstays until its next decision goes into debt and repays it on its lane.
+            c.roam = min(ROAM_CAP_S, c.roam + ROAM_RATE[duty(c)] * dt)
 
     def _die(self, victim: Champion, killer: Champion | None, now: float) -> None:
         D = R["death"]
         wait = D["respawn_s"][victim.level - 1] * (1.0 + D["time_scaling_per_30s"] * (max(0.0, now - D["time_scaling_start_s"]) // 30))
         spot = victim.pos
-        victim.hp, victim.pos, victim.channel, victim.deaths = 0.0, FOUNTAIN[victim.team], 0.0, victim.deaths + 1
+        victim.hp, victim.pos, victim.deaths = 0.0, FOUNTAIN[victim.team], victim.deaths + 1
         victim.respawn_tick = self.tick + 1 + math.ceil(wait / self.dt)
         self.counts["champion_deaths"] += 1
+        for c in self.champs:
+            if c.intent == (Kind.FIGHT, victim.id):
+                self._finish(c, Outcome.KILLED)
+        self._finish(victim, Outcome.DIED)
         if killer is None:
             return
         killer.kills += 1
@@ -405,29 +504,32 @@ class World:
         for c in near:
             self._gain_xp(c, (A["kill_xp_base"] + A["kill_xp_per_level"] * victim.level) / len(near))
 
+    def _minions(self) -> list:
+        return [(team, name, s, pos, *RIFT.xy(pos)) for name, lane in self.lanes.items() for team, s in lane.minions()
+                for pos in (RIFT.lane_pos(name, s),)]
+
+    def watchers(self, team: int, minions: list | None = None) -> tuple[list, list]:
+        """A team's vision sources as (x, y, pos, sight) rows: those that see into the jungle, and all of them."""
+        roaming = [(*RIFT.xy(c.pos), c.pos, R["champions"]["sight_range"]) for c in self.champs
+                   if c.team == team and c.respawn_tick < 0]
+        roaming += [(s.x, s.y, s.pos, s.sight) for s in self.sources if s.team == team]
+        src = roaming + [(x, y, pos, R["minions"]["sight_range"])
+                         for owner, _, _, pos, x, y in (self._minions() if minions is None else minions) if owner == team]
+        src += [(*TOWER_XY[t.name], TOWER_POS[t.name], T["sight_range"]) for t in self.towers if t.team == team and t.hp > 0]
+        return roaming, src
+
     def see(self) -> None:
         """Rebuild both teams' views and fold what they see into their memories."""
         tick, now = self.tick, self.tick * self.dt
         self.sources = [s for s in self.sources if s.expires > tick]
         alive = [c for c in self.champs if c.respawn_tick < 0]
         cxy = {c.id: RIFT.xy(c.pos) for c in alive}
-        minions = []
-        for name, lane in self.lanes.items():
-            for team, s in lane.minions():
-                pos = RIFT.lane_pos(name, s)
-                minions.append((team, name, s, pos, *RIFT.xy(pos)))
+        minions = self._minions()
         for team, sign in ((0, 1.0), (1, -1.0)):
-            roaming = [(*cxy[c.id], c.pos, R["champions"]["sight_range"]) for c in alive if c.team == team]
-            roaming += [(s.x, s.y, s.pos, s.sight) for s in self.sources if s.team == team]
-            src = roaming + [(x, y, pos, R["minions"]["sight_range"]) for owner, _, _, pos, x, y in minions if owner == team]
-            src += [(*TOWER_XY[t.name], TOWER_POS[t.name], T["sight_range"]) for t in self.towers if t.team == team and t.hp > 0]
+            roaming, src = self.watchers(team, minions)
 
             def seen(x: float, y: float, pos: Pos, sources: list = src) -> bool:
-                # A route is never shorter than the straight line, so the cheap test can only reject.
-                for sx, sy, spos, sight in sources:
-                    if (sx - x) ** 2 + (sy - y) ** 2 <= sight * sight and RIFT.distance(spos, pos) <= sight:
-                        return True
-                return False
+                return in_sight(sources, x, y, pos)
 
             view, memory = self.views[team], self.memory[team]
             view.enemies = tuple(c.id for c in alive if c.team != team and seen(*cxy[c.id], c.pos))

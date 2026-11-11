@@ -1,6 +1,8 @@
-"""Throughput of a scripted 15-minute game, for Q5. Run as a module to write the q5 section of results/kernel.json.
+"""Throughput of a scripted 15-minute game, for Q5. Each invocation writes one complete file with its own run block.
 
-With the argument `start`, measure only the M8 starting clock (0.5 s tick, a decision every 2 s) on the real lane.
+With no argument, measure both lane models at a decision every 5 s and write results/bench_tick1.0_decision5.json.
+With the argument `start`, measure only the M8 starting clock (0.5 s tick, a decision every 2 s) on the real lane and
+write results/bench_tick0.5_decision2.json.
 """
 
 import cProfile
@@ -11,14 +13,17 @@ import subprocess
 import sys
 import time
 from multiprocessing import Pool
+from pathlib import Path
+
+from experiments.m7.provenance import stamp
 
 from experiments.m7.kernel.lanes import RealLane, StubLane
 from experiments.m7.kernel.observe import encode, legal_mask, observe, run
 from experiments.m7.kernel.policy import scripted
-from experiments.m7.kernel.scenarios import RESULTS
 from experiments.m7.kernel.world import World
 
-GAME_S, DECISION_S, RUNS, GAMES_PER_PROCESS = 900, 5, 7, 6
+RESULTS_DIR = Path(__file__).parent / "results"
+SEED, GAME_S, DECISION_S, RUNS, GAMES_PER_PROCESS, TIMED_BATCHES = 0, 900, 5, 7, 6, 3
 START_TICK_S, START_DECISION_S = 0.5, 2
 LANE_MODELS = {"stub": StubLane, "real": RealLane}
 SUBSYSTEMS = {
@@ -37,7 +42,7 @@ def agent(o):
 
 
 def play(lane: str, dt: float = 1.0, seconds: int = GAME_S, decision_s: float = DECISION_S):
-    w = World(seed=0, dt=dt, decision_interval=round(decision_s / dt), lane_factory=LANE_MODELS[lane])
+    w = World(seed=SEED, dt=dt, decision_interval=round(decision_s / dt), lane_factory=LANE_MODELS[lane])
     start = time.perf_counter()
     decisions = run(w, agent, round(seconds / dt))
     return time.perf_counter() - start, decisions, w
@@ -120,7 +125,7 @@ def scaling(lane: str, expected_work: dict) -> dict:
         walls = []
         with Pool(processes) as pool:
             pool.map(worker, [lane] * processes, chunksize=1)
-            for _ in range(3):
+            for _ in range(TIMED_BATCHES):
                 start = time.perf_counter()
                 done = pool.map(worker, [lane] * games, chunksize=1)
                 walls.append(time.perf_counter() - start)
@@ -164,7 +169,7 @@ def starting_values() -> dict:
         walls = []
         with Pool(processes) as pool:
             pool.map(start_worker, range(processes), chunksize=1)
-            for _ in range(3):
+            for _ in range(TIMED_BATCHES):
                 start = time.perf_counter()
                 done = pool.map(start_worker, range(games), chunksize=1)
                 walls.append(time.perf_counter() - start)
@@ -176,21 +181,26 @@ def starting_values() -> dict:
     return out
 
 
+def write(tick_s: float, decision_s: float, section: str, body: dict, config: dict) -> None:
+    config = {"tick_s": tick_s, "decision_every_s": decision_s, "game_s": GAME_S, "single_process_runs": RUNS,
+              "games_per_process": GAMES_PER_PROCESS, "timed_batches": TIMED_BATCHES} | config
+    path = RESULTS_DIR / f"bench_tick{tick_s}_decision{decision_s}.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps({section: body, "run": stamp([SEED], config)}, indent=1))
+    print(json.dumps(body, indent=1))
+    print(f"wrote {path}")
+
+
 def main() -> None:
-    results = json.loads(RESULTS.read_text()) if RESULTS.exists() else {}
     if sys.argv[1:] == ["start"]:
-        results["q5_starting_values"] = starting_values()
-        RESULTS.write_text(json.dumps(results, indent=1))
-        print(json.dumps(results["q5_starting_values"], indent=1))
+        write(START_TICK_S, START_DECISION_S, "q5_starting_values", starting_values(), {"lanes": ["real"], "processes": [5, 6]})
         return
     q5 = {"cpu_load_percent_before": cpu_load_percent(), "game_s": GAME_S, "decision_every_s": DECISION_S}
     for lane in LANE_MODELS:
         q5[f"{lane}_lane"] = measure(lane)
     q5["cpu_load_percent_after"] = cpu_load_percent()
-    results["q5_throughput"] = q5
-    RESULTS.parent.mkdir(exist_ok=True)
-    RESULTS.write_text(json.dumps(results, indent=1))
-    print(json.dumps(q5, indent=1))
+    write(1.0, DECISION_S, "q5_throughput", q5,
+          {"lanes": list(LANE_MODELS), "processes": [1, 6, 12], "also_timed_single_process_at_tick_s": 0.5})
 
 
 if __name__ == "__main__":
