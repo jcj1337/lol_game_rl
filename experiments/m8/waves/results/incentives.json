@@ -1,0 +1,709 @@
+{
+ "ruleset": "ref-26.22-r1+m8.1",
+ "seeds": [ 0, 1, 2, 3, 4 ],
+ "dt": 0.5,
+ "window_s": 300.0,
+ "laner": "the scripted champion of harness.Laner: 650 health, 30 armor, 65 damage, 0.65 attacks per second, range 550, all placeholders. XP counts alone in the lane, within 1500 units of the death.",
+ "mode_that_earns_most_by_state": { "top, from first contact, opponent absent": "hold", "top, from first contact, opponent last hits": "push", "top, from first contact, opponent pushes": "push", "top, after a crash at the own tower, opponent absent": "hold", "top, after a crash at the own tower, opponent last hits": "push", "top, from first contact, opponent last hits, own team one level ahead": "last_hit", "mid, from first contact, opponent absent": "last_hit", "mid, from first contact, opponent last hits": "last_hit", "mid, from first contact, opponent pushes": "push", "mid, after a crash at the own tower, opponent absent": "push", "mid, after a crash at the own tower, opponent last hits": "push", "mid, from first contact, opponent last hits, own team one level ahead": "last_hit" },
+ "one_mode_earns_most_in_every_state": null,
+ "states": {
+  "top, from first contact, opponent absent": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 221.774, "mean": 220.527, "min": 0.0, "max": 437.822, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 48.308, "min": 0.0, "max": 186.46, "n": 5 },
+    "lowest_health": { "median": 0.918, "mean": 0.925, "min": 0.893, "max": 0.966, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 955.0, "mean": 958.6, "min": 941.0, "max": 981.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3970.0, "mean": 3973.6, "min": 3956.0, "max": 3996.0, "n": 5 },
+    "minions_killed": { "median": 50.0, "mean": 50.0, "min": 49.0, "max": 51.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 361.843, "mean": 422.195, "min": 337.283, "max": 569.224, "n": 5 },
+    "lowest_health": { "median": 0.959, "mean": 0.956, "min": 0.92, "max": 0.973, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 632.0, "mean": 664.4, "min": 598.0, "max": 763.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3647.0, "mean": 3679.4, "min": 3613.0, "max": 3778.0, "n": 5 },
+    "minions_killed": { "median": 37.0, "mean": 37.8, "min": 35.0, "max": 41.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 1167.282, "mean": 1147.501, "min": 1117.831, "max": 1167.282, "n": 5 },
+    "lowest_health": { "median": 0.985, "mean": 0.984, "min": 0.98, "max": 0.985, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 680.0, "mean": 680.0, "min": 680.0, "max": 680.0, "n": 5 },
+    "xp": { "median": 3077.0, "mean": 3077.0, "min": 3077.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 3757.0, "mean": 3757.0, "min": 3757.0, "max": 3757.0, "n": 5 },
+    "minions_killed": { "median": 40.0, "mean": 40.0, "min": 40.0, "max": 40.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 5942.041, "mean": 5942.041, "min": 5942.041, "max": 5942.041, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 975.0, "mean": 967.8, "min": 947.0, "max": 989.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3990.0, "mean": 3982.8, "min": 3962.0, "max": 4004.0, "n": 5 },
+    "minions_killed": { "median": 51.0, "mean": 50.4, "min": 49.0, "max": 52.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 411.759, "mean": 422.037, "min": 369.743, "max": 484.739, "n": 5 },
+    "lowest_health": { "median": 0.924, "mean": 0.92, "min": 0.904, "max": 0.938, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "top, from first contact, opponent last hits": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 704.115, "mean": 715.163, "min": 655.545, "max": 773.668, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.94, "mean": 0.94, "min": 0.94, "max": 0.94, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 865.0, "mean": 875.4, "min": 845.0, "max": 921.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3880.0, "mean": 3890.4, "min": 3860.0, "max": 3936.0, "n": 5 },
+    "minions_killed": { "median": 44.0, "mean": 45.0, "min": 43.0, "max": 48.0, "n": 5 },
+    "own_tower_damage": { "median": 537.403, "mean": 538.774, "min": 407.29, "max": 660.249, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.922, "mean": 0.922, "min": 0.905, "max": 0.939, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 753.0, "mean": 710.2, "min": 588.0, "max": 811.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3768.0, "mean": 3725.2, "min": 3603.0, "max": 3826.0, "n": 5 },
+    "minions_killed": { "median": 39.0, "mean": 37.6, "min": 33.0, "max": 41.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 658.517, "mean": 641.39, "min": 556.094, "max": 676.075, "n": 5 },
+    "lowest_health": { "median": 0.959, "mean": 0.962, "min": 0.952, "max": 0.975, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 853.0, "mean": 853.0, "min": 853.0, "max": 853.0, "n": 5 },
+    "xp": { "median": 3077.0, "mean": 3077.0, "min": 3077.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 3930.0, "mean": 3930.0, "min": 3930.0, "max": 3930.0, "n": 5 },
+    "minions_killed": { "median": 47.0, "mean": 47.0, "min": 47.0, "max": 47.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 4466.052, "mean": 4466.052, "min": 4466.052, "max": 4466.052, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 430.0, "mean": 444.0, "min": 382.0, "max": 540.0, "n": 5 },
+    "xp": { "median": 2382.0, "mean": 2390.8, "min": 2227.0, "max": 2519.0, "n": 5 },
+    "gold_plus_xp": { "median": 2874.0, "mean": 2834.8, "min": 2651.0, "max": 2963.0, "n": 5 },
+    "minions_killed": { "median": 23.0, "mean": 24.0, "min": 20.0, "max": 30.0, "n": 5 },
+    "own_tower_damage": { "median": 578.689, "mean": 626.112, "min": 565.131, "max": 768.162, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.258, "mean": 0.256, "min": 0.214, "max": 0.298, "n": 5 },
+    "retreats": { "median": 1.0, "mean": 1.2, "min": 1.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "top, from first contact, opponent pushes": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 6433.313, "mean": 6433.313, "min": 6433.313, "max": 6433.313, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.938, "mean": 0.938, "min": 0.938, "max": 0.938, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 96.0, "mean": 96.0, "min": 96.0, "max": 96.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3111.0, "mean": 3111.0, "min": 3111.0, "max": 3111.0, "n": 5 },
+    "minions_killed": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
+    "own_tower_damage": { "median": 6301.364, "mean": 6301.364, "min": 6301.364, "max": 6301.364, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.938, "mean": 0.938, "min": 0.938, "max": 0.938, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 14.0, "mean": 14.0, "min": 14.0, "max": 14.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3029.0, "mean": 3029.0, "min": 3029.0, "max": 3029.0, "n": 5 },
+    "minions_killed": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "own_tower_damage": { "median": 5256.268, "mean": 5256.268, "min": 5256.268, "max": 5256.268, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.938, "mean": 0.938, "min": 0.938, "max": 0.938, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 1113.0, "mean": 1113.0, "min": 1113.0, "max": 1113.0, "n": 5 },
+    "xp": { "median": 3077.0, "mean": 3077.0, "min": 3077.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 4190.0, "mean": 4190.0, "min": 4190.0, "max": 4190.0, "n": 5 },
+    "minions_killed": { "median": 60.0, "mean": 60.0, "min": 60.0, "max": 60.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.947, "mean": 0.947, "min": 0.947, "max": 0.947, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 20.0, "mean": 20.0, "min": 20.0, "max": 20.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3035.0, "mean": 3035.0, "min": 3035.0, "max": 3035.0, "n": 5 },
+    "minions_killed": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "own_tower_damage": { "median": 6360.794, "mean": 6360.794, "min": 6360.794, "max": 6360.794, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.285, "mean": 0.285, "min": 0.285, "max": 0.285, "n": 5 },
+    "retreats": { "median": 2.0, "mean": 2.0, "min": 2.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "top, after a crash at the own tower, opponent absent": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3201.0, "mean": 3176.2, "min": 3139.0, "max": 3201.0, "n": 5 },
+    "gold_plus_xp": { "median": 3201.0, "mean": 3176.2, "min": 3139.0, "max": 3201.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 513.729, "mean": 524.294, "min": 248.4, "max": 846.171, "n": 5 },
+    "enemy_tower_damage": { "median": 274.508, "mean": 329.391, "min": 219.465, "max": 567.215, "n": 5 },
+    "lowest_health": { "median": 0.966, "mean": 0.956, "min": 0.936, "max": 0.966, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 975.0, "mean": 974.6, "min": 947.0, "max": 1009.0, "n": 5 },
+    "xp": { "median": 3201.0, "mean": 3213.4, "min": 3201.0, "max": 3232.0, "n": 5 },
+    "gold_plus_xp": { "median": 4182.0, "mean": 4188.0, "min": 4148.0, "max": 4241.0, "n": 5 },
+    "minions_killed": { "median": 51.0, "mean": 50.8, "min": 49.0, "max": 53.0, "n": 5 },
+    "own_tower_damage": { "median": 248.4, "mean": 248.4, "min": 248.4, "max": 248.4, "n": 5 },
+    "enemy_tower_damage": { "median": 197.235, "mean": 215.474, "min": 191.712, "max": 268.943, "n": 5 },
+    "lowest_health": { "median": 0.959, "mean": 0.958, "min": 0.952, "max": 0.965, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 640.0, "mean": 672.4, "min": 606.0, "max": 771.0, "n": 5 },
+    "xp": { "median": 3232.0, "mean": 3232.0, "min": 3232.0, "max": 3232.0, "n": 5 },
+    "gold_plus_xp": { "median": 3872.0, "mean": 3904.4, "min": 3838.0, "max": 4003.0, "n": 5 },
+    "minions_killed": { "median": 35.0, "mean": 35.8, "min": 33.0, "max": 39.0, "n": 5 },
+    "own_tower_damage": { "median": 248.4, "mean": 248.4, "min": 248.4, "max": 248.4, "n": 5 },
+    "enemy_tower_damage": { "median": 748.943, "mean": 729.163, "min": 699.492, "max": 748.943, "n": 5 },
+    "lowest_health": { "median": 0.986, "mean": 0.985, "min": 0.98, "max": 0.986, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 668.0, "mean": 668.0, "min": 668.0, "max": 668.0, "n": 5 },
+    "xp": { "median": 3294.0, "mean": 3294.0, "min": 3294.0, "max": 3294.0, "n": 5 },
+    "gold_plus_xp": { "median": 3962.0, "mean": 3962.0, "min": 3962.0, "max": 3962.0, "n": 5 },
+    "minions_killed": { "median": 40.0, "mean": 40.0, "min": 40.0, "max": 40.0, "n": 5 },
+    "own_tower_damage": { "median": 69.6, "mean": 69.6, "min": 69.6, "max": 69.6, "n": 5 },
+    "enemy_tower_damage": { "median": 5833.873, "mean": 5833.873, "min": 5833.873, "max": 5833.873, "n": 5 },
+    "lowest_health": { "median": 0.984, "mean": 0.984, "min": 0.984, "max": 0.984, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 1001.0, "mean": 1008.6, "min": 981.0, "max": 1057.0, "n": 5 },
+    "xp": { "median": 3201.0, "mean": 3207.2, "min": 3201.0, "max": 3232.0, "n": 5 },
+    "gold_plus_xp": { "median": 4202.0, "mean": 4215.8, "min": 4182.0, "max": 4289.0, "n": 5 },
+    "minions_killed": { "median": 52.0, "mean": 52.8, "min": 51.0, "max": 56.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 316.197, "mean": 373.431, "min": 250.658, "max": 565.126, "n": 5 },
+    "lowest_health": { "median": 0.535, "mean": 0.535, "min": 0.535, "max": 0.535, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "top, after a crash at the own tower, opponent last hits": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3201.0, "mean": 3201.0, "min": 3201.0, "max": 3201.0, "n": 5 },
+    "gold_plus_xp": { "median": 3201.0, "mean": 3201.0, "min": 3201.0, "max": 3201.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 845.028, "mean": 888.63, "min": 724.942, "max": 1072.01, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.947, "mean": 0.951, "min": 0.944, "max": 0.961, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 859.0, "mean": 847.0, "min": 805.0, "max": 873.0, "n": 5 },
+    "xp": { "median": 3201.0, "mean": 3201.0, "min": 3201.0, "max": 3201.0, "n": 5 },
+    "gold_plus_xp": { "median": 4060.0, "mean": 4048.0, "min": 4006.0, "max": 4074.0, "n": 5 },
+    "minions_killed": { "median": 44.0, "mean": 43.4, "min": 41.0, "max": 45.0, "n": 5 },
+    "own_tower_damage": { "median": 736.098, "mean": 730.893, "min": 535.647, "max": 867.213, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.922, "mean": 0.924, "min": 0.905, "max": 0.951, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 733.0, "mean": 717.8, "min": 665.0, "max": 763.0, "n": 5 },
+    "xp": { "median": 3263.0, "mean": 3263.0, "min": 3263.0, "max": 3263.0, "n": 5 },
+    "gold_plus_xp": { "median": 3996.0, "mean": 3980.8, "min": 3928.0, "max": 4026.0, "n": 5 },
+    "minions_killed": { "median": 41.0, "mean": 40.0, "min": 38.0, "max": 42.0, "n": 5 },
+    "own_tower_damage": { "median": 248.4, "mean": 248.4, "min": 248.4, "max": 248.4, "n": 5 },
+    "enemy_tower_damage": { "median": 427.405, "mean": 415.634, "min": 361.697, "max": 430.832, "n": 5 },
+    "lowest_health": { "median": 0.959, "mean": 0.961, "min": 0.959, "max": 0.964, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 841.0, "mean": 841.0, "min": 841.0, "max": 841.0, "n": 5 },
+    "xp": { "median": 3294.0, "mean": 3294.0, "min": 3294.0, "max": 3294.0, "n": 5 },
+    "gold_plus_xp": { "median": 4135.0, "mean": 4135.0, "min": 4135.0, "max": 4135.0, "n": 5 },
+    "minions_killed": { "median": 47.0, "mean": 47.0, "min": 47.0, "max": 47.0, "n": 5 },
+    "own_tower_damage": { "median": 69.6, "mean": 69.6, "min": 69.6, "max": 69.6, "n": 5 },
+    "enemy_tower_damage": { "median": 4249.644, "mean": 4249.644, "min": 4249.644, "max": 4249.644, "n": 5 },
+    "lowest_health": { "median": 0.984, "mean": 0.984, "min": 0.984, "max": 0.984, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 575.0, "mean": 637.8, "min": 561.0, "max": 883.0, "n": 5 },
+    "xp": { "median": 2705.0, "mean": 2758.2, "min": 2599.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 3266.0, "mean": 3396.0, "min": 3208.0, "max": 3960.0, "n": 5 },
+    "minions_killed": { "median": 29.0, "mean": 32.0, "min": 28.0, "max": 44.0, "n": 5 },
+    "own_tower_damage": { "median": 91.794, "mean": 121.998, "min": 0.0, "max": 237.286, "n": 5 },
+    "enemy_tower_damage": { "median": 312.674, "mean": 334.181, "min": 216.803, "max": 611.95, "n": 5 },
+    "lowest_health": { "median": 0.286, "mean": 0.274, "min": 0.217, "max": 0.298, "n": 5 },
+    "retreats": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "top, from first contact, opponent last hits, own team one level ahead": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 476.326, "mean": 485.334, "min": 357.965, "max": 581.529, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 9.732, "min": 0.0, "max": 48.661, "n": 5 },
+    "lowest_health": { "median": 0.94, "mean": 0.94, "min": 0.94, "max": 0.94, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 981.0, "mean": 977.4, "min": 913.0, "max": 1043.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3027.4, "min": 3015.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 3996.0, "mean": 4004.8, "min": 3928.0, "max": 4106.0, "n": 5 },
+    "minions_killed": { "median": 51.0, "mean": 51.0, "min": 47.0, "max": 55.0, "n": 5 },
+    "own_tower_damage": { "median": 187.889, "mean": 235.556, "min": 142.11, "max": 387.884, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.94, "mean": 0.948, "min": 0.936, "max": 0.969, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 700.0, "mean": 695.2, "min": 662.0, "max": 734.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3715.0, "mean": 3710.2, "min": 3677.0, "max": 3749.0, "n": 5 },
+    "minions_killed": { "median": 37.0, "mean": 36.6, "min": 34.0, "max": 39.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 786.308, "mean": 777.596, "min": 586.464, "max": 906.834, "n": 5 },
+    "lowest_health": { "median": 0.979, "mean": 0.975, "min": 0.954, "max": 0.981, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 770.0, "mean": 770.0, "min": 770.0, "max": 770.0, "n": 5 },
+    "xp": { "median": 3077.0, "mean": 3077.0, "min": 3077.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 3847.0, "mean": 3847.0, "min": 3847.0, "max": 3847.0, "n": 5 },
+    "minions_killed": { "median": 46.0, "mean": 46.0, "min": 46.0, "max": 46.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 4466.052, "mean": 4466.052, "min": 4466.052, "max": 4466.052, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 410.0, "mean": 431.6, "min": 382.0, "max": 540.0, "n": 5 },
+    "xp": { "median": 2196.0, "mean": 2085.4, "min": 1811.0, "max": 2289.0, "n": 5 },
+    "gold_plus_xp": { "median": 2640.0, "mean": 2517.0, "min": 2221.0, "max": 2829.0, "n": 5 },
+    "minions_killed": { "median": 22.0, "mean": 23.2, "min": 20.0, "max": 30.0, "n": 5 },
+    "own_tower_damage": { "median": 638.574, "mean": 645.671, "min": 485.025, "max": 745.209, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 11.009, "min": 0.0, "max": 55.043, "n": 5 },
+    "lowest_health": { "median": 0.258, "mean": 0.248, "min": 0.212, "max": 0.298, "n": 5 },
+    "retreats": { "median": 1.0, "mean": 1.4, "min": 1.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "mid, from first contact, opponent absent": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 474.536, "mean": 412.063, "min": 0.0, "max": 643.457, "n": 5 },
+    "enemy_tower_damage": { "median": 467.653, "mean": 393.052, "min": 142.11, "max": 532.492, "n": 5 },
+    "lowest_health": { "median": 0.952, "mean": 0.953, "min": 0.941, "max": 0.966, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 981.0, "mean": 996.2, "min": 967.0, "max": 1043.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3996.0, "mean": 4011.2, "min": 3982.0, "max": 4058.0, "n": 5 },
+    "minions_killed": { "median": 51.0, "mean": 52.0, "min": 50.0, "max": 55.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 451.824, "mean": 435.197, "min": 369.579, "max": 477.136, "n": 5 },
+    "lowest_health": { "median": 0.98, "mean": 0.972, "min": 0.959, "max": 0.981, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 693.0, "mean": 676.8, "min": 596.0, "max": 754.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3708.0, "mean": 3691.8, "min": 3611.0, "max": 3769.0, "n": 5 },
+    "minions_killed": { "median": 37.0, "mean": 36.8, "min": 34.0, "max": 40.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 1008.302, "mean": 1021.961, "min": 988.367, "max": 1061.386, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 0.993, "min": 0.98, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 722.0, "mean": 722.0, "min": 722.0, "max": 722.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3737.0, "mean": 3737.0, "min": 3737.0, "max": 3737.0, "n": 5 },
+    "minions_killed": { "median": 43.0, "mean": 43.0, "min": 43.0, "max": 43.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 6052.572, "mean": 6052.572, "min": 6052.572, "max": 6052.572, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 981.0, "mean": 992.2, "min": 967.0, "max": 1043.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3996.0, "mean": 4007.2, "min": 3982.0, "max": 4058.0, "n": 5 },
+    "minions_killed": { "median": 51.0, "mean": 51.8, "min": 50.0, "max": 55.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 451.824, "mean": 427.854, "min": 332.865, "max": 477.136, "n": 5 },
+    "lowest_health": { "median": 0.98, "mean": 0.972, "min": 0.959, "max": 0.981, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "mid, from first contact, opponent last hits": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 355.453, "mean": 318.252, "min": 160.827, "max": 406.26, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 43.9, "min": 0.0, "max": 219.5, "n": 5 },
+    "lowest_health": { "median": 0.944, "mean": 0.951, "min": 0.944, "max": 0.982, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 837.0, "mean": 862.2, "min": 803.0, "max": 947.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3852.0, "mean": 3877.2, "min": 3818.0, "max": 3962.0, "n": 5 },
+    "minions_killed": { "median": 45.0, "mean": 45.6, "min": 43.0, "max": 49.0, "n": 5 },
+    "own_tower_damage": { "median": 111.509, "mean": 176.123, "min": 95.27, "max": 424.721, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.964, "mean": 0.961, "min": 0.917, "max": 0.979, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 782.0, "mean": 765.2, "min": 696.0, "max": 802.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3797.0, "mean": 3780.2, "min": 3711.0, "max": 3817.0, "n": 5 },
+    "minions_killed": { "median": 42.0, "mean": 41.8, "min": 39.0, "max": 45.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 510.993, "mean": 519.198, "min": 482.826, "max": 559.673, "n": 5 },
+    "lowest_health": { "median": 0.964, "mean": 0.964, "min": 0.964, "max": 0.964, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 804.0, "mean": 804.0, "min": 804.0, "max": 804.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3819.0, "mean": 3819.0, "min": 3819.0, "max": 3819.0, "n": 5 },
+    "minions_killed": { "median": 44.0, "mean": 44.0, "min": 44.0, "max": 44.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 4602.923, "mean": 4602.923, "min": 4602.923, "max": 4602.923, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 450.0, "mean": 460.8, "min": 436.0, "max": 524.0, "n": 5 },
+    "xp": { "median": 2382.0, "mean": 2360.8, "min": 2276.0, "max": 2382.0, "n": 5 },
+    "gold_plus_xp": { "median": 2832.0, "mean": 2821.6, "min": 2720.0, "max": 2906.0, "n": 5 },
+    "minions_killed": { "median": 23.0, "mean": 23.8, "min": 22.0, "max": 27.0, "n": 5 },
+    "own_tower_damage": { "median": 551.491, "mean": 451.519, "min": 147.476, "max": 604.748, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 153.948, "min": 0.0, "max": 403.273, "n": 5 },
+    "lowest_health": { "median": 0.26, "mean": 0.264, "min": 0.26, "max": 0.279, "n": 5 },
+    "retreats": { "median": 2.0, "mean": 1.6, "min": 1.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "mid, from first contact, opponent pushes": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 6244.519, "mean": 6244.519, "min": 6244.519, "max": 6244.519, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.942, "mean": 0.942, "min": 0.942, "max": 0.942, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 34.0, "mean": 34.0, "min": 34.0, "max": 34.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3049.0, "mean": 3049.0, "min": 3049.0, "max": 3049.0, "n": 5 },
+    "minions_killed": { "median": 2.0, "mean": 2.0, "min": 2.0, "max": 2.0, "n": 5 },
+    "own_tower_damage": { "median": 6102.454, "mean": 6102.454, "min": 6102.454, "max": 6102.454, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.959, "mean": 0.959, "min": 0.959, "max": 0.959, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 34.0, "mean": 34.0, "min": 34.0, "max": 34.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3049.0, "mean": 3049.0, "min": 3049.0, "max": 3049.0, "n": 5 },
+    "minions_killed": { "median": 2.0, "mean": 2.0, "min": 2.0, "max": 2.0, "n": 5 },
+    "own_tower_damage": { "median": 5346.604, "mean": 5346.604, "min": 5346.604, "max": 5346.604, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.95, "mean": 0.95, "min": 0.95, "max": 0.95, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 1093.0, "mean": 1093.0, "min": 1093.0, "max": 1093.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 4108.0, "mean": 4108.0, "min": 4108.0, "max": 4108.0, "n": 5 },
+    "minions_killed": { "median": 59.0, "mean": 59.0, "min": 59.0, "max": 59.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.944, "mean": 0.944, "min": 0.944, "max": 0.944, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 5979.515, "mean": 5979.515, "min": 5979.515, "max": 5979.515, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.272, "mean": 0.272, "min": 0.272, "max": 0.272, "n": 5 },
+    "retreats": { "median": 2.0, "mean": 2.0, "min": 2.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "mid, after a crash at the own tower, opponent absent": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3139.0, "mean": 3126.6, "min": 3077.0, "max": 3139.0, "n": 5 },
+    "gold_plus_xp": { "median": 3139.0, "mean": 3126.6, "min": 3077.0, "max": 3139.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 805.736, "mean": 743.263, "min": 331.2, "max": 974.657, "n": 5 },
+    "enemy_tower_damage": { "median": 467.653, "mean": 393.052, "min": 142.11, "max": 532.492, "n": 5 },
+    "lowest_health": { "median": 0.952, "mean": 0.953, "min": 0.941, "max": 0.966, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 927.0, "mean": 907.8, "min": 859.0, "max": 947.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3027.4, "min": 3015.0, "max": 3077.0, "n": 5 },
+    "gold_plus_xp": { "median": 3942.0, "mean": 3935.2, "min": 3874.0, "max": 4024.0, "n": 5 },
+    "minions_killed": { "median": 48.0, "mean": 46.8, "min": 44.0, "max": 49.0, "n": 5 },
+    "own_tower_damage": { "median": 331.2, "mean": 331.2, "min": 331.2, "max": 331.2, "n": 5 },
+    "enemy_tower_damage": { "median": 327.75, "mean": 312.974, "min": 235.993, "max": 368.648, "n": 5 },
+    "lowest_health": { "median": 0.973, "mean": 0.971, "min": 0.955, "max": 0.981, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 576.0, "mean": 586.4, "min": 516.0, "max": 641.0, "n": 5 },
+    "xp": { "median": 3170.0, "mean": 3170.0, "min": 3170.0, "max": 3170.0, "n": 5 },
+    "gold_plus_xp": { "median": 3746.0, "mean": 3756.4, "min": 3686.0, "max": 3811.0, "n": 5 },
+    "minions_killed": { "median": 33.0, "mean": 33.2, "min": 30.0, "max": 35.0, "n": 5 },
+    "own_tower_damage": { "median": 331.2, "mean": 331.2, "min": 331.2, "max": 331.2, "n": 5 },
+    "enemy_tower_damage": { "median": 927.788, "mean": 945.331, "min": 879.089, "max": 1086.786, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 0.997, "min": 0.983, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 770.0, "mean": 770.0, "min": 770.0, "max": 770.0, "n": 5 },
+    "xp": { "median": 3294.0, "mean": 3294.0, "min": 3294.0, "max": 3294.0, "n": 5 },
+    "gold_plus_xp": { "median": 4064.0, "mean": 4064.0, "min": 4064.0, "max": 4064.0, "n": 5 },
+    "minions_killed": { "median": 46.0, "mean": 46.0, "min": 46.0, "max": 46.0, "n": 5 },
+    "own_tower_damage": { "median": 88.8, "mean": 88.8, "min": 88.8, "max": 88.8, "n": 5 },
+    "enemy_tower_damage": { "median": 5741.172, "mean": 5741.172, "min": 5741.172, "max": 5741.172, "n": 5 },
+    "lowest_health": { "median": 0.986, "mean": 0.986, "min": 0.986, "max": 0.986, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 523.0, "mean": 525.4, "min": 511.0, "max": 545.0, "n": 5 },
+    "xp": { "median": 2568.0, "mean": 2537.0, "min": 2382.0, "max": 2599.0, "n": 5 },
+    "gold_plus_xp": { "median": 3085.0, "mean": 3062.4, "min": 2927.0, "max": 3122.0, "n": 5 },
+    "minions_killed": { "median": 26.0, "mean": 26.6, "min": 26.0, "max": 28.0, "n": 5 },
+    "own_tower_damage": { "median": 187.302, "mean": 195.954, "min": 80.079, "max": 337.786, "n": 5 },
+    "enemy_tower_damage": { "median": 457.28, "mean": 497.327, "min": 355.666, "max": 768.796, "n": 5 },
+    "lowest_health": { "median": 0.296, "mean": 0.296, "min": 0.296, "max": 0.296, "n": 5 },
+    "retreats": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "mid, after a crash at the own tower, opponent last hits": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3077.0, "mean": 3089.4, "min": 3077.0, "max": 3139.0, "n": 5 },
+    "gold_plus_xp": { "median": 3077.0, "mean": 3089.4, "min": 3077.0, "max": 3139.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 596.033, "mean": 603.315, "min": 526.42, "max": 687.6, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.968, "mean": 0.957, "min": 0.922, "max": 0.968, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 775.0, "mean": 800.2, "min": 741.0, "max": 885.0, "n": 5 },
+    "xp": { "median": 3139.0, "mean": 3139.0, "min": 3139.0, "max": 3139.0, "n": 5 },
+    "gold_plus_xp": { "median": 3914.0, "mean": 3939.2, "min": 3880.0, "max": 4024.0, "n": 5 },
+    "minions_killed": { "median": 41.0, "mean": 41.6, "min": 39.0, "max": 45.0, "n": 5 },
+    "own_tower_damage": { "median": 442.709, "mean": 507.323, "min": 426.47, "max": 755.921, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "lowest_health": { "median": 0.964, "mean": 0.961, "min": 0.917, "max": 0.979, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 728.0, "mean": 719.2, "min": 626.0, "max": 776.0, "n": 5 },
+    "xp": { "median": 3170.0, "mean": 3170.0, "min": 3170.0, "max": 3170.0, "n": 5 },
+    "gold_plus_xp": { "median": 3898.0, "mean": 3889.2, "min": 3796.0, "max": 3946.0, "n": 5 },
+    "minions_killed": { "median": 40.0, "mean": 39.8, "min": 37.0, "max": 42.0, "n": 5 },
+    "own_tower_damage": { "median": 331.2, "mean": 331.2, "min": 331.2, "max": 331.2, "n": 5 },
+    "enemy_tower_damage": { "median": 483.126, "mean": 491.323, "min": 469.033, "max": 517.712, "n": 5 },
+    "lowest_health": { "median": 0.964, "mean": 0.964, "min": 0.964, "max": 0.964, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 852.0, "mean": 852.0, "min": 852.0, "max": 852.0, "n": 5 },
+    "xp": { "median": 3294.0, "mean": 3294.0, "min": 3294.0, "max": 3294.0, "n": 5 },
+    "gold_plus_xp": { "median": 4146.0, "mean": 4146.0, "min": 4146.0, "max": 4146.0, "n": 5 },
+    "minions_killed": { "median": 47.0, "mean": 47.0, "min": 47.0, "max": 47.0, "n": 5 },
+    "own_tower_damage": { "median": 88.8, "mean": 88.8, "min": 88.8, "max": 88.8, "n": 5 },
+    "enemy_tower_damage": { "median": 4342.523, "mean": 4342.523, "min": 4342.523, "max": 4342.523, "n": 5 },
+    "lowest_health": { "median": 0.986, "mean": 0.986, "min": 0.986, "max": 0.986, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 355.0, "mean": 366.6, "min": 321.0, "max": 421.0, "n": 5 },
+    "xp": { "median": 2581.0, "mean": 2581.0, "min": 2581.0, "max": 2581.0, "n": 5 },
+    "gold_plus_xp": { "median": 2936.0, "mean": 2947.6, "min": 2902.0, "max": 3002.0, "n": 5 },
+    "minions_killed": { "median": 18.0, "mean": 18.0, "min": 16.0, "max": 20.0, "n": 5 },
+    "own_tower_damage": { "median": 200.116, "mean": 234.047, "min": 135.197, "max": 349.862, "n": 5 },
+    "enemy_tower_damage": { "median": 273.749, "mean": 293.457, "min": 273.749, "max": 323.018, "n": 5 },
+    "lowest_health": { "median": 0.29, "mean": 0.287, "min": 0.274, "max": 0.296, "n": 5 },
+    "retreats": { "median": 2.0, "mean": 2.0, "min": 2.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  },
+  "mid, from first contact, opponent last hits, own team one level ahead": {
+   "passive": {
+    "gold": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "minions_killed": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "own_tower_damage": { "median": 143.189, "mean": 160.416, "min": 131.204, "max": 237.054, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 47.719, "min": 0.0, "max": 128.471, "n": 5 },
+    "lowest_health": { "median": 0.961, "mean": 0.956, "min": 0.913, "max": 0.982, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "last_hit": {
+    "gold": { "median": 885.0, "mean": 867.4, "min": 789.0, "max": 927.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3900.0, "mean": 3882.4, "min": 3804.0, "max": 3942.0, "n": 5 },
+    "minions_killed": { "median": 48.0, "mean": 45.8, "min": 42.0, "max": 48.0, "n": 5 },
+    "own_tower_damage": { "median": 121.366, "mean": 163.135, "min": 74.776, "max": 296.269, "n": 5 },
+    "enemy_tower_damage": { "median": 0.0, "mean": 7.343, "min": 0.0, "max": 36.714, "n": 5 },
+    "lowest_health": { "median": 0.963, "mean": 0.967, "min": 0.958, "max": 0.984, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "thin": {
+    "gold": { "median": 736.0, "mean": 747.0, "min": 636.0, "max": 895.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3751.0, "mean": 3762.0, "min": 3651.0, "max": 3910.0, "n": 5 },
+    "minions_killed": { "median": 40.0, "mean": 40.4, "min": 36.0, "max": 47.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 575.241, "mean": 572.156, "min": 547.073, "max": 595.697, "n": 5 },
+    "lowest_health": { "median": 0.964, "mean": 0.965, "min": 0.964, "max": 0.969, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "push": {
+    "gold": { "median": 718.0, "mean": 718.0, "min": 718.0, "max": 718.0, "n": 5 },
+    "xp": { "median": 3015.0, "mean": 3015.0, "min": 3015.0, "max": 3015.0, "n": 5 },
+    "gold_plus_xp": { "median": 3733.0, "mean": 3733.0, "min": 3733.0, "max": 3733.0, "n": 5 },
+    "minions_killed": { "median": 41.0, "mean": 41.0, "min": 41.0, "max": 41.0, "n": 5 },
+    "own_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "enemy_tower_damage": { "median": 4602.923, "mean": 4602.923, "min": 4602.923, "max": 4602.923, "n": 5 },
+    "lowest_health": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "retreats": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "hold": {
+    "gold": { "median": 458.0, "mean": 453.6, "min": 384.0, "max": 510.0, "n": 5 },
+    "xp": { "median": 2493.0, "mean": 2523.0, "min": 2493.0, "max": 2568.0, "n": 5 },
+    "gold_plus_xp": { "median": 2951.0, "mean": 2976.6, "min": 2951.0, "max": 3078.0, "n": 5 },
+    "minions_killed": { "median": 25.0, "mean": 24.4, "min": 21.0, "max": 26.0, "n": 5 },
+    "own_tower_damage": { "median": 331.476, "mean": 312.148, "min": 48.698, "max": 517.613, "n": 5 },
+    "enemy_tower_damage": { "median": 309.876, "mean": 236.386, "min": 0.0, "max": 309.932, "n": 5 },
+    "lowest_health": { "median": 0.26, "mean": 0.264, "min": 0.26, "max": 0.279, "n": 5 },
+    "retreats": { "median": 1.0, "mean": 1.2, "min": 1.0, "max": 2.0, "n": 5 },
+    "died": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   }
+  }
+ },
+ "run": {
+  "command": "python -m experiments.m8.waves.incentives",
+  "created_utc": "2026-11-11T21:43:53+00:00",
+  "git_head": "1cf1557bd81d6022411118a6acc3cd428b1054cb",
+  "git_dirty": true,
+  "code_id": "0fbc93ac1de6d67f",
+  "sources": { "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3", "experiments/m8/waves/harness.py": "71af895adb2cf4f9b79fc86e8e18a0ed2cbece093bc8135bd1dc47d1859d4a5b", "experiments/m8/waves/incentives.py": "0cc06b77aee09468cc69bb7e82e34f1d5821e2d63337d723aa46418ae7869be5", "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48", "riftgame/lanes.py": "a1f7cfe3cf1867d2ae7b56512bdbf9f297995c4d94aaf843008713ffbb960bc9", "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e", "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42", "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b", "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659", "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1", "riftgame/rulesets/patch_26_22_m8.toml": "4582596da3fd506134298b3c4d4ab357d7b8beef7e2f606b6c553e14b51a0fe6" },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {},
+  "seeds": [ 0, 1, 2, 3, 4 ],
+  "config": { "dt": 0.5, "window_s": 300.0, "states": 12 }
+ }
+}

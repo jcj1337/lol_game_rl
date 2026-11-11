@@ -1,6 +1,6 @@
 # Strategic League Simulator master roadmap
 
-**Status.** Draft v0.2, planning document. §10 summarizes the changes from v0.1.
+**Status.** Draft v0.3, planning document. M7 is closed and M8 has started. §10 summarizes the changes from earlier versions.
 
 **Predecessor.** [Laning as a Two-Player Game](https://github.com/jcj1337/lol_laning_gt_rl)
 
@@ -124,6 +124,8 @@ Milestones are planning boundaries, not hard walls. Component tests and integrat
 
 **Not in scope.** Large-scale coding or training.
 
+**Closed on 2026-11-11.** The owner judged M7 sufficient to begin implementation. Its result is [`docs/design/M7_architecture.md`](design/M7_architecture.md), corrected in [handoff 004](../handoff/004_m7_corrections.md). M7 fixed the contracts for space, time, intents, roles, information, randomness, snapshots, and comparisons, and it divided M8 into eight checkpoints, C1 to C8. One finding stays open and passes to M8: M7's wave tests did not show a freeze or a slow push. §8, risk 11, tracks it.
+
 ### M8: Full-map foundation
 
 **Goal.** Build a time-consistent full-map world in which ten champions make integrated macro decisions with real opportunity costs.
@@ -149,6 +151,18 @@ These are minimal versions, not the final implementations of later subsystems. C
 **Done when.** The components work together in one integrated environment, not only in isolation. Scripted ten-champion games run on the full map. Junglers choose among competing destinations. Wave, jungle, recall, and respawn timings interact coherently. Fog limits what each agent observes, and anti-leakage tests pass. Bot-lane income does not duplicate full solo-lane income for both players. Towers constrain waves and champions. Saved states restore and replay exactly, and the harness compares alternatives reproducibly.
 
 **Open.** Exact map representation, calibration data, and how best to port existing wave rules.
+
+**Progress.** M8 runs as campaigns over M7's checkpoints. [`docs/design/M8_foundation.md`](design/M8_foundation.md) holds the phases, the acceptance criteria, and the technical detail of each campaign. The first campaign covers C1 (kernel base) and C2 (lanes and economy).
+
+**Decisions that bind M8.** The owner settled these on 2026-11-11.
+
+- The full map with ten champion slots is the architecture from the first checkpoint. A single-lane experiment is a tool for validation, never the product.
+- Movement, interaction range, and visibility are three separate measures.
+- Laners have fixed lanes and may roam for a limited time. The roam allowance of 90 s and 20 percent is an experimental restriction that stays configurable. It is not an approved permanent rule. A champion that has to return keeps sensible choices to defend itself and to retreat.
+- Ordinary minion gold, support-generated income, and passive income are accounted for separately.
+- Freezing, slow pushing, crashing, and bouncing stay required capabilities under appropriate conditions. They are not removed from the foundation's goals. No rule may be added solely to force them, and a test for one of them may be revised only with evidence and counterexamples, never by lowering a threshold until it passes.
+- The corrected intent lifecycle and the information boundaries of M7 are preserved.
+- Every result separates what is assumed, what is correct inside the simulator, and what is validated against the real game.
 
 ### M9: Archetypes, items, and combat
 
@@ -287,17 +301,27 @@ The purpose of validation is not to script desired strategic conclusions. It is 
 8. **Compute and scope.** What simulator throughput, training budget, and quality threshold are realistically achievable? The pilot informs the budget.
 9. **Policy and product constraints.** Review Riot's current developer and third-party tool policies before releasing a public simulator-derived coaching application or using game assets.
 10. **Reuse.** Which laning mechanics and tests carry over, and which embed two-player, one-lane, or perfect-information assumptions?
+11. **Wave fidelity.** On the reference constants the simulator's lane does not stack two waves or sustain a freeze. Whether a real lane on the reference patch does is unknown. [`docs/design/M8_foundation.md`](design/M8_foundation.md) states the finding and the real-game measurements that bear on it.
 
 ## 9. Immediate next actions
 
-1. Review v0.2 for contradictions, missing dependencies, and premature commitments, and record any disagreements.
-2. Revise to v0.3 only if the review finds substantive problems.
-3. Write `docs/design/M7_architecture.md`, covering the M7 deliverables, M8's checkpoint plan, and the pilot's placement.
-4. Begin implementation only after M7 has clear acceptance criteria and has been approved.
+1. Review the handoff of M8's first campaign and the M8 document, and record any disagreements.
+2. Decide whether someone takes the real-game wave measurements that the M8 document names.
+3. Plan the next M8 campaign from the remaining checkpoints, C3 to C8.
+4. Keep the training pilot behind checkpoint C7, as M7 placed it.
 
 This roadmap is intentionally revisable. Write a milestone's detailed plan when that milestone begins, not months in advance.
 
 ## 10. Revision summary
+
+### v0.3 (2026-11-11)
+
+This version records the closeout of M7 and the decisions that the owner settled when M8 started. It changes no milestone's scope.
+
+- M7 is marked closed, with a pointer to its document and its one open finding.
+- M8 gains a progress note, a pointer to its own document, and the seven decisions that bind it.
+- §8 gains risk 11 on wave fidelity.
+- §9 lists the actions that follow M8's first campaign.
 
 ### v0.2 (2026-11-11)
 

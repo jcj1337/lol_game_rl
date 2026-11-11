@@ -1,0 +1,35 @@
+# Additions to the reference ruleset that M8 needs and M7 did not model. Patch 26.22, Summoner's Rift.
+#
+# patch_26_22.toml stays byte-identical, because every M7 results file records its hash.
+# Status tags are the same as in patch_26_22.toml. tests/test_ruleset.py enforces them.
+# Source for every F1 value here: wiki page "Minion (League of Legends)", read on 2026-11-11 for M7 and read again
+# through the same summarizing fetch tool for M8. Two readings of one page stay F1.
+
+[meta]
+id = "ref-26.22-r1+m8.1"       # A
+extends = "ref-26.22-r1"       # A
+
+[minions]
+call_for_help_range = 1000     # F1
+
+# Top and bot minions of wave 2 and later spawn with bonus speed until 14:00. The bonus is 111 on wave 2 and 4.5 less
+# for each later wave. It drops by 15 at the end of each of the first three stages and ends after the fourth.
+[minions.side_lane_speed]
+first_wave = 2                 # F1
+bonus = 111.0                  # F1
+per_wave = 4.5                 # F1
+stage_ends_s = [7.0, 14.0, 21.0, 25.0]   # F1
+stage_drop = 15.0              # F1
+until_s = 840.0                # F1
+
+# From 3:30 the minions of the team with the higher average champion level deal
+# (damage_base + damage_per_tower x tower lead in the lane) x level lead more damage to enemy minions, and each blow of
+# an enemy minion on them loses reduction_base + tower lead x level lead. The level lead may be a fraction.
+[minions.pushing_advantage]
+start_s = 210                  # F1
+level_cap = 3                  # F1
+damage_base = 0.05             # F1
+damage_per_tower = 0.05        # F1
+damage_max = 0.60              # F1
+reduction_base = 1.0           # F1
+reduction_max = 10.0           # F1

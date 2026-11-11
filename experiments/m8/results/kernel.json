@@ -1,0 +1,215 @@
+{
+ "ruleset": "ref-26.22-r1+m8.1",
+ "config": "tick 0.5 s, decision every 4 ticks",
+ "game_s": 600.0,
+ "throughput_sim_s_per_wall_s": {
+  "random legal actions": {
+   "median": 1182.541,
+   "min": 1081.302,
+   "max": 1210.418,
+   "runs": 7,
+   "work_per_run": {
+    "minion deaths": 685,
+    "champion deaths": 0,
+    "ticks": 1200
+   }
+  },
+  "scripted farming": {
+   "median": 944.891,
+   "min": 922.526,
+   "max": 960.07,
+   "runs": 7,
+   "work_per_run": {
+    "minion deaths": 688,
+    "champion deaths": 0,
+    "ticks": 1200
+   }
+  }
+ },
+ "profile_share_of_farming_game": {
+  "lanes": 0.543,
+  "lane inputs": 0.168,
+  "movement": 0.136,
+  "observe": 0.121,
+  "settle": 0.044,
+  "gold and XP": 0.009,
+  "legal mask": 0.002
+ },
+ "snapshot": {
+  "at_s": 600.0,
+  "pickled_bytes": 12197,
+  "pickled_bytes_at_0_s": 4383,
+  "take_us": 784.9,
+  "restore_us": 784.95,
+  "minions": 32
+ },
+ "intents_ended_in_a_random_game": {
+  "ARRIVED": 49,
+  "ABSENT": 9,
+  "RECALLED": 8
+ },
+ "roam": {
+  "tick 0.5 s, decision 2 s": {
+   "longest_stretch_s": [
+    51.0,
+    91.5
+   ],
+   "stretch_bound_s": 92.0,
+   "roaming_share_after_first_allowance": [
+    0.133,
+    0.162
+   ],
+   "share_bound": 0.203,
+   "lowest_allowance_s": -1.875,
+   "off_lane_share": [
+    0.382,
+    0.437
+   ],
+   "largest_step_over_speed_times_tick": 1.0,
+   "junglers_always_unrestricted": true,
+   "deaths": 28
+  },
+  "tick 1 s, decision 5 s": {
+   "longest_stretch_s": [
+    51.0,
+    93.0
+   ],
+   "stretch_bound_s": 95.0,
+   "roaming_share_after_first_allowance": [
+    0.137,
+    0.165
+   ],
+   "share_bound": 0.207,
+   "lowest_allowance_s": -4.75,
+   "off_lane_share": [
+    0.382,
+    0.439
+   ],
+   "largest_step_over_speed_times_tick": 1.0,
+   "junglers_always_unrestricted": true,
+   "deaths": 22
+  }
+ },
+ "after_600_s_of_scripted_farming": {
+  "blue top": {
+   "level": 9,
+   "xp": 5472.0,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 1044.0,
+   "support_item": 0.0
+  },
+  "blue jungle": {
+   "level": 1,
+   "xp": 0.0,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 0.0,
+   "support_item": 0.0
+  },
+  "blue mid": {
+   "level": 9,
+   "xp": 5596.0,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 2111.0,
+   "support_item": 0.0
+  },
+  "blue carry": {
+   "level": 7,
+   "xp": 3556.8,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 1500.0,
+   "support_item": 0.0
+  },
+  "blue support": {
+   "level": 7,
+   "xp": 3556.8,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 555.0,
+   "support_item": 666.0
+  },
+  "red top": {
+   "level": 9,
+   "xp": 5472.0,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 1252.0,
+   "support_item": 0.0
+  },
+  "red jungle": {
+   "level": 1,
+   "xp": 0.0,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 0.0,
+   "support_item": 0.0
+  },
+  "red mid": {
+   "level": 9,
+   "xp": 5596.0,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 2131.0,
+   "support_item": 0.0
+  },
+  "red carry": {
+   "level": 7,
+   "xp": 3556.8,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 1633.0,
+   "support_item": 0.0
+  },
+  "red support": {
+   "level": 7,
+   "xp": 3556.8,
+   "starting": 500.0,
+   "passive": 1091.4,
+   "minion": 476.0,
+   "support_item": 666.0
+  }
+ },
+ "run": {
+  "command": "python -m experiments.m8.kernel",
+  "created_utc": "2026-11-11T21:44:34+00:00",
+  "git_head": "1cf1557bd81d6022411118a6acc3cd428b1054cb",
+  "git_dirty": true,
+  "code_id": "b35d60a919ae8198",
+  "sources": {
+   "experiments/m8/kernel.py": "361a5e88736c88e9dc1d7ad474715aebac8e2ded686c0221e9cbf5aa89d13eda",
+   "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
+   "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
+   "riftgame/champions.py": "b724b255527d6365bb9ffa72363376ad00c8413a4686faecbab87d45bb69a5e2",
+   "riftgame/economy.py": "de822471423adde8ab0bcf3dd8040c9aa5e87850655d3595d08b90384bbb0a7c",
+   "riftgame/harness.py": "bebe22d1a7e407c561d9d4d564bcaf573ac43defbf49bc44c3e10d21cfb0d701",
+   "riftgame/lanes.py": "a1f7cfe3cf1867d2ae7b56512bdbf9f297995c4d94aaf843008713ffbb960bc9",
+   "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
+   "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
+   "riftgame/rulesets/patch_26_22_m8.toml": "4582596da3fd506134298b3c4d4ab357d7b8beef7e2f606b6c553e14b51a0fe6",
+   "riftgame/vision.py": "2c332264efb4241a7e09da8af136594b2026d68d882e96e40086edd6e19d6cef",
+   "riftgame/world.py": "0af2a3acb61dcbb9aa0076332ca07abaf617002880c5c65aca1059e652cd87ec",
+   "tests/test_world_roles.py": "a03fb2990b6f023ab3416164802b20f901496392d69e1f63d4e27c5a9a33a671",
+   "tests/worlds.py": "98fd75786eea6e3fb20eb1e653b6645e9d1cf558bfcbd2446a82e57550793a1d"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {},
+  "seeds": [
+   0,
+   3,
+   2026
+  ],
+  "config": {
+   "runs": 7,
+   "game_s": 600.0,
+   "roam_game_s": 840.0
+  }
+ }
+}
