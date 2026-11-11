@@ -1,0 +1,238 @@
+# Reference ruleset for League of Legends patch 26.22 (live 2026-11-04), Summoner's Rift.
+#
+# Every value line ends with a status tag. tests/test_ruleset.py enforces this.
+#   F2  read this session on two independent pages (wiki plus Riot patch notes)
+#   F1  read this session on one page
+#   D   derived by arithmetic from F values
+#   M   from memory, not confirmed on any fetched page
+#   A   simulator assumption, not a game fact
+# Sources, one link per value: docs/reference/patch_26_22_timing_and_economy.md and patch_26_22_map_and_structures.md.
+# Conflicts and omissions: docs/design/M7_architecture.md, section 3.
+# Units: seconds, League distance units, gold, XP.
+
+[meta]
+id = "ref-26.22-r1"            # A
+patch = "26.22"                # F2
+
+[minions]
+first_spawn_s = 30             # F2
+spawn_stagger_s = 0.792        # F1
+# [start_s, interval_s]: the wave interval that applies from each game time
+interval_schedule = [[30, 30], [840, 25], [1800, 20]]   # F2
+first_siege_wave = 3           # F2
+# [start_s, every_n_waves]: siege minion cadence
+siege_schedule = [[0, 3], [840, 2], [1500, 1]]          # F2
+move_speed = 350               # F2
+acquisition_range = 500        # F1
+sight_range = 1200             # F1
+upgrade_first_s = 30           # F1
+upgrade_interval_s = 90        # F1
+damage_to_champions = 0.60     # F1
+damage_to_towers = 0.60        # F2
+siege_damage_to_towers = 0.84  # F2
+xp_range = 1500                # F2
+# share of base XP each champion receives when n champions are in range (index n-1)
+xp_share = [1.0, 0.65, 0.433, 0.325, 0.26]              # F2
+
+[minions.melee]
+hp = [465, 1550]               # F1
+hp_span_s = [60, 2880]         # F1
+ad = [11, 80]                  # F1
+ad_span_s = [60, 2520]         # F1
+attack_speed = 1.25            # F1
+attack_range = 110             # F1
+pct_current_hp_vs_minions = 0.02   # F1
+gold = 20                      # F2
+xp = 62                        # F2
+tower_shot_pct_max_hp = 0.45   # F1
+
+[minions.caster]
+hp = [284, 600]                # F1
+hp_span_s = [60, 3360]         # F1
+ad = [21, 125]                 # F1
+ad_span_s = [60, 2700]         # F1
+attack_speed = 0.667           # F1
+attack_range = 550             # F1
+pct_current_hp_vs_minions = 0.035  # F1
+gold = 14                      # F2
+xp = 31                        # F2
+tower_shot_pct_max_hp = 0.70   # F1
+
+[minions.siege]
+hp = [835, 5850]               # F1
+hp_span_s = [150, 5400]        # F1
+ad = [37.5, 126]               # F2
+ad_span_s = [150, 5400]        # F1
+attack_speed = 1.0             # F1
+attack_range = 300             # F1
+pct_current_hp_vs_minions = 0.05   # F1
+gold = 50                      # F2
+gold_per_upgrade = 1           # F2
+xp = 75                        # F2
+tower_shot_pct_max_hp = 0.14   # F1
+
+[camps]
+respawn_counts_from = "last_monster_death"   # F1
+timer_window_buff_s = 60       # F2
+timer_window_other_s = 10      # F2
+
+[camps.blue_sentinel]
+first_spawn_s = 55             # F2
+respawn_s = 300                # F2
+gold = 90                      # F1
+xp = [95, 142.5]               # F1
+hp = [2300, 6210]              # F1
+
+[camps.red_brambleback]
+first_spawn_s = 55             # F2
+respawn_s = 300                # F2
+gold = 90                      # F1
+xp = [95, 142.5]               # F1
+hp = [2300, 6210]              # F1
+
+[camps.gromp]
+first_spawn_s = 67             # F2
+respawn_s = 135                # F2
+gold = 80                      # F1
+xp = [120, 180]                # F1
+hp = [2050, 4817.5]            # F1
+
+[camps.murk_wolves]
+first_spawn_s = 55             # F2
+respawn_s = 135                # F2
+gold = 85                      # D
+xp = [80, 120]                 # D
+hp = [2860, 6721]              # D
+
+[camps.raptors]
+first_spawn_s = 55             # F2
+respawn_s = 135                # F2
+gold = 75                      # D
+xp = [70, 105]                 # D
+hp = [3700, 8695]              # D
+
+[camps.krugs]
+first_spawn_s = 67             # F2
+respawn_s = 135                # F2
+gold = 109                     # D
+xp = [121, 181.5]              # D
+hp = [2360, 5546]              # D
+
+[scuttler]
+first_spawn_s = 175            # F2
+first_spawn_count = 2          # F1
+respawn_s = 150                # F1
+respawn_requires_both_dead = true   # F1
+later_count = 1                # F1
+gold = [55, 121]               # F1
+xp = [100, 150]                # F1
+hp = [1550, 5270]              # F1
+first_spawn_hp_factor = 0.65   # F1
+shrine_duration_s = 90         # F1
+shrine_sight_radius = 525      # F1
+shrine_speed_radius = 500      # F1
+shrine_speed_bonus = 0.30      # F1
+shrine_speed_duration_s = 1.5  # F1
+
+[economy]
+starting_gold = 500            # F2
+passive_gold_per_10s = 20.4    # F1
+passive_gold_start_s = 65      # F2
+kill_gold_base = 300           # F1
+kill_gold_level_7_plus_step = 10   # F1
+first_blood_bonus = 100        # F1
+assist_pool_fraction = 0.5     # F1
+kill_xp_range = 1600           # F1
+xp_first_level_up = 280        # F1
+xp_level_up_step = 100         # F1
+level_cap = 18                 # F2
+
+[support_item]
+passive_gold_per_10s = 3       # F2
+charge_max = 3                 # F1
+charge_interval_s = 20         # F1
+charge_first_s = 65            # F1
+charge_ally_range = 1050       # F1
+charge_gold = 18               # F2
+execute_threshold_melee = 0.50 # F2
+execute_threshold_ranged = 0.30    # F2
+
+[jungle_item]
+minion_xp_penalty_start = 0.70 # F2
+minion_xp_penalty_end_s = 1200 # F2
+large_monster_bonus_xp = 80    # F1
+first_large_monster_bonus_xp = 150 # F1
+
+[towers]
+attack_range = 750             # F1
+attack_speed = 0.833           # F1
+sight_range = 1350             # F1
+armor = 60                     # F2
+champion_ramp_per_hit = 0.50   # F1
+champion_ramp_max = 1.50       # F1
+melee_champion_damage_taken = 1.20     # F2
+backdoor_damage_reduction = 0.80       # F1
+plate_break_missing_hp = [0.10, 0.25, 0.45, 0.70, 1.00]   # F2
+plate_gold = 120               # F2
+first_tower_bonus_gold = 300   # F2
+target_switch_range = 1400     # F1
+
+[towers.outer]
+hp = 9000                      # F2
+ad = [182, 350]                # F1
+ad_span_s = [0, 810]           # F1
+global_gold = 50               # F1
+armor_decay_span_s = [660, 900]    # F2
+
+[towers.inner]
+hp = 5000                      # F2
+ad = [187, 427]                # F1
+ad_span_s = [120, 1020]        # F1
+global_gold = 25               # F1
+
+[towers.inhibitor]
+hp = 4750                      # F2
+ad = [187, 427]                # F1
+ad_span_s = [120, 1020]        # F1
+global_gold = 25               # F1
+
+[champions]
+base_move_speed = [325, 355]   # F1
+boots_tier1_speed = 25         # F1
+boots_tier1_gold = 300         # F1
+boots_tier2_speed = 45         # F1
+sight_range = 1350             # F1
+
+[recall]
+cast_s = 0.5                   # F1
+channel_s = 8.0                # F1
+interrupted_by_damage = true   # F1
+interrupted_by_movement = true # F1
+
+[fountain]
+hp_regen_per_s = 0.08          # F2
+mana_regen_per_s = 0.10        # F2
+regen_radius = 1100            # F1
+shop_only_at_fountain = true   # F1
+
+[homeguard]
+start_s = 20                   # F1
+speed_bonus = 0.80             # F2
+speed_bonus_after_decay = 0.40 # F2
+decay_s = 4                    # F2
+ends_before_outer_tower = 500  # F1
+blocked_after_combat_s = 8     # F1
+
+[death]
+# base respawn wait in seconds, index = level - 1
+respawn_s = [10, 10, 12, 12, 14, 16, 20, 25, 28, 32.5, 35, 37.5, 40, 42.5, 45, 47.5, 50, 52.5]   # F2
+time_scaling_start_s = 900     # F2
+time_scaling_per_30s = 0.00425 # F2
+
+[vision]
+ward_sight_range = 900         # F1
+ward_duration_s = [90, 120]    # F1
+ward_charges = 2               # F1
+ward_recharge_s = [210, 90]    # F1
+ward_max_placed = 3            # F1
+ward_place_range = 625         # F1

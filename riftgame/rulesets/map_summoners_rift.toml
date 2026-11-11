@@ -1,0 +1,142 @@
+# Route graph for Summoner's Rift, patch 26.22.
+#
+# Coordinates are League units in the plane Riot's match timeline uses. Blue base is bottom-left.
+# Source for every F1 coordinate: Community Dragon build 16.22,
+# game/data/maps/mapgeometry/map11/base_srx.materials.bin.json, parsed 2026-11-11.
+# The parsed coordinate tables are in docs/reference/patch_26_22_map_and_structures.md.
+# Status tags as in patch_26_22.toml. Lane nodes are waypoints of the game's own minion paths.
+# Which nodes are joined by a jungle or river edge is a simulator assumption (A).
+
+[detour]
+lane = 1.0                     # A
+jungle = 1.15                  # A
+
+[nodes]
+blue_fountain = [394, 461]             # F1
+blue_base = [1551, 1660]               # F1
+blue_top_exit = [1508, 3597]           # F1
+blue_top_t2 = [1170, 6715]             # F1
+blue_top_t1 = [1285, 10423]            # F1
+top_corner = [1968, 12459]             # F1
+red_top_t1 = [4359, 13597]             # F1
+red_top_t2 = [8113, 13665]             # F1
+red_top_exit = [11348, 13344]          # F1
+blue_mid_exit = [2952, 3474]           # F1
+blue_mid_t2 = [4874, 5141]             # F1
+blue_mid_t1 = [6270, 6366]             # F1
+mid_river = [7408, 7405]               # F1
+red_mid_t1 = [8618, 8647]              # F1
+red_mid_t2 = [10193, 10035]            # F1
+red_mid_exit = [11808, 11479]          # F1
+blue_bot_exit = [3471, 1589]           # F1
+blue_bot_t2 = [6925, 1163]             # F1
+blue_bot_t1 = [10506, 1301]            # F1
+bot_corner = [12294, 1913]             # F1
+red_bot_t1 = [13751, 4790]             # F1
+red_bot_t2 = [13696, 8608]             # F1
+red_bot_exit = [13253, 11334]          # F1
+red_base = [13243, 13235]              # F1
+red_fountain = [14340, 14391]          # F1
+blue_gromp = [2178, 8430]              # F1
+blue_blue = [3894, 7870]               # F1
+blue_wolves = [3813, 6467]             # F1
+blue_raptors = [6969, 5422]            # F1
+blue_red = [7765, 4020]                # F1
+blue_krugs = [8390, 2675]              # F1
+red_gromp = [12626, 6434]              # F1
+red_blue = [11032, 6991]               # F1
+red_wolves = [10980, 8357]             # F1
+red_raptors = [7861, 9575]             # F1
+red_red = [7102, 10901]                # F1
+red_krugs = [6449, 12199]              # F1
+top_river = [4400, 9600]               # F1
+bot_river = [10500, 5170]              # F1
+
+[lanes]
+top = ["blue_base", "blue_top_exit", "blue_top_t2", "blue_top_t1", "top_corner", "red_top_t1", "red_top_t2", "red_top_exit", "red_base"]   # F1
+mid = ["blue_base", "blue_mid_exit", "blue_mid_t2", "blue_mid_t1", "mid_river", "red_mid_t1", "red_mid_t2", "red_mid_exit", "red_base"]   # F1
+bot = ["blue_base", "blue_bot_exit", "blue_bot_t2", "blue_bot_t1", "bot_corner", "red_bot_t1", "red_bot_t2", "red_bot_exit", "red_base"]   # F1
+
+[edges]
+base = [   # F1
+    ["blue_fountain", "blue_base"],
+    ["red_base", "red_fountain"],
+]
+jungle = [   # A
+    ["blue_top_t2", "blue_wolves"],
+    ["blue_mid_t2", "blue_wolves"],
+    ["blue_wolves", "blue_blue"],
+    ["blue_blue", "blue_gromp"],
+    ["blue_gromp", "blue_top_t1"],
+    ["blue_blue", "top_river"],
+    ["blue_mid_t1", "blue_raptors"],
+    ["blue_raptors", "blue_red"],
+    ["blue_mid_t2", "blue_red"],
+    ["blue_red", "blue_krugs"],
+    ["blue_krugs", "blue_bot_t2"],
+    ["blue_krugs", "blue_bot_t1"],
+    ["blue_red", "bot_river"],
+    ["red_bot_t2", "red_wolves"],
+    ["red_mid_t2", "red_wolves"],
+    ["red_wolves", "red_blue"],
+    ["red_blue", "red_gromp"],
+    ["red_gromp", "red_bot_t1"],
+    ["red_blue", "bot_river"],
+    ["red_mid_t1", "red_raptors"],
+    ["red_raptors", "red_red"],
+    ["red_mid_t2", "red_red"],
+    ["red_red", "red_krugs"],
+    ["red_krugs", "red_top_t2"],
+    ["red_krugs", "red_top_t1"],
+    ["red_red", "top_river"],
+    ["top_river", "mid_river"],
+    ["bot_river", "mid_river"],
+    ["top_river", "top_corner"],
+    ["bot_river", "bot_corner"],
+]
+
+[towers]
+blue_top_outer = [981, 10441]          # F1
+blue_top_inner = [1512, 6699]          # F1
+blue_top_inhibitor = [1169, 4287]      # F1
+blue_mid_outer = [5846, 6396]          # F1
+blue_mid_inner = [5048, 4812]          # F1
+blue_mid_inhibitor = [3651, 3696]      # F1
+blue_bot_outer = [10504, 1029]         # F1
+blue_bot_inner = [6919, 1483]          # F1
+blue_bot_inhibitor = [4281, 1253]      # F1
+red_top_outer = [4318, 13875]          # F1
+red_top_inner = [7943, 13411]          # F1
+red_top_inhibitor = [10481, 13650]     # F1
+red_mid_outer = [8955, 8510]           # F1
+red_mid_inner = [9767, 10113]          # F1
+red_mid_inhibitor = [11134, 11207]     # F1
+red_bot_outer = [13866, 4505]          # F1
+red_bot_inner = [13327, 8226]          # F1
+red_bot_inhibitor = [13624, 10572]     # F1
+
+[barracks]
+blue_top = [1109, 2091]                # F1
+blue_mid = [2008, 2079]                # F1
+blue_bot = [2034, 1171]                # F1
+red_top = [12800, 13745]               # F1
+red_mid = [12776, 12784]               # F1
+red_bot = [13719, 12845]               # F1
+
+[camps]
+blue_gromp = "gromp"                   # F1
+blue_blue = "blue_sentinel"            # F1
+blue_wolves = "murk_wolves"            # F1
+blue_raptors = "raptors"               # F1
+blue_red = "red_brambleback"           # F1
+blue_krugs = "krugs"                   # F1
+red_gromp = "gromp"                    # F1
+red_blue = "blue_sentinel"             # F1
+red_wolves = "murk_wolves"             # F1
+red_raptors = "raptors"                # F1
+red_red = "red_brambleback"            # F1
+red_krugs = "krugs"                    # F1
+
+[scuttlers]
+top = "top_river"                      # F1
+bot = "bot_river"                      # F1

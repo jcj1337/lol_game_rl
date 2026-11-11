@@ -1,0 +1,59 @@
+{
+ "torch": "2.15.0+cpu",
+ "obs_dim": 256,
+ "n_actions": 64,
+ "hidden": 256,
+ "device": "cpu",
+ "threads_1": {
+  "inference_batch_10_decisions_per_s": {
+   "median": 39863,
+   "min": 38007,
+   "max": 40261,
+   "runs": 7
+  },
+  "inference_batch_640_decisions_per_s": {
+   "median": 187590,
+   "min": 185437,
+   "max": 189273,
+   "runs": 7
+  },
+  "update_minibatch_256_transitions_per_s": {
+   "median": 71629,
+   "min": 70098,
+   "max": 72823,
+   "runs": 7
+  },
+  "update_minibatch_2048_transitions_per_s": {
+   "median": 120465,
+   "min": 120016,
+   "max": 120846,
+   "runs": 7
+  }
+ },
+ "threads_6": {
+  "inference_batch_10_decisions_per_s": {
+   "median": 35606,
+   "min": 34714,
+   "max": 36322,
+   "runs": 7
+  },
+  "inference_batch_640_decisions_per_s": {
+   "median": 300265,
+   "min": 292585,
+   "max": 305400,
+   "runs": 7
+  },
+  "update_minibatch_256_transitions_per_s": {
+   "median": 91716,
+   "min": 82059,
+   "max": 92473,
+   "runs": 7
+  },
+  "update_minibatch_2048_transitions_per_s": {
+   "median": 235522,
+   "min": 232554,
+   "max": 237885,
+   "runs": 7
+  }
+ }
+}
