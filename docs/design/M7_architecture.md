@@ -31,9 +31,9 @@ M7 fixes the contracts that M8 builds on and tests the claims that were least ce
 - Randomness is keyed and stateless. A snapshot restores and replays exactly (section 8).
 - Scenarios are written by hand over a generated base. A comparison runs on what the deciding team knows plus stated hypotheses about what is hidden. It reports each consequence separately (section 9).
 
-**Tested in M7.** 135 tests pass, and one test of a known prototype defect is expected to fail. The map's lane lengths agree with a second derivation within 3 percent. Range and sight behave as intended at junctions, on nearby paths, and across walls. In a ten-champion prototype these hold: intents that end on completion, the decision-interval contract, the `FIGHT` rule for lost vision, the roam bound, fog with no leak into observations, exact snapshot replay, and a comparison that does not change with hidden truth. The prototype runs 591 simulated seconds per wall second on one process at the starting clock values.
+**Tested in M7.** 138 tests pass, and one test of a known prototype defect is expected to fail. The map's lane lengths agree with a second derivation within 3 percent. Range and sight behave as intended at junctions, on nearby paths, and across walls. In a ten-champion prototype these hold: intents that end on completion, the decision-interval contract, the `FIGHT` rule for lost vision, the roam bound, fog with no leak into observations, exact snapshot replay, and a comparison that does not change with hidden truth. The prototype runs 517 simulated seconds per wall second on one process at the starting clock values.
 
-**Not shown.** The owner decided that freezes and slow pushes emerge. Three rounds of wave tests do not show it. With the reference patch's numbers, a champion that can die, and no added rule, neither behaviour passes the test written for it. Section 5.6 gives the mechanism and the six real-game measurements that are missing.
+**Not shown.** The owner decided that freezes and slow pushes emerge. Three rounds of wave tests do not show it. With a champion that can die and no rule added to produce them, neither behaviour passes the test written for it. Section 5.6 gives the mechanism. It also names what is missing, in order: three documented rules that the lane does not model yet, then six real-game measurements.
 
 **Not claimed.** This document does not claim that the simulator's waves are realistic. It does not claim that training is feasible end to end. No training loop ran, and the overnight budget is arithmetic on two separate benchmarks (section 10.3).
 
@@ -50,13 +50,13 @@ M7 ran as nine phases. Each phase ended in a check.
 | P0 Ground | What do the roadmap, the handoffs, and the predecessor fix, and what hardware is there? | Sources read. Hardware queried. | Done. Section 10.3 lists the machine. |
 | P1 Reference patch | What are the real clocks, rewards, and ranges? | Every ruleset value has a source status. A test enforces it. | Done. Patch 26.22. One conflict and six gaps (section 3). |
 | P2 Contracts | What are the state, action, observation, and timing contracts? | Two independent designs compared. | Done. Section 12 records the decisions. |
-| P3 Map | Do route lengths give the right travel times? | Graph distances against an independent derivation. | Verified within 3 percent. The correction added the range and sight measures (section 5.1). |
+| P3 Map | Are the graph's lane lengths consistent? | Graph distances against a second derivation from the same map file. | Consistent within 3 percent. This does not measure travel time in the real game. The correction added the range and sight measures (section 5.1). |
 | P4 Waves | Do freezes and slow pushes emerge from mechanics? | Scenario runs over 5 seeds, three rounds, with a tick sweep. | No. Timing, economy, and capacity work. Neither behaviour passes its test with a champion that can die (section 5.6). |
 | P5 Kernel | Do the timing, fight, information, and snapshot contracts hold in code? | A ten-champion prototype with its tests. | Information and snapshots verified. Timing verified after the correction (section 5.2). Fights carry caveats (section 5.9). |
 | P6 Compute | What can this machine run overnight? | Benchmarks with run counts, ranges, and limiters. | Measured. Budget in section 10.3. |
 | P7 Plan | How is M8 divided, and where does the pilot go? | Each checkpoint has acceptance criteria. | Done. Section 10. |
 | P8 Review | Does the trail hold up? | Handoff 003 and an independent review on a different model. | The review found 3 defects and 11 items to fix. The first version included the corrections. |
-| P9 Correction | Do the seven issues of the planning review hold, and what fixes them? | Each issue checked against the code, fixed, and tested again. All evidence rerun with run metadata. | All seven held. Handoff 004 lists what changed, what was rerun, and what stays unresolved. |
+| P9 Correction | Do the seven issues of the planning review hold, and what fixes them? | Each issue checked against the code, fixed, and tested again. All evidence rerun with run metadata. An independent review of the result on a different model. | All seven held. The independent review found 5 defects in the correction's first draft, and this version includes the fixes. Handoff 004 lists what changed, what was rerun, and what stays unresolved. |
 
 To rerun all evidence, see [section 13](#13-how-to-rerun-the-evidence).
 
@@ -106,7 +106,7 @@ M7 left out these rules of the reference patch, and M8 leaves out all but the on
 - Bounties, shutdowns, and the assist-gold timing rules.
 - The minion "pushing advantage" bonus that depends on team level difference. M7 left it out. C2 adds it (section 5.6).
 - Unit collision between minions, and the call-for-help rule that draws minions onto a champion who attacks an allied champion. M7 left them out. C2 adds them (section 5.6).
-- The side-lane speed boost for minions, and minion speed growth after 10:00. C2 adds the speed boost (section 5.6). The speed growth stays out.
+- The side-lane speed boost for minions, and minion speed growth after 10:00. M7 tests the speed boost as a separate lane configuration, and C2 makes it part of the lane (section 5.6). The speed growth stays out.
 - Buff effects of the Crest of Insight and the Crest of Cinders.
 - Crystalline Overgrowth, Bulwark, and Faelight sites.
 - Brush, and Control Wards and Oracle Lens. Section 6 covers the vision model.
@@ -163,24 +163,24 @@ The graph itself is unchanged.
 
 - Open ground is every point within a half-width of an edge's straight segment: 600 for a lane, 500 for the river, 250 for a jungle path. The lane and jungle values are League scale without a source. The river value rests on one datum: two sites that the map file names `RiverWall` lie 468 and 547 units off the river edges (Derived. That the name marks the bank is an inference.).
 - A sight line is clear when sample points every 50 units along it all lie on open ground, and it crosses none of four wall segments.
-- The four walls screen the Gromp and Raptor camps of each side from the lane beside them. They are the only camps within a champion's sight radius of a lane line. Corridors alone cannot hide the Raptors at any width, because the graph joins the camp to mid lane by one straight edge. Each wall is built by one rule from the camp and lane coordinates. It runs parallel to the lane, one lane half-width from the lane line, for 500 units either side of the point nearest the camp.
+- The four walls screen the Gromp and Raptor camps of each side from the lane beside them. They are the only camps within a champion's sight radius of a lane line. Corridors alone cannot hide the Raptors at any jungle half-width from 50 units up, because the graph joins the camp to mid lane by one straight edge. Each wall is built by one rule from the camp and lane coordinates. It runs parallel to the lane, one lane half-width from the lane line, for 500 units either side of the point nearest the camp.
 
 All these values are in [`map_summoners_rift.toml`](../../riftgame/rulesets/map_summoners_rift.toml) with the tag `A`.
 
-**Tested** (`tests/test_sight.py`, 34 cases). The expected answers were worked by hand from node coordinates and League geography before the code ran. The red-side mirror of each case gives the same answer.
+**Tested** (`tests/test_sight.py`, 34 cases). The expected answers were worked by hand from node coordinates and League geography before the code ran. The red-side mirror of each case gives the same answer. The tests assert the last column. The two distance columns come from the test author's script, and the independent review recomputed them (Reported).
 
 | Case | Straight line | Route | Seen at radius 1350 |
 | --- | --- | --- | --- |
 | Junction. Two positions 400 units out on two arms that meet at `mid_river`. | 475 | 800 | Yes |
 | Corner. Two positions 290 units out on each arm of `top_corner`, against a caster's range of 550. | 534 | 580 | Yes. In range by the straight line, out of range by the route. |
-| Nearby paths, open ground. Mid lane 800 units from the river crossing, and the river 920 walked units out. | 1,013 | 1,720 | Yes, although the walk is longer than the sight radius |
+| Nearby paths, open ground. Mid lane 800 units from the river crossing, and the river 920 walked units out. | 1,012.5 | 1,720 | Yes, although the walk is longer than the sight radius |
 | Nearby paths, wall between. Mid lane beside the blue Raptors. | 1,171 | 1,448 | No |
 | Wall. Top lane beside the blue Gromp. | 954 | 4,476 | No |
 | Ward over a wall. A position 705 walked units from the Raptor camp, against the placement range of 625. | 613 | 705 | No. In range and not seen, so range and sight are separate questions. |
-| Terrain without a wall. Two Krug exits, 920 walked units out on each. | 1,236 | 1,840 | No |
+| Terrain without a wall. Two Krug exits, 920 walked units out on each. | 1,235.5 | 1,840 | No |
 | One straight lane edge, gaps of 1,349 and 1,351 | the gap | the gap | Yes and no |
 
-The tests' author broke the code in four ways to check that the tests can fail. Removing the walls failed 7 cases, and calling all ground open failed 2. Using route distance for `separation` failed 29, and calling every sight line clear failed 16. These four counts are Reported by the delegate that wrote the tests. The mutation script is not in the repository.
+The tests' author broke the code in four ways to check that the tests can fail. Removing the walls failed 7 cases, and calling all ground open failed 2. Using route distance for `separation` failed 29, and calling every sight line clear failed 16. These four counts are Reported by the delegate that wrote the tests. The independent review repeated the four breaks and got 7, 2, 28, and 16. The mutation script is not in the repository.
 
 **The graph's lengths** are checked against a second derivation from the same map file (spawn point, barracks, and the full minion path polyline) in `tests/test_map.py`. It is a consistency check on the graph's down-sampling. It does not measure travel time in the real game. The test tolerance is 4 percent.
 
@@ -196,17 +196,17 @@ At a move speed of 335 the walk from the fountain to an outer tower is about 31 
 **Limits (Unresolved).**
 
 - The walls are constructions, not terrain data. The game's navigation grid would replace them behind the same `sight_clear` function.
-- A jungle path that runs beside a lane is open to the lane. Between top lane and the blue Gromp path, 1,548 of 2,071 sampled pairs within range see each other. The real map has a wall along most of that length (from memory, not checked). A jungler on such a path is seen from the lane earlier than in the game.
+- A jungle path that runs beside a lane is open to the lane. Between top lane and the blue Gromp path, 1,548 of 2,071 sampled pairs within range see each other (Reported by the delegate that wrote the geometry). The real map has a wall along most of that length (from memory, not checked). A jungler on such a path is seen from the lane earlier than in the game.
 - There is no brush, no lateral position inside a lane, and no height. A jungle edge is straight for sight and 1.15 times longer for walking, so the model does not know where a path bends.
 - Terrain thinner than the 50-unit sample step can be stepped over.
-- `sees` costs about 6.4 microseconds for a pair inside the radius, against 0.6 for `distance` (one run on a busy machine, a rough figure). A pair outside the radius costs the same as `distance`.
+- `sees` costs 6 to 10 microseconds for a pair inside the radius, against 0.6 for `distance`. A pair outside the radius costs the same as `distance`. These are two rough runs, one by the delegate and one by the independent review (Reported).
 - The M7 kernel prototype has not been moved to these measures. It still uses route distance for sight and for attack range. Its fight and vision results (sections 5.9 and 6.3) therefore test the contracts in the old geometry, and its throughput does not include the cost of `sees`. C5 and C6 measure again on the new geometry.
 
 ### 5.2 Time is a fixed tick with a separate decision interval
 
 **Decision.** The simulation advances in fixed ticks of `tick_s` seconds. Policies decide every `decision_ticks` ticks. Both are configuration values. M8 starts from `tick_s = 0.5` and `decision_ticks = 4`, so a champion decides every 2 s.
 
-**Why 0.5 s.** Durations round up to whole ticks. At a 1.0 s tick the 8.5 s recall takes 9.0 s, and at 0.5 s it takes 8.5 s (Tested, `experiments/m7/kernel/results/scenarios.json`, `q1_timing`). Tower shots (1.2 s apart), lockdown durations, and the 3 to 4 s between seeing a ganker and contact are all a small number of seconds, so a 1.0 s tick is a coarse unit for them. Wave results move with the tick too. With both laners last-hitting, creep score is 0.91 at ticks of 0.125 and 0.25 s, 0.90 at 0.5 s, and 0.80 at 1.0 s. Of 17 wave metrics, 15 are within 10 percent of a 0.125 s reference at a 0.5 s tick, and 13 at a 1.0 s tick (section 5.6). At the same decision interval, the 0.5 s tick costs 41 percent of simulated seconds per wall second in the prototype (728 against 1,239 on one process).
+**Why 0.5 s.** Durations round up to whole ticks. At a 1.0 s tick the 8.5 s recall takes 9.0 s, and at 0.5 s it takes 8.5 s (Tested, `experiments/m7/kernel/results/scenarios.json`, `q1_timing`). Tower shots (1.2 s apart), lockdown durations, and the 3 to 4 s between seeing a ganker and contact are all a small number of seconds, so a 1.0 s tick is a coarse unit for them. Wave results move with the tick too. With both laners last-hitting, creep score is 0.91 at ticks of 0.125 and 0.25 s, 0.90 at 0.5 s, and 0.80 at 1.0 s. Of 17 wave metrics, 15 are within 10 percent of a 0.125 s reference at a 0.5 s tick, and 12 at a 1.0 s tick (section 5.6). At the same decision interval, the 0.5 s tick costs 37 percent of simulated seconds per wall second in the prototype (616 against 979 on one process).
 
 **Why 2 s.** This rests on arithmetic, not on a test. A champion sees an approaching enemy at 1350 units. At a closing speed near 350 that leaves under 4 s before contact. A 5 s interval can pass without one decision in that window, so a gank could succeed because of the interval and not because of the map. The second design candidate raised this argument (Reported, section 12). The prototype's gank scenario does not test it. That scenario varies only the laner's reaction, and only by one second.
 
@@ -288,6 +288,7 @@ One `LaneSim` class serves all three lanes. It owns the lane's minions and tower
 - A hit deals attack damage plus a share of the target's current health: 2 percent for a melee minion, 3.5 percent for a caster, 5 percent for a siege minion. The two wiki pages for the first two values were read a second time during the correction, and the quoted sentences agree with the ruleset.
 - With no enemy minion or tower in range, a minion attacks the closest enemy champion in range that stands in its path, at 60 percent damage. "In its path" is defined below (Assumed).
 - Towers act as in section 5.7.
+- In a side lane, a minion of wave 2 or later spawns with 111 bonus speed, 4.5 less for each later wave. The bonus drops by 15 after 7, 14, and 21 s and ends after 25 s. The rule applies until 14:00 (Sourced, read during the correction). M7 tests it as a separate configuration, and C2 makes it part of the lane.
 
 A cheaper variant that pools each wave's minions into cohorts was built in the first round and not chosen. It cannot express a per-minion rule such as champion aggro. Its cost and accuracy figures were never written to a results file, so this document no longer quotes them.
 
@@ -295,16 +296,18 @@ A cheaper variant that pools each wave's minions into cohorts was built in the f
 
 - **Round 1** used a specification in which minions ignored champions and had no lateral slots. It failed on freezes, slow pushes, and lane stability. Its results file was overwritten and nothing in this document rests on it (Reported).
 - **Round 2** added one documented rule, champion aggro, and one assumption, lateral slots. Lateral slots were added after a failed round, so they need the same scrutiny as any rule that might exist only to produce an outcome. The planning review then found that the round's slow-push scenario could not succeed, and that its freeze rested on a champion that could not die.
-- **Round 3** is the correction. It changed scenarios only. No lane rule was added or tuned. The pass tests for a slow push and a freeze are the ones written before round 2's results. The freeze test has one addition, that the champion must neither die nor retreat.
+- **Round 3** is the correction. It changed scenarios only. No minion rule was added or tuned. One rule about champions was added, the in-path rule below. It came after an intermediate run failed, so it needs the same scrutiny as lateral slots. The pass tests for a slow push and a freeze are the ones written before round 2's results. The freeze test has one addition, that the champion must neither die nor retreat.
 
 **What round 3 checked and fixed.** The lane code was read against the documented rules first. They are the target priority (minion, then tower, then champion), the 500-unit acquisition range, the damage per hit, and the tower shots. No rule error was found. Four scenario errors were found and fixed.
 
 1. The holding champion could not die. It absorbed 19,700 damage in four minutes. The scenario champion now has 650 health, 30 armor, 1.5 health regeneration per second, and move speed 335 (all Assumed placeholders for a level 1 to 3 laner). Below 30 percent health it walks to its own tower and stays out until it is back above 60 percent.
 2. The champion jumped to its chosen spot every tick. It now walks there at its move speed.
-3. The champion stood ahead of its own minions and inside the enemy wave's acquisition range. It now stays behind its own lead minion, except when it holds on purpose.
+3. The champion stood ahead of its own minions and inside the enemy wave's acquisition range. It now heads for a spot behind its own lead minion, except when it holds or pushes on purpose. It has to walk there, so after its lead minion dies it can be ahead of its wave for some seconds. During that walk it has stepped aside.
 4. The slow-push scenario started at an unnatural phase of the wave clock, thinned one wave, and stopped at the first arrival. It now runs on the game's own clock from 0:00, from two starts, and continues for 20 s after the crash.
 
-**In the path or aside.** Fix 3 exposed a gap in the model, not only in the scenario. A lane coordinate has no width, so a champion cannot step out of an advancing wave's way, and minions at 350 outrun a champion at 335. In an intermediate run of the correction, a champion that stood 550 units off still fell to 29 percent health in a symmetric last-hit lane (Reported, that run is not kept). The scenarios therefore use this rule (Assumed): a champion is in the minions' path, and a valid target for them, only while the waves are in contact or while it holds. Otherwise it has stepped aside. M8 needs the same rule in the `LANE` action, which is why the mode table below gains a fifth mode.
+Fixes 1 to 3 apply to the blue champion of the slow-push and freeze cases. The other cases, and the enemy laner in every case, still use the first scenario champion, which cannot die and jumps to its spot. The rows below on creep score, attack capacity, and the hard push rest on that champion (Unresolved).
+
+**In the path or aside.** Fix 3 exposed a gap in the model, not only in the scenario. A lane coordinate has no width, so a champion cannot step out of an advancing wave's way, and minions at 350 outrun a champion at 335. In an intermediate run of the correction, a champion that stood 550 units off still fell to 29 percent health in a symmetric last-hit lane (Reported, that run is not kept). The scenarios therefore use this rule (Assumed). A champion is in the minions' path, and a valid target for them, while the waves are in contact, while it holds, or while it pushes. Otherwise it has stepped aside, and a champion that has stepped aside hits nothing. Clearing a wave alone is therefore never free. The first form of the rule let a champion that had stepped aside keep attacking, and the independent review caught that. M8 needs the same rule in the `LANE` action, which is why the mode table below gains a fifth mode.
 
 Every number below is at the 0.5 s tick that M8 starts from, over 5 seeds. A range in brackets is the minimum and maximum across seeds.
 
@@ -314,60 +317,66 @@ What the mechanics produce (Tested):
 | --- | --- |
 | First contact | 51.5 s in mid and 60.5 s in top, as the geometry predicts |
 | Hard push | A pushed wave of 6 reaches the enemy tower 9 s after first contact in mid and 10.5 s in top |
-| Both laners last-hit | Creep score is 0.90 and 0.89. The front stays within 95 units of centre for 10 minutes in mid. |
+| Both laners last-hit | Creep score is 0.90 and 0.89. The front stays within 95 units of centre from 2:00 to 10:00 in mid. |
 | Attack capacity | Creep score falls from 0.90 to 0.55 to 0.42 as capacity falls from 1 to 0.5 to 0.25. Under the own tower it is 0.50. |
 | Lateral slots | An undisturbed lane leaves both towers untouched for 10 minutes in 5 of 10 runs, and in 0 of 10 without slots. |
 | An even fight | Six minions against six kill each other to the last minion in 25.5 s. One extra caster wins in 18 s with 4 of 7 left. |
-| Minion aggro on a champion in the path | A champion that holds 9 to 12 minions off its tower is hit for 4.5 s, loses 557 health after armor [534 to 578], and retreats at 20 percent health (case `S5c k=3 hold`). |
+| Minion aggro on a champion in the path | A champion that holds 9 to 12 minions off its tower takes damage in ticks that add up to 4.5 s, loses 557 health after armor [534 to 578], and retreats at 20 percent health (case `S5c k=3 hold`). When its own wave arrives while it holds, the minions turn on the wave within 3 s (`test_minions_that_attack_a_holding_champion_turn_on_its_wave_when_the_wave_arrives`). |
 
 What they do not produce (Tested, negative):
 
 | Behaviour | Result at a 0.5 s tick |
 | --- | --- |
-| A stacked wave | Not shown in 32 cases: two lanes, two starts, four plans, the enemy laner absent or last-hitting. The test asks for a thinning plan that reaches the enemy tower later than a hard push, with 12 or more minions. The largest thinned wave at the tower has 4. |
-| A freeze that a mortal champion holds | Not shown in 40 holding cases: five surplus sizes and eight holding plans. The test asks for the front to stay within 1,500 units outside the tower's range for over half of 240 s in every seed, with both controls below that and no death or retreat. No case passes. |
+| A stacked wave | Not shown in 32 cases: two lanes, two starts, four plans, the enemy laner absent or last-hitting. The test asks for a thinning plan that reaches the enemy tower later than a hard push, with 12 or more minions. The largest thinned wave at the tower has 5, and 7 with the side-lane speed rule. |
+| A freeze that a mortal champion holds | Not shown in 40 holding cases: five surplus sizes and eight holding plans. The test asks for the front to stay within 1,500 units outside the tower's range for over half of 240 s in every seed, with both controls below that and no death or retreat. No case passes, with or without the side-lane speed rule. |
 | Stability under a small change | A lane that is one caster short reaches the enemy tower at 101.5 s in mid and 111.5 s in top with 5 minions, then swings back and reaches the other tower by 170 s. Whether a real lane does that is unknown. |
 | Bounce after a crash | Seen in 4 of 10 runs. |
 
-**The slow-push cases.** Each row is top lane with the enemy laner absent. "Crash" is the time from the start of the plan to the first minion in the enemy tower's range, and "wave" is the number of minions within 1,500 units of the lead at that moment. The last two columns repeat the run with the current-health share of minion damage switched off, as a sensitivity run.
+**The slow-push cases.** Each row is top lane with the enemy laner absent. "Crash" is the time from the start of the plan to the first minion in the enemy tower's range. "Wave" is the number of minions within 1,500 units of the lead at that moment. The first result column is the lane that rounds 1 and 2 used. The second switches off the current-health share of minion damage, as a sensitivity run. The third adds the side-lane speed rule.
 
-| Start | Plan | Crash | Wave | Crash, flat damage | Wave, flat damage |
-| --- | --- | --- | --- | --- | --- |
-| First contact | Push | 10.5 s | 6 | 11 s | 6 |
-| First contact | Thin 3 casters, then last-hit | 22 s | 3 | 24 s | 5 |
-| First contact | Last-hit only | 50.5 s | 5 | 52 s | 9 [7 to 9] |
-| After an enemy crash | Push | 30.5 s | 6 | 30.5 s | 6 |
-| After an enemy crash | Thin 3 casters, then last-hit | 74.5 s | 4 | 93.5 s | 10 [10 to 11] |
-| After an enemy crash | Last-hit only | 74.5 s | 4 | 86.5 s | 12 |
+| Start | Plan | M7 lane: crash, wave | Flat damage | Side-lane speed |
+| --- | --- | --- | --- | --- |
+| First contact | Push | 10.5 s, 6 | 11 s, 6 | 10.5 s, 6 |
+| First contact | Thin 3 casters, then last-hit | 23.5 s, 3 | 25 s, 5 | 38 s, 7 |
+| First contact | Thin every caster in range | 23.5 s, 3 | 25 s, 5 | 37.5 s, 7 |
+| First contact | Last-hit only | 50.5 s, 5 | 52 s [52 to 54.5], 9 [7 to 9] | 41.5 s [41.5 to 43], 8 [6 to 8] |
+| After an enemy crash | Push | 30.5 s, 6 | 30.5 s, 6 | 24 s, 6 |
+| After an enemy crash | Thin 3 casters, then last-hit | 42.5 s [41.5 to 42.5], 3 [3 to 4] | 73 s, 6 | 36 s, 4 |
+| After an enemy crash | Thin every caster in range | 42.5 s [41.5 to 42.5], 3 [3 to 4] | 45 s, 4 | 36 s, 4 |
+| After an enemy crash | Last-hit only | 74 s [73 to 89.5], 4 [4 to 7] | 74.5 s [72.5 to 75], 6 [6 to 7] | 67 s [58 to 67], 4 [4 to 5] |
 
-Three things follow from the table and the traces (Tested).
+Four things follow from the table and the traces (Tested).
 
 - **Fights end before reinforcements arrive.** An even fight lasts 25.5 s and the wave interval is 30 s. In top lane the centre is about 1,600 units from the enemy tower's range, which is under 5 s of marching. A wave that wins at the centre reaches the tower and dies there before its next wave can join it.
-- **Thinning costs the pusher its own melee line.** A champion with 65 damage and 0.65 attacks per second needs about 20 s to kill three casters. The thinned wave loses most of its own melee line before those casters are dead. In the traced run, two of three allied melee minions died within 12 s of contact. The thinned wave arrives with 3 or 4 minions. A hard push arrives with 6.
-- **The fight length decides stacking.** Without the current-health share, an even fight lasts 31.5 s, which is longer than the wave interval. A wave that bounces back from an enemy crash then arrives 12 strong by last-hitting alone. With the share it arrives 4 strong. The test still fails in the flat configuration, because the largest thinned wave there has 10. The share is a sourced rule of the reference patch, so the flat run is a diagnosis and not a candidate model.
+- **Thinning costs the pusher its own melee line.** A champion with 65 damage and 0.65 attacks per second needs about 20 s to kill three casters. The thinned wave loses most of its own melee line before those casters are dead. In the traced run, one of three allied melee minions was left 15.5 s after contact, and it died on the march. The thinned wave arrives with 3 minions. A hard push arrives with 6. The trace is `python -m experiments.m7.waves.diagnose "S4c top from first contact, thin 3 once, red absent" "A+B" 0 0.5 86`.
+- **The fight length decides stacking.** Without the current-health share, an even fight lasts 31.5 s, which is longer than the wave interval. When both laners then only last-hit, a wave of 11 reaches the enemy tower 109 s [108 to 109] after first contact. With the share, no wave reaches a tower in 300 s. The largest thinned wave in the flat run has 7, so the test fails there too. The share is a sourced rule of the reference patch, so the flat run is a diagnosis and not a candidate model.
+- **A documented rule that M7 had left out moves the result.** With the side-lane speed rule, wave 2 reaches the centre about 6.5 s sooner, inside the 25.5 s of an even fight. The thinned wave from first contact then arrives with 7 minions after 38 s, against 3 after 23.5 s. That is more than double, and still below the 12 of the test. The first two rounds had no such rule, so their lane was not yet the reference patch's lane.
 
-**The freeze cases.** The built state has full waves in contact 300 units outside the blue tower's range in top lane, with k surplus enemy casters. "Band" is the time the front stays within 1,500 units outside the tower's range, out of 240 s.
+**The freeze cases.** The built state has full waves in contact 300 units outside the blue tower's range in top lane, with k surplus enemy casters. "Band" is the time the front stays within 1,500 units outside the tower's range, out of 240 s. The rows are the M7 lane without the side-lane speed rule. With the rule, no case passes either, and the longest median hold is 115 s (`k=4 hold, trim to 4`).
 
-| Surplus k | Plan | Band | Lowest health | Retreats | How it ends |
-| --- | --- | --- | --- | --- | --- |
-| 3 | Champion absent | 89.5 s [82 to 103.5] | not applicable | not applicable | The wave crashes into the tower for 25.5 s, then the lane is pushed out |
-| 3 | Push | 10.5 s | 100 percent | 0 | Pushed out |
-| 3 | Hold, last-hit only | 110.5 s [90.5 to 116.5] | 20 percent | 1 | The champion retreats, the wave crashes, then the lane is pushed out |
-| 3 | Hold, thin while the enemy leads by more than 1 | 58.5 s [57.5 to 62] | 62 percent | 0 | Pushed out |
-| 3 | Hold, thin while the enemy leads by more than 3 | 60 s [56.5 to 64] | 37 percent | 0 | Pushed out |
-| 4 | Hold, last-hit only | 148.5 s [146 to 168.5] | 20 percent | 1 | As for k of 3 |
-| 4 | Hold, thin while the enemy leads by more than 3 | 59 s | 33 percent | 0 | Pushed out |
-| 6 | Hold, last-hit only | 127.5 s [126.5 to 130] | 16 percent | 1 | As for k of 3 |
+| Surplus k | Plan | Band | Lowest health | Retreats | Wave under own tower | How it ends |
+| --- | --- | --- | --- | --- | --- | --- |
+| 3 | Champion absent | 89.5 s [82 to 103.5] | not applicable | not applicable | 25.5 s [19 to 26] | The wave crashes into the tower, then the lane is pushed out |
+| 3 | Push | 10.5 s [9 to 10.5] | 100 percent | 0 | 0 s | Pushed out |
+| 3 | Hold, last-hit only | 110.5 s [90.5 to 116.5] | 20 percent | 1 | 22.5 s [17.5 to 31.5] | The champion retreats, the wave crashes, then the lane is pushed out |
+| 3 | Hold, thin while the enemy leads by more than 1 | 58.5 s [57.5 to 62] | 62 percent | 0 | 1 s [1 to 1.5] | Pushed out |
+| 3 | Hold, thin while the enemy leads by more than 3 | 60 s [56.5 to 64] | 36 percent | 0 | 1 s [1 to 2] | Pushed out |
+| 4 | Hold, last-hit only | 148.5 s [146 to 168.5] | 20 percent | 1 | 12.5 s [11 to 12.5] | The champion retreats, the wave crashes, then the lane is pushed out |
+| 4 | Hold, thin while the enemy leads by more than 3 | 59 s | 33 percent | 0 | 2.5 s | Pushed out |
+| 6 | Hold, last-hit only | 127.5 s [126.5 to 130] | 16 percent | 1 | 21 s [20 to 21] | The champion retreats, the wave crashes, then the lane is pushed out |
 
-- **A hold without thinning costs too much health.** Six casters deal 93 damage per volley before armor, every 1.5 s (trace from `python -m experiments.m7.waves.diagnose "S5c k=3 hold" "A+B" 0 0.5 50`). The champion retreats on the first cycle. The band time after that is not the champion's doing. It sits at its tower for about 170 s while it regenerates. If health is ignored, `k=4 hold` and `k=6 hold` pass the band test, which is what round 2 reported.
-- **A hold with thinning loses the surplus.** Near the blue tower the blue wave arrives 8 s before the red one (26.8 s against 34.8 s after spawn). In the traced run, the fresh blue wave killed 4 of the 6 remaining casters in those 8 s. Whatever surplus the champion trimmed to save its health is gone one cycle later, and the lane is pushed out. Every holding run ends with the blue wave past the lane centre.
+- **A hold without thinning costs too much health.** Six casters deal 93 damage per volley before armor, every 1.5 s (trace from `python -m experiments.m7.waves.diagnose "S5c k=3 hold" "A+B" 0 0.5 50`). The champion retreats on the first cycle, one or two seconds before its own wave arrives, so these cases never reach the moment when the minions would turn on that wave. A separate test covers that moment. The band time after the retreat is not the champion's doing. It sits at its tower for about 170 s while it regenerates. If health is ignored, `k=4 hold` and `k=6 hold` pass the band test, which is what round 2 reported.
+- **A hold with thinning loses the surplus.** Near the blue tower the blue wave arrives 8 s before the red one (26.8 s against 34.8 s after spawn). In the same trace, the fresh blue wave killed 4 of the 6 remaining casters in those 8 s. Whatever surplus the champion trimmed to save its health is gone one cycle later, and the lane is pushed out. Every holding run ends with the blue wave past the lane centre.
 - **An enemy laner who pushes breaks every hold**, as expected. The wave then sits under the tower for 89 to 119 s.
 
-**Tick sensitivity.** The sweep now includes a 0.125 s reference. Of 17 metrics, 15 are within 10 percent of the reference at a 0.5 s tick (`S7b_tick_sensitivity`). In round 2, hold times changed by a factor of 2 to 5 between ticks. They now agree. `k=3 hold` stays 116, 113, 110, and 127 s in the band at ticks of 0.125, 0.25, 0.5, and 1.0 s. The old spread came from the champion that jumped each tick. Three metrics still move. They are the band time of `k=6 hold` (83, 110, 128, 105 s), the band time under a push (9.9, 8.5, 10.5, 24 s), and the size of the one-caster-short wave (6, 6, 5, 5).
+**Tick sensitivity.** The sweep now includes a 0.125 s reference. Of 17 metrics, 15 are within 10 percent of the reference at a 0.5 s tick, and 12 at a 1.0 s tick (`S7b_tick_sensitivity`). In round 2, hold times changed by a factor of 2 to 5 between ticks. They now agree. `k=3 hold` stays 116, 113, 110, 127 s in the band at ticks of 0.125, 0.25, 0.5, and 1.0 s. The old spread came from the champion that jumped each tick (Inference. No run isolates that cause.). Three metrics still move at a 0.5 s tick or below. They are the band time of `k=6 hold` (83.1, 110, 128, 105 s), the band time under a push (9.88, 8.5, 10.5, 24 s), and the size of the one-caster-short wave (6, 6, 5, 5).
 
-**Conflict with the owner decision.** The decision says "Freezes and slow pushes emerge." M7 does not show that. With the reference patch's own numbers, a mortal champion, and no added rule, neither behaviour passes the test that was written for it. This document makes no claim that the simulator's waves are realistic.
+**Conflict with the owner decision.** The decision says "Freezes and slow pushes emerge." M7 does not show that. Neither behaviour passes the test written for it, with a champion that can die and with no rule added to produce it. This document makes no claim that the simulator's waves are realistic.
 
-**What is missing, precisely.** The model already uses every per-hit rule that the reference documents. What no document states is how long things take in a real lane. These are emergent quantities. Someone has to measure them in a custom game on the reference patch.
+**What is missing, in this order.**
+
+1. **Documented rules.** The lane does not yet model three rules of the reference patch that bear on fight length and reinforcement: unit collision, the call-for-help rule, and the pushing advantage from team level difference. The side-lane speed rule was a fourth, until this correction added it, and it more than doubled the thinned wave. Missing measurements are therefore not the first blocker. The lane is not yet the reference patch's lane.
+2. **Measurements.** No document states how long things take in a real lane. These are emergent quantities, and someone has to measure them in a custom game on the reference patch. They decide whether what remains after step 1 is a wrong lane or a real one.
 
 | Measurement | The simulator's value | Why it decides something |
 | --- | --- | --- |
@@ -381,28 +390,28 @@ Three things follow from the table and the traces (Tested).
 **What C2 does first.** Section 10.1 makes this C2's first task.
 
 1. Rerun the three experiments on the M8 lane with the pass tests unchanged.
-2. Add the four documented rules that bear on fight length and reinforcement and that M7 did not model. They are unit collision, which limits how many melee minions reach one target, the call-for-help rule, the pushing advantage from team level difference, and the side-lane speed boost. Each is a rule of the reference patch. Each still has to pass the predecessor's test for a new mechanic: it must not exist only to produce a named outcome.
+2. Make the side-lane speed rule part of the lane, and add the three documented rules that bear on fight length and reinforcement and that M7 did not model. They are unit collision, which limits how many melee minions reach one target, the call-for-help rule, and the pushing advantage from team level difference. Each is a rule of the reference patch. Each still has to pass the predecessor's test for a new mechanic: it must not exist only to produce a named outcome.
 3. Compare with the measurements above if someone has taken them. A mismatch is corrected only through a rule or a constant that the reference documents.
 4. Add no rule whose purpose is to make a freeze or a slow push appear. If neither appears after steps 1 to 3, M8 keeps the lane as it is. The evaluation of section 9.5 then reports what holding, thinning, and pushing do in this simulator, and states that limit.
 
-**Champion wave modes.** A champion with a `LANE` action stands at the wave and spends its attack capacity in one of five modes. The first four differ only in which minions the champion hits. In those four, the champion is in the minions' path while the waves are in contact and steps aside once its own wave is gone.
+**Champion wave modes.** A champion with a `LANE` action stands at the wave and spends its attack capacity in one of five modes. While the waves are in contact, every mode stands at the wave, in the minions' path. The modes differ in which minions the champion hits, and in what it does once its own wave is gone.
 
-| Mode | What the champion hits | Where it stands with its own wave gone |
+| Mode | What the champion hits | With its own wave gone |
 | --- | --- | --- |
-| `passive` | Nothing. The champion stays in XP range. | Aside |
-| `last_hit` | Only an enemy minion that one hit will kill. | Aside |
-| `thin` | Enemy casters first, lowest health first, plus any last hit. | Aside |
-| `push` | Any enemy minion, plus area damage on every enemy minion in range. | Aside |
-| `hold` | As `last_hit`. | In the path, on a line that stops the enemy's lead minion 300 units outside the range of the champion's own tower |
+| `passive` | Nothing. The champion stays in XP range. | Steps aside |
+| `last_hit` | Only an enemy minion that one hit will kill. | Steps aside and hits nothing |
+| `thin` | Enemy casters first, lowest health first, plus any last hit. | Steps aside and hits nothing |
+| `push` | Any enemy minion, plus area damage on every enemy minion in range. | Stays in the path at its attack range and keeps hitting |
+| `hold` | As `last_hit`. | Stays in the path, on a line that stops the enemy's lead minion 300 units outside the range of the champion's own tower |
 
-`hold` is new in this revision (Assumed). Without it, no action lets a champion keep a wave off its tower, so a freeze could not emerge whatever the wave rules were. With it, a freeze is still not an action. Whether the wave stays depends on the minions, and in M7's tests it does not. No action is called freeze or slow push.
+`hold` is new in this revision (Assumed). Without it, no action lets a champion keep a wave off its tower, so a freeze could not emerge whatever the wave rules were. With it, a freeze is still not an action. Whether the wave stays depends on the minions, and in M7's tests it does not. The 300 units are the freeze scenario's margin, not a sourced value. No action is called freeze or slow push.
 
 **Gold and XP.**
 
 - A champion gets a minion's gold only for its own killing blow. A minion that dies to anything else gives no gold.
 - XP for a minion's death is shared among enemy champions within 1500 units of the death, using the reference split. The lane reports the death and its position. The world grants the XP, because only the world knows where every champion is.
 - **Bot lane.** Carry and support share one lane. Either can take a last hit. XP splits, and each minion's gold is paid once, so two champions cannot both collect a solo laner's minion income.
-- **Support income.** The support holds the support item of the reference: 3 gold per 10 s, and a charge every 20 s (maximum 3, first at 1:05). With a charge and an ally within 1050 units, the support's attack executes a low minion. The support gets 18 gold and the nearest ally gets the minion's gold (Sourced). This income is new gold. It is why a carry and support together can earn more gold than a solo laner, by at most the item's income (section 10.1, C2). Without a charge, a support in `last_hit` mode takes farm from its carry, and a support in `passive` mode does not. The item's later upgrade tiers are left out (Assumed simplification).
+- **Support income.** The support holds the support item of the reference: 3 gold per 10 s, and a charge every 20 s (maximum 3, first at 1:05). With a charge and an ally within 1050 units, the support's attack executes a low minion. The support gets 18 gold and the nearest ally gets the minion's gold (Sourced). This income is new gold. With the second champion's own passive gold, it is why a carry and support together earn more gold than a solo laner (section 10.1, C2). Without a charge, a support in `last_hit` mode takes farm from its carry, and a support in `passive` mode does not. The item's later upgrade tiers are left out (Assumed simplification).
 - Passive gold, starting gold, kill gold by victim level, and the XP curve follow the reference. Bounties are left out.
 
 ### 5.7 Lane towers
@@ -468,7 +477,7 @@ The first version only forbade `LANE` actions for another lane. The planning rev
 | Returning | It is off its lane, and its intent is a `LANE` action for its home lane or `RECALL`, or it stands on its fountain, or it is dead | Unchanged |
 | Roaming | Anything else | Drains by 1 s per second, and may run below zero |
 
-- The allowance starts full, at a cap of 90 s. The cap and the refill rate are starting values (Assumed). The refill rate bounds the long-run share of time a laner can spend roaming at 20 percent.
+- The allowance starts full, at a cap of 90 s. The cap and the refill rate are starting values (Assumed). The refill rate bounds the long-run share of time a laner can spend roaming at 20 percent. The first 90 s come on top. Over a run of T seconds the share is at most 0.2 plus 92 s over 1.25 T, which is 32 percent for the first 10 minutes. The independent review measured 29 to 31 percent there, in memory (Reported).
 - The allowance and the state are fields of the champion's own state, so they are in its observation.
 
 **The mask applies the role.** It is computed from the observation alone, like every mask.
@@ -482,7 +491,7 @@ A laner whose allowance runs out in the middle of an intent keeps that intent un
 
 **What a roam still costs.** The duty state only bounds the absence. The cost of a roam stays mechanical. While the laner is away, its lane keeps running. Minions die without gold for it, it gets no XP outside 1500 units, and its tower takes damage.
 
-**When assignments end.** A lane's assignment ends when either outer tower of that lane falls. All assignments end at 14:00, the reference patch's own mid-game boundary. After that a champion has no duty state and may issue `LANE` actions for any lane (Assumed, unchanged from the first version).
+**When assignments end.** A lane's assignment ends when either outer tower of that lane falls. All assignments end at 14:00, the reference patch's own mid-game boundary. After that a champion has no duty state and may issue `LANE` actions for any lane (Assumed, unchanged from the first version). The owner's wish for fixed roles may reach further than this. Handoff 004 puts the question to the owner.
 
 Junglers may issue `LANE` actions for any lane at any time. The reference's jungle-item XP penalty on lane minions applies to them. There are no team commands and no pings. Each champion chooses its own action.
 
@@ -543,7 +552,7 @@ Three ownership rules came out of the prototype.
 | Mechanic | Treatment | Status |
 | --- | --- | --- |
 | Game clock, spawn and respawn times, gold and XP values, XP curve, death timers | Faithful to the reference patch | Sourced |
-| Lane lengths, tower positions, lane travel times | Faithful within 3 percent | Tested |
+| Lane lengths and tower positions | Consistent with a second derivation from the same map file, within 3 percent. Travel times in the real game are not measured. | Tested as a consistency check |
 | Minion stats and targeting priority | Faithful stats. Stat growth is interpolated. Formation is one-dimensional with lateral slots. | Sourced and Assumed |
 | Wave dynamics: freezes, slow pushes, bounces | Unknown fidelity. Freezes and slow pushes do not pass their tests. | Tested, negative (RK1) |
 | Tower health, damage, range, aggro, plates | Faithful. Bulwark and Crystalline Overgrowth are left out. | Sourced |
@@ -646,7 +655,7 @@ Ending the intent at the moment vision is lost was the other option. It was not 
 ### 7.2 Persistence, completion, and replanning
 
 - A champion holds one intent. The intent persists until it completes or a new action replaces it. This is the owner's rule.
-- `KEEP`, or the same action again while the intent is running, keeps the intent and its progress.
+- `KEEP`, or the same action again while the intent is running, keeps the intent and its progress. A running `FIGHT` whose target is out of view is kept with `KEEP`, because the mask does not offer `FIGHT` against a hidden target.
 - Any other action replaces the intent at once and discards its progress. A replaced intent records no outcome.
 - When an intent completes, the kernel records its outcome and the tick in the champion's state. The champion then holds position and defends itself until its next decision, which is at most one decision interval away.
 - `LANE`, `FOLLOW`, and `HOLD` do not complete by themselves.
@@ -703,11 +712,11 @@ A snapshot holds everything needed to restore and replay a decision point.
 
 `world.digest()` is a hash of the full state. A restored world must produce the same digest at every later tick as the world it was taken from.
 
-**Tested** in the kernel prototype (`results/scenarios.json` under `q4_snapshot` and `q4_snapshot_real_lane`).
+**Tested** in the kernel prototype (`results/scenarios.json` under `q4_snapshot` and `q4_snapshot_real_lane`, and `results/bench_tick1.0_decision5.json` under `micro` for the size and the timings).
 
 - A world ran 300 ticks, was snapshotted, ran 300 more, was restored, and ran 300 again. All 300 digests matched, with both lane models.
 - From one snapshot, only the blue top laner's action changed. The top lane differed at once. Every entity in the bot lane stayed identical for the whole 300 s window.
-- A snapshot of the ten-champion world is about 17 KB. It takes 250 microseconds to take and 211 to restore.
+- A snapshot of the ten-champion world is about 17 KB. It takes 300 microseconds to take and 252 to restore.
 
 **A lesson for M8.** The digest must hash values. The prototype's first digest depended on object identity and matched only 241 of 300 replayed ticks.
 
@@ -782,7 +791,7 @@ A comparison must not use what the deciding team could not know.
 
 The first version sampled only the positions of unseen enemies. It kept every other hidden field of the source state: health, gold, upgrades, camps. Its acceptance test asked that the deciding team's observations stay identical. The planning review objected on both counts, and the objection holds. A rollout that keeps the true unseen health and gold uses hindsight, and the observation test passes anyway, because those fields are not in the observation.
 
-**Tested** in the kernel prototype (`experiments/m7/kernel/hindsight.py`, `results/scenarios.json` under `hindsight`). The decision belongs to the blue top laner at 240 s, with 55 percent health. It farms or retreats for 45 s. The red jungler was last seen 6 s earlier. Two source worlds, W1 and W2, differ only in what blue cannot see: the jungler's health (518 against 194), its gold and upgrades, one red camp, and red's memory of the blue jungler. Every blue observation and mask is identical between them.
+**Tested** in the kernel prototype (`experiments/m7/kernel/hindsight.py`, `results/scenarios.json` under `hindsight`). The decision belongs to the blue top laner at 240 s, with 55 percent health. It farms or retreats for 45 s. The red jungler was last seen 6 s earlier. Two source worlds, W1 and W2, differ only in what blue cannot see: the jungler's health (518 against 194), its gold and upgrades, one red camp, the health of one red tower, and red's memory of the blue jungler. Every blue observation and mask is identical between them.
 
 | Method | Source world | Laner survives while farming | Laner's gold while farming | Same report for both worlds |
 | --- | --- | --- | --- | --- |
@@ -791,9 +800,10 @@ The first version sampled only the positions of unseen enemies. It kept every ot
 | Truth-blind hypotheses | W1 and W2 | 31 percent | 435 | Yes |
 
 - The first version's method passes the first version's acceptance test in every rollout world, and it still gives two different answers. The review's objection is confirmed for this prototype.
-- The 7 rollouts are exactly those in which the sampled jungler stands within its gank reach of 3,000 units. In W2 the weakened jungler recalls and never ganks.
+- The 7 rollouts are exactly those in which the sampled jungler stands within its gank reach of 3,000 units. In W2 the weakened jungler recalls and never ganks (Reported by the delegate from its own trace. The results file holds only the counts.).
 - The truth-blind number is not more accurate than the others. It is lower because its hypotheses also move the red top laner, which in truth stood on its fountain (Inference from four dumped hypotheses). The answer now depends on the generator, which the report states, and not on hidden truth, which it cannot state.
 - The prototype's generator is a stand-in with three weighted beliefs for each enemy. It is not the `activity_v0` generator described below.
+- The first draft of this demonstration leaked. It copied the true health of every enemy tower into the information state, and an independent review found that by changing an unseen tower. The information state now holds only whether an enemy tower stands, and a test changes every enemy tower in turn. The test does not vary every hidden field, so the claim is as strong as the fields it covers: six hidden fields and the towers.
 
 **Contract.**
 
@@ -882,11 +892,11 @@ M8 has eight checkpoints. Each one ends with tests that pass and a short handoff
 
 | Id | Checkpoint | Builds | Acceptance criteria |
 | --- | --- | --- | --- |
-| C1 | Kernel base | World, tick loop, decision interval, champions on routes, action table, intents with outcomes, the role duty state, `observe` and `legal_mask` for own state and teammates, snapshot and digest, invariant checker | A run at decision interval n equals a run at interval 1 whose policy returns `KEEP` on the other ticks, for n of 2, 4, and 10, with orders that complete inside the run. A redirected move continues from the current position, and the distance walked equals speed times time. Restore and replay give equal digests at every tick for 1,000 ticks. Under a policy that always prefers a legal action away from its lane, no laner roams for longer than the cap plus one decision interval at a stretch, each laner's roaming share over 10 minutes stays within the bound of section 5.10, and no position changes by more than speed times the tick except on death and on recall. A soak of random legal actions runs 10 games with no invariant failure. The invariants are: health and mana within bounds, gold not negative, every position on a valid edge, a non-empty legal mask, a clock that only advances, and no action by a dead champion. |
-| C2 | Lanes and economy | The wave experiments of section 5.6 on the M8 lane first, then the documented rules that M7 left out. Then `LaneSim` for all three lanes, towers against minions, the five wave modes with the in-path rule, gold and XP, bot-lane sharing, support item | The handoff reports the three wave experiments on the M8 lane with M7's pass tests unchanged, and each measurement of section 5.6 beside the simulator's value where someone has taken it. C2 does not require a freeze or a slow push to appear, and no rule is added to produce one. M8 tests re-assert on the M8 lane what the M7 wave tests cover: minion conservation, mirror symmetry, gold only for a champion's own killing blow, the XP split, and independence between lanes. First waves meet at the time that route length and minion speed give, within one tick, and within 5 percent of the measured real-game time once that exists. In bot lane each minion's gold is paid at most once, so the minion gold of carry and support together never exceeds the gold of the minions that died. The pair's XP is 1.3 times a solo laner's in the same lane state, within 2 percent, and neither gets more XP than the solo laner. The support item's gold is counted separately. It equals 3 per 10 s plus 18 per charge used, with at most one charge per 20 s. The pair's total gold exceeds a solo laner's by no more than that. An incentive screen reports the gold plus XP that a scripted laner earns in 5 minutes under each wave mode, over at least 10 lane states. The screen has no pass condition on which mode earns most. If one mode earns most in every state, the handoff traces the cause to named mechanics. The tick sweep of risk RK2 is reported. |
+| C1 | Kernel base | World, tick loop, decision interval, champions on routes, action table, intents with outcomes, the role duty state, `observe` and `legal_mask` for own state and teammates, snapshot and digest, invariant checker | A run at decision interval n equals a run at interval 1 whose policy returns `KEEP` on the other ticks, for n of 2, 4, and 10, with orders that complete inside the run. A redirected move continues from the current position, and the distance walked equals speed times time. Restore and replay give equal digests at every tick for 1,000 ticks. Under a policy that always prefers a legal action away from its lane, no laner roams for longer than the cap plus one decision interval at a stretch, each laner's roaming share after its first allowance is spent stays within 20 percent plus one decision interval over the window, and no position changes by more than speed times the tick except on death and on recall. A soak of random legal actions runs 10 games with no invariant failure. The invariants are: health and mana within bounds, gold not negative, every position on a valid edge, a non-empty legal mask, a clock that only advances, and no action by a dead champion. |
+| C2 | Lanes and economy | The wave experiments of section 5.6 on the M8 lane first, then the documented rules that M7 left out. Then `LaneSim` for all three lanes, towers against minions, the five wave modes with the in-path rule, gold and XP, bot-lane sharing, support item | The handoff reports the three wave experiments on the M8 lane with M7's pass tests unchanged, and each measurement of section 5.6 beside the simulator's value where someone has taken it. C2 does not require a freeze or a slow push to appear, and no rule is added to produce one. M8 tests re-assert on the M8 lane what the M7 wave tests cover: minion conservation, mirror symmetry, gold only for a champion's own killing blow, the XP split, and independence between lanes. First waves meet at the time that route length and minion speed give, within one tick, and within 5 percent of the measured real-game time once that exists. In bot lane each minion's gold is paid at most once, so the minion gold of carry and support together never exceeds the gold of the minions that died. The pair's XP is 1.3 times a solo laner's in the same lane state, within 2 percent, and neither gets more XP than the solo laner. The support item's gold is counted separately. It equals 3 per 10 s plus 18 per charge used, with at most one charge per 20 s. Minion gold, the item's gold, and each champion's own passive and starting gold are the only sources of gold in the lane, and the test accounts for each one apart. An incentive screen reports the gold plus XP that a scripted laner earns in 5 minutes under each wave mode, over at least 10 lane states. The screen has no pass condition on which mode earns most. If one mode earns most in every state, the handoff traces the cause to named mechanics. The tick sweep of risk RK2 is reported. |
 | C3 | Recall and purchases | Recall channel, fountain, Homeguard, upgrade progressions | A cancelled recall loses all progress. Unspent gold changes no capability. The round trip from an outer tower (recall, buy, walk back) takes the time that route length and speed give, within one tick. |
 | C4 | Jungle | Camps, Scuttlers, shrine vision, camp timers in memory, a scripted jungler | Each first spawn falls on the ruleset's clock time, and each respawn falls on the camp's last death plus the ruleset's delay, to the tick. Timer knowledge follows the reference rule for seen and unseen clears. A clear takes the camp's health over the champion's camp damage rate, within one tick, and travel between camps takes route length over speed. The handoff reports the time and reward of each destination for the scripted jungler over a sweep of start positions and camp states. No destination is required to win. The handoff reports the scripted first-clear time. That time becomes a pass or fail criterion once a reference exists (question OQ8). |
-| C5 | Combat and death | Per-tick fights, lockdown, tower against champions, death, respawn, kill rewards | Damage is monotone in capability. An ally's arrival tick equals route length over speed. A champion takes champion damage only on ticks when an attacker is within range by the straight line and sees it. A tower's damage on a champion follows the reference aggro and ramp rule to the tick. Permuting the seat order changes no outcome. `FIGHT` follows section 7.1: pursuit to the last-seen position, `LOST` on arrival, and no outcome when the target is seen again first. A dead champion returns at the fountain after the ruleset's timer. |
+| C5 | Combat and death | Per-tick fights, lockdown, tower against champions, death, respawn, kill rewards | Damage is monotone in capability. An ally's arrival tick equals route length over speed. A champion takes champion damage only on ticks when an attacker is within range by the straight line and the target is in the view of the attacker's team. A tower's damage on a champion follows the reference aggro and ramp rule to the tick. Permuting the seat order changes no outcome. `FIGHT` follows section 7.1: pursuit to the last-seen position, `LOST` on arrival, and no outcome when the target is seen again first. A dead champion returns at the fountain after the ruleset's timer. |
 | C6 | Vision, memory, wards | Team view on the sight measure of section 5.1, memory, ward placement, timer rule, full observation encoding | The hidden-state test: randomize every field hidden from a team, and that team's observations and masks stay identical. The behaviour test: under the same randomization, that team's champions follow identical trajectories until something is revealed. The junction, open-ground, and wall cases of `tests/test_sight.py` hold for champions in a running game. A ranged attack reaches a target behind a wall only while the attacker's team sees it. An enemy Stealth Ward never appears in a team's view. Last-seen records freeze out of vision. A ward reveals and then expires. |
 | C7 | Integrated game | All subsystems in one world, scripted policies for all ten seats, pinned replays, throughput gate | Scripted games of 20 game minutes run for 50 seeds with no invariant failure. Three pinned replays reproduce their digests. Every C1 to C6 test still passes. Throughput stays above the gate of section 10.4. In the event log of an integrated game, every wave spawn, camp spawn, camp respawn, and champion respawn falls on the tick that the ruleset gives. No minion moves past a living enemy tower. A champion that damages an enemy champion inside the range of that enemy's tower takes tower damage under the reference rule. After an outer tower falls, the enemy wave's furthest advance in that lane increases. As the roadmap's baseline check, a scripted team beats a random-action team on gold and XP at 15 minutes on at least 45 of 50 seeds. A sweep over tick lengths of 0.25, 0.5, and 1.0 s and decision intervals of 1, 2, and 5 s reports which scripted outcomes change, and the handoff confirms or revises the starting values of section 5.2. |
 | C8 | Scenarios and harness | Scenario loader, hypothesis generator, comparison harness, saved scenarios | Saved scenarios load, restore, and replay exactly. The generator passes the three tests of section 9.3. A comparison rerun gives identical output. The harness reports the first four rows of section 9.5 under two scripted continuation styles and at least two hypotheses each, and the report states where rankings differ between styles and between hypotheses. |
@@ -899,7 +909,7 @@ The M8 gate of the roadmap is met when C8 passes. C7 carries the roadmap's two c
 
 | Criterion in the first version | Problem | Now |
 | --- | --- | --- |
-| C2. A carry and support together earn no more minion gold than a solo laner, and each earns less. | Contradiction. The support item creates gold, and the carry can take every last hit a solo laner takes. | Three separate statements: minion gold is paid once, XP splits by the reference rule, and the item's gold is counted apart and bounded. |
+| C2. A carry and support together earn no more minion gold than a solo laner, and each earns less. | Contradiction. The support item creates gold, and the carry can take every last hit a solo laner takes. | Separate statements: minion gold is paid once, XP splits by the reference rule, and the item's gold is counted apart and bounded. No statement compares the pair's total gold with a solo laner's. The independent review found that the first rewrite still did. |
 | C2. Pushing does not earn more in every state. | Forced conclusion. A faithful lane in which pushing pays everywhere would fail. | The screen reports. A mode that wins everywhere is traced to mechanics, not forbidden. |
 | C2. The handoff records the owner's choice on freezes, including one rule labelled approximate. | Forced conclusion. It offered a rule whose purpose was to make a behaviour appear. | Removed. No rule is added to produce a named behaviour. |
 | C2. First waves meet within 5 percent of the measured times. | Could not be checked without a measurement. | Route arithmetic now, and the measurement once it exists. |
@@ -949,14 +959,15 @@ The machine was inspected on 2026-11-11 (Tested, by system query).
 
 | Setting | One process | 5 processes | 6 processes |
 | --- | --- | --- | --- |
-| 1.0 s tick, decision every 5 s | 1,239 simulated seconds per second (range 1,206 to 1,256, 7 runs) | not measured | 26,250 games per hour, 13,125 agent decisions per second |
-| 0.5 s tick, decision every 2 s (the starting values) | 591 simulated seconds per second (578 to 605, 7 runs) | 10,637 games per hour, 13,296 agent decisions per second | 11,696 games per hour, 14,620 agent decisions per second |
+| 1.0 s tick, decision every 5 s | 979 simulated seconds per second (range 848 to 1,075, 7 runs) | not measured | 14,622 games per hour, 7,311 agent decisions per second |
+| 0.5 s tick, decision every 2 s (the starting values) | 517 simulated seconds per second (494 to 536, 7 runs) | 7,568 games per hour, 9,460 agent decisions per second | 8,608 games per hour, 10,760 agent decisions per second |
 
-- **What bounds it.** One CPython core per process. In the profile, lanes take 50 percent of the time and vision 25 percent. Twelve processes gave 5.44 times one process against 5.24 times for six, so the six physical cores are the limit and hyperthreads add little.
+- **What bounds it.** One CPython core per process. In the profile, lanes take 51 percent of the time and vision 25 percent. Twelve processes gave 5.52 times one process against 4.24 times for six, so the six physical cores are the limit and hyperthreads add little.
 - **What it leaves out.** No policy network ran. The policy was a scripted function. The prototype lacks rules that M8 adds: inner and inhibitor towers, minion damage to champions, and the support item's charges. Its lane is the first-round lane model, and it measures sight by route distance, so the cost of `sees` is not in these numbers (section 5.1).
-- Building and encoding one observation with its mask takes 53 microseconds.
-- **Background load moves the one-process figure.** The run at the starting values began at 11 percent CPU load, and the run at a 1.0 s tick at 25 percent. Another program of the owner's runs on this machine. Four runs at the starting values on this day gave 634, 626, 540, and 591 simulated seconds per second, at 24, 5, 34, and 11 percent load. Only the last is in the results file. The other three are Reported.
-- The first of those four is the first version's figure, from before intents ended on completion. The spread between runs is larger than any effect of that change.
+- Building and encoding one observation with its mask takes 62 microseconds.
+- **Background load moves the one-process figure.** The run at the starting values began at 34 percent CPU load, and the run at a 1.0 s tick at 38 percent. The owner was using the machine for other programs during both runs, so both understate an idle machine. Commit `6c37723` holds a run of 591 simulated seconds per second (578 to 605, 7 runs) at 11 percent load, and 13,296 agent decisions per second on five processes. It was made before the last change to the lane code, which is why the results file holds the later run. Other runs at the starting values on this day gave between 504 and 634 at loads between 5 and 34 percent. Their files were overwritten, so those figures are Reported.
+- The highest of those figures, 634, is the first version's, from before intents ended on completion. The spread between runs is larger than any effect of that change.
+- The derived figures below use the run in the results file, so they are on the low side for an idle machine.
 
 **Learner throughput** (Tested, `experiments/m7/bench_learner.py`, results in `experiments/m7/results/learner.json`). The network is the predecessor's shape scaled up: two hidden layers of 256 units, 256 inputs, 64 actions. The prototype's observation and action table are of the same order, and the difference does not matter at this size. CPU only, 7 runs each.
 
@@ -970,10 +981,10 @@ The GPU was not measured. `torch` with CUDA is not installed, and at this networ
 
 **What bounds an overnight run.** This is derived from the two tables. It is not measured end to end, and no training loop has run.
 
-- Five worker processes produce about 13,300 agent decisions per second with a scripted policy.
-- Inference on one thread inside each worker adds about 0.23 ms to a decision point that costs about 3.4 ms to simulate, so about 7 percent.
+- Five worker processes produce about 9,500 agent decisions per second with a scripted policy.
+- Inference on one thread inside each worker adds about 0.23 ms to a decision point that costs about 3.9 ms to simulate, so about 6 percent.
 - Four PPO epochs at 130,000 transitions per second let one learner thread absorb about 33,000 new decisions per second.
-- The kernel is therefore the limit, at roughly 12,000 agent decisions per second, if the learner runs beside the workers. A loop that alternates collection and updates, as the predecessor's did, gives about 8,600.
+- The kernel is therefore the limit, at roughly 9,000 agent decisions per second, if the learner runs beside the workers. A loop that alternates collection and updates, as the predecessor's did, gives about 7,000.
 
 **Budget for the pilot.**
 
@@ -981,7 +992,7 @@ The GPU was not measured. `torch` with CUDA is not installed, and at this networ
 | --- | --- |
 | One run | At most 10 hours of wall time, overnight |
 | Processes | 5 environment workers and 1 learner, CPU only at first |
-| Expected volume per run | 150 to 400 million agent decisions, or 35,000 to 95,000 episodes of 14 game minutes (Derived). The top assumes the prototype's rate and a learner that runs beside the workers. The bottom assumes the C7 gate rate and a learner that alternates with them. |
+| Expected volume per run | 165 to 320 million agent decisions, or 39,000 to 76,000 episodes of 14 game minutes (Derived). The top assumes the prototype's rate and a learner that runs beside the workers. The bottom assumes the C7 gate rate and a learner that alternates with them. |
 | For scale | The predecessor's main runs used 32.8 million transitions each (Reported) |
 | Whole pilot | One 30-minute smoke run, then at most three overnight runs |
 | Approval | Each overnight run needs the owner's go-ahead, behind a confirm flag |
@@ -990,9 +1001,9 @@ The pilot's first task is to replace the derived figure with a measured one.
 
 ### 10.4 Throughput gate
 
-The M7 prototype sets the reference: 591 simulated seconds per wall second on one process at the starting clock values, with scripted policies.
+The M7 prototype sets the reference: 517 simulated seconds per wall second on one process at the starting clock values, with scripted policies.
 
-- **Gate at C7.** The integrated M8 kernel reaches at least 300 simulated seconds per wall second on one process, measured with the same benchmark method (7 runs, median and range, work counts checked). That is about half the prototype's rate and leaves room for the rules the prototype lacks. At 300, five workers still give about 200 million agent decisions in 10 hours.
+- **Gate at C7.** The integrated M8 kernel reaches at least 300 simulated seconds per wall second on one process, measured with the same benchmark method (7 runs, median and range, work counts checked). That is between half and three fifths of the prototype's rate in this day's runs, and leaves room for the rules the prototype lacks. At 300, five workers still give 165 to 190 million agent decisions in 10 hours.
 - **Below the gate.** Profile first. Move the lane loop, then the vision loop, to arrays or compiled code before the pilot starts.
 - **Between checkpoints.** A checkpoint that lowers the benchmark by more than 20 percent explains why in its handoff.
 
@@ -1051,7 +1062,7 @@ Risks are ordered by how much they could change the plan.
 
 | Id | Risk | Evidence so far | What reduces it |
 | --- | --- | --- | --- |
-| RK1 | Freezes and slow pushes do not emerge from the wave rules, against the owner decision. | Tested, three rounds (section 5.6). With a mortal champion, no thinning plan brings more than 4 minions to the tower against a test of 12, and no holding plan passes the freeze test. An even fight ends in 25.5 s against a wave interval of 30 s. | C2's first task: the same experiments on the M8 lane, the four documented rules that M7 left out, and the measurements of section 5.6 if someone takes them. No rule is added to force either behaviour. |
+| RK1 | Freezes and slow pushes do not emerge from the wave rules, against the owner decision. | Tested, three rounds (section 5.6). With a champion that can die, no thinning plan brings more than 7 minions to the tower against a test of 12, and no holding plan passes the freeze test. An even fight ends in 25.5 s against a wave interval of 30 s. One documented rule that was added late, the side-lane speed boost, more than doubled the thinned wave. | C2's first task: the same experiments on the M8 lane, the three documented rules still missing, then the measurements of section 5.6 if someone takes them. No rule is added to force either behaviour. |
 | RK2 | Wave outcomes are sensitive to tie-breaks and, less than first reported, to the tick. | Tested (`waves.json`, `S7b_tick_sensitivity`). At a 0.5 s tick, 15 of 17 metrics are within 10 percent of a 0.125 s reference. A lane that is one caster short still swings from tower to tower. | A 0.5 s tick as the starting value. C2 repeats the sweep on the M8 lane and reports every metric that moves more than 10 percent. |
 | RK3 | The jungle graph is an assumption. Which camps connect, and the 1.15 detour factor, set every jungle travel time. No source gives a full-clear time on the 2026 clock. | Assumed. Lane distances are tested, jungle distances are not. | C4 reports the scripted first-clear time. The owner or the planning assistant supplies one trusted clear time, or measures one in a custom game. |
 | RK4 | Chases on a one-dimensional route are close to binary in the sign of the speed difference, and fights without a fight object may not calibrate. | Tested: a runner 20 units faster escaped in all 6 of its cases. | M9 tests candidate B's attack windup and dash rules first. If a strong champion's 1v2 cannot be made to follow from capability and `damage` alone, M9 adds an engagement entity. |
@@ -1066,7 +1077,7 @@ Risks are ordered by how much they could change the plan.
 | RK13 | The pilot reward pays for gold and XP. A policy may learn to farm and never fight. | Inference. | That is one of the exploits the pilot exists to find. The pilot report states it. The reward is not reused for M12 without review. |
 | RK14 | Writing scenarios by hand may be too slow to be useful, even with a generated base. | Assumed. | C8 records the time taken to write the first four scenarios. |
 | RK15 | The role bound of section 5.10 (a 90 s cap and a refill of 0.25) is untested against learned behaviour, and a laner with no allowance cannot fight outside its lane. | Assumed constants. The mechanism is tested in the prototype. | The pilot reports how often laners reach the bound and whether opponents exploit it. |
-| RK16 | A lane has no width, so the in-path rule of section 5.6 decides when minions may attack a champion. The rule is an assumption. | Assumed. Found in the round 3 wave tests. | The fourth measurement of section 5.6. C2 implements the rule and the `hold` mode and reports what a learned or scripted laner does with them. |
+| RK16 | A lane has no width, so the in-path rule of section 5.6 decides when minions may attack a champion and when a champion may hit minions. The rule is an assumption, and it sets what clearing a wave alone costs. | Assumed. Found in the round 3 wave tests, and corrected once after the independent review. | The fourth measurement of section 5.6. C2 implements the rule and the `hold` mode, and its incentive screen reports what each mode earns with the own wave gone. |
 | RK17 | `sees` costs about ten times `distance` for a pair inside the sight radius, and the M7 throughput was measured without it. | One rough measurement (section 5.1). | The gate at C7. A table by edge pair is the first optimization. |
 
 ### 11.3 Open questions
@@ -1085,11 +1096,11 @@ Risks are ordered by how much they could change the plan.
 
 **Still open.** The owner has said that routine technical choices need no further questionnaire, so these go to the planning assistant unless it passes one on.
 
-- **OQ4. Omitted reference rules.** Which rules of section 3.4 must return before the pilot, if any? Unit collision and the pushing advantage now move into C2 through section 5.6.
+- **OQ4. Omitted reference rules.** Which rules of section 3.4 must return before the pilot, if any? Unit collision, call-for-help, the pushing advantage, and the side-lane speed boost now move into C2 through section 5.6.
 - **OQ7. Public information.** The design treats enemy level as public and enemy upgrades and health as last seen. The real scoreboard rules were not researched. The answer changes the hypothesis checks of section 9.3.
 - **OQ8. Jungle clear time.** Risk RK3 needs one trusted number.
 - **OQ9. Support item tiers.** M8 keeps the support item at its first tier. Decide whether the 400-gold upgrade matters for bot-lane decisions.
-- **OQ11. The `hold` wave mode and the in-path rule.** Both are new and assumed (section 5.6). Confirm them, or name another way for a champion to stand in a wave's path.
+- **OQ11. The `hold` wave mode and the in-path rule.** Both are new and assumed (section 5.6). Confirm them, or name another way for a champion to stand in a wave's path. The rule also decides that a champion who has stepped aside hits nothing.
 - **OQ12. Wave measurements.** Someone has to take the six measurements of section 5.6 in a custom game on the reference patch. The implementing assistant cannot.
 
 ## 12. Where the contracts came from
@@ -1124,7 +1135,7 @@ Every command below starts with `.venv/Scripts/python.exe`.
 | Command | What it shows | What it writes |
 | --- | --- | --- |
 | `-m pytest -q` | Every test: ruleset tags, map lengths, sight, keyed randomness, wave behaviour, kernel contracts, roles, hindsight | Nothing |
-| `-m experiments.m7.waves.scenarios` | The wave cases of section 5.6. Takes about 2.5 minutes. | `experiments/m7/waves/results/waves.json` |
+| `-m experiments.m7.waves.scenarios` | The wave cases of section 5.6. Takes about 4 minutes. | `experiments/m7/waves/results/waves.json` |
 | `-m experiments.m7.waves.diagnose "S5c k=3 hold" "A+B" 0 0.5 50` | A tick-by-tick trace of one wave case | Nothing |
 | `-m experiments.m7.kernel.scenarios` | Timing, fight, information, snapshot, role, and hindsight results | `experiments/m7/kernel/results/scenarios.json` |
 | `-m experiments.m7.kernel.bench` | Kernel throughput and process scaling at a 1.0 s tick with 5 s decisions. Wants an idle machine. | `experiments/m7/kernel/results/bench_tick1.0_decision5.json` |
@@ -1132,16 +1143,16 @@ Every command below starts with `.venv/Scripts/python.exe`.
 | `-m experiments.m7.bench_learner` | Learner throughput. Needs `torch` (`uv pip install torch --index-url https://download.pytorch.org/whl/cpu`). | `experiments/m7/results/learner.json` |
 | `-m experiments.m7.provenance` | Whether each results file still matches the code in the working tree | Nothing |
 
-**Provenance.** Each results file holds the output of one invocation and a `run` block. The block records the command, the UTC time, the git head, whether the tree had uncommitted changes, the seeds, the configuration, the Python and package versions, and a content hash of every source file that the run loaded. A short code id summarizes those hashes. The checker recomputes the hashes and reports a file as `STALE` when a recorded source has changed since the run.
+**Provenance.** Each results file holds the output of one invocation and a `run` block. The block records the command, the UTC time, the git head, whether the tree had uncommitted changes, the seeds, the configuration, the Python and package versions, and a content hash of every source file that the run loaded. A short code id summarizes those hashes. The checker recomputes the hashes and reports a file as `STALE` when a recorded source has changed since the run. It does not hash a results file's own content, so it cannot detect a number edited by hand. The git history does that.
 
-The runs behind this version were made on an uncommitted tree on top of commit `8108294`. The content hashes, not the commit, identify their code.
+Each run block records the git head it ran on. Every run was made on a tree with uncommitted changes, so the content hashes, not the commit, identify its code.
 
 | Results file | Code id | Run at (UTC) | Seeds |
 | --- | --- | --- | --- |
-| `experiments/m7/waves/results/waves.json` | `8474bf3fd115e0c3` | 2026-11-11 18:47:42 | 0 to 4 |
-| `experiments/m7/kernel/results/scenarios.json` | `44ed41ff46723432` | 2026-11-11 18:48:16 | 0 to 15 |
-| `experiments/m7/kernel/results/bench_tick0.5_decision2.json` | `4bb490c2863edf55` | 2026-11-11 18:55:20 | 0 |
-| `experiments/m7/kernel/results/bench_tick1.0_decision5.json` | `4bb490c2863edf55` | 2026-11-11 18:51:39 | 0 |
+| `experiments/m7/waves/results/waves.json` | `16f6808d97cb34f6` | 2026-11-11 19:27:02 | 0 to 4 |
+| `experiments/m7/kernel/results/scenarios.json` | `79954a4feb1dc4d6` | 2026-11-11 19:27:49 | 0 to 15 |
+| `experiments/m7/kernel/results/bench_tick0.5_decision2.json` | `191aadac553bfffd` | 2026-11-11 19:35:20 | 0 |
+| `experiments/m7/kernel/results/bench_tick1.0_decision5.json` | `191aadac553bfffd` | 2026-11-11 19:38:10 | 0 |
 | `experiments/m7/results/learner.json` | `adbf658da63741f3` | 2026-11-11 18:53:07 | 0 |
 
 **What has no surviving evidence.** These items were in the first version, or came up during the correction. Each is now removed or labelled Reported.
@@ -1150,7 +1161,7 @@ The runs behind this version were made on an uncommitted tree on top of commit `
 - The cost and accuracy figures of the cohort lane variant. They were never written to a file.
 - The two design candidate texts of section 12. They were session files.
 - The four mutation runs of the sight tests, and one intermediate wave run (sections 5.1 and 5.6).
-- Three of the four throughput runs of section 10.3. Each rerun overwrote the file.
+- Most of the earlier throughput runs of section 10.3. Each rerun overwrote the file. One earlier run is in commit `6c37723`.
 - The first version's `kernel.json`. It merged several runs without metadata. Every number that this document keeps from it has been rerun.
 
 **Reusable code and prototype code.** `riftgame/` holds what M8 builds on: the ruleset loader and files, the route-graph map with its three measures, and keyed randomness. `tests/` covers it. Everything under `experiments/m7/` is prototype code that exists to answer M7's questions. M8 rewrites it against the contracts in this document and does not import it.

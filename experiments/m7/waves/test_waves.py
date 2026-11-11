@@ -265,7 +265,7 @@ def test_one_extra_caster_wins_the_fight_with_more_than_half_its_wave_left():
             assert metrics["red_left"] >= 4
 
 
-def test_a_mortal_champion_walks_no_faster_than_its_speed_and_stays_behind_its_own_lead_minion_unless_it_holds():
+def test_a_mortal_champion_walks_no_faster_than_its_speed_and_never_heads_for_a_spot_ahead_of_its_own_lead_minion():
     sim = LaneSim(TOP, seed=0, dt=0.5, mechanics=RECOMMENDED)
     champion = scenarios.Laner(BLUE, TOP.tower_s[BLUE])
     events, spots = [], []
@@ -279,18 +279,19 @@ def test_a_mortal_champion_walks_no_faster_than_its_speed_and_stays_behind_its_o
 
 
 def test_a_champion_takes_minion_damage_only_while_it_stands_in_the_waves_path():
-    def health_after(hold: bool) -> float:
+    def health_after(hold: bool, mode: Mode = Mode.NONE) -> float:
         sim = LaneSim(TOP, seed=0, dt=0.5, mechanics=RECOMMENDED, start_time=181.0)
         sim.add_minion(RED, Kind.CASTER, TOP.tower_s[BLUE] + 2500.0, count=6)
         champion = scenarios.Laner(BLUE, scenarios.post(sim, BLUE, hold))
         events = []
         while sim.time < 196.0:
-            events = sim.step(champion.act(sim, events, Mode.NONE, hold=hold))
-        champion.act(sim, events, Mode.NONE, hold=hold)
+            events = sim.step(champion.act(sim, events, mode, hold=hold))
+        champion.act(sim, events, mode, hold=hold)
         return champion.hp
 
     assert health_after(hold=False) == scenarios.LANER_HP
     assert health_after(hold=True) < scenarios.LANER_HP - 100
+    assert health_after(hold=False, mode=Mode.PUSH) < scenarios.LANER_HP
 
 
 def test_a_holding_champion_leaves_the_wave_below_the_retreat_threshold_instead_of_dying():
@@ -298,3 +299,31 @@ def test_a_holding_champion_leaves_the_wave_below_the_retreat_threshold_instead_
     assert metrics["champion_retreats"] >= 1
     assert not metrics["champion_died"]
     assert 0 < metrics["champion_lowest_health"] < scenarios.RETREAT_BELOW
+
+
+def test_a_champion_that_has_stepped_aside_kills_no_minion():
+    sim = LaneSim(TOP, seed=0, dt=0.5, mechanics=RECOMMENDED, start_time=181.0)
+    sim.add_minion(RED, Kind.CASTER, TOP.tower_s[BLUE] + 2500.0, count=6)
+    champion = scenarios.Laner(BLUE, scenarios.post(sim, BLUE, False))
+    events, deaths = [], 0
+    while sim.time < 211.0 and not scenarios.under_tower(TOP, BLUE, sim.front().lead[RED]):
+        events = sim.step(champion.act(sim, events, Mode.THIN))
+        deaths += sum(type(e) is MinionDeath for e in events)
+    assert deaths == 0 and champion.hp == scenarios.LANER_HP
+
+
+def test_minions_that_attack_a_holding_champion_turn_on_its_wave_when_the_wave_arrives():
+    sim = LaneSim(TOP, seed=0, dt=0.5, mechanics=RECOMMENDED, start_time=181.0)
+    hold_line = scenarios.post(sim, BLUE, True)
+    sim.add_minion(RED, Kind.CASTER, hold_line + 1500.0, count=3)
+    champion = scenarios.Laner(BLUE, hold_line)
+    events, hit_at, arrived = [], [], None
+    while sim.time < 201.0:
+        if arrived is None and sim.time >= 191.0:
+            sim.add_minion(BLUE, Kind.MELEE, hold_line - 600.0, count=3)
+            arrived = sim.time
+        events = sim.step(champion.act(sim, events, Mode.NONE, hold=True))
+        hit_at += [e.t for e in events if type(e) is ChampionDamage]
+    assert hit_at and min(hit_at) < arrived
+    assert max(hit_at) < arrived + 3.0
+    assert champion.hp > 0 and not champion.retreating

@@ -20,7 +20,8 @@ def worlds():
 def test_the_two_worlds_differ_only_in_what_blue_cannot_see(measured):
     pair = measured["w1_w2"]
     assert set(pair["hidden_fields_changed_w1_to_w2"]) == {
-        "red_jungler_hp", "red_jungler_gold", "red_jungler_upgrades", "red_raptors_alive", "red_memory_of_the_blue_jungler_tick"}
+        "red_jungler_hp", "red_jungler_gold", "red_jungler_upgrades", "red_raptors_alive", "red_memory_of_the_blue_jungler_tick",
+        "red_bot_outer_tower_hp"}
     assert all(before != after for before, after in pair["hidden_fields_changed_w1_to_w2"].values())
     assert pair["worlds_differ"] and pair["blue_observations_and_masks_identical"]
 
@@ -65,3 +66,15 @@ def test_blue_knowledge_changes_when_something_blue_can_see_changes(worlds):
     base = fingerprint(known(w1, 0))
     assert fingerprint(known(unseen, 0)) == base
     assert fingerprint(known(seen, 0)) != base and fingerprint(known(remembered, 0)) != base
+
+
+def test_what_blue_knows_does_not_change_with_the_health_of_any_enemy_tower(worlds):
+    w1 = worlds[0]
+    before = fingerprint(known(w1, 0))
+    for lane in w1.lanes.values():
+        for tower in lane.towers:
+            if tower.team == 1:
+                changed = World.restore(w1.snapshot())
+                twin = next(t for t in changed.lanes[lane.name].towers if t.name == tower.name)
+                twin.hp -= 1000.0
+                assert fingerprint(known(changed, 0)) == before, tower.name

@@ -1,26 +1,26 @@
 {
  "q5_throughput": {
-  "cpu_load_percent_before": 25.0,
+  "cpu_load_percent_before": 38.0,
   "game_s": 900,
   "decision_every_s": 5,
   "stub_lane": {
    "single_process": {
     "ticks_per_s_dt_1.0": {
-     "median": 2573.0,
-     "min": 2448.0,
-     "max": 2647.0,
+     "median": 2219.0,
+     "min": 2043.0,
+     "max": 2247.0,
      "runs": 7
     },
     "ticks_per_s_dt_0.5": {
-     "median": 3138.0,
-     "min": 2932.0,
-     "max": 3215.0,
+     "median": 2683.0,
+     "min": 2579.0,
+     "max": 2743.0,
      "runs": 7
     },
     "game_seconds_per_s_dt_0.5": {
-     "median": 1569.0,
-     "min": 1466.0,
-     "max": 1608.0,
+     "median": 1342.0,
+     "min": 1290.0,
+     "max": 1371.0,
      "runs": 7
     },
     "work_per_game_dt_1.0": {
@@ -32,35 +32,35 @@
     }
    },
    "profiled_share_of_run_time": {
-    "lanes": 0.114,
+    "lanes": 0.113,
     "champions and intents": 0.155,
-    "vision and memory": 0.34,
-    "observation and encoding": 0.333,
-    "policy": 0.035,
-    "run loop and submit": 0.023
+    "vision and memory": 0.335,
+    "observation and encoding": 0.335,
+    "policy": 0.036,
+    "run loop and submit": 0.026
    },
    "micro": {
-    "observe_encode_mask_us": 58.3,
-    "observe_us": 19.0,
-    "encode_us": 26.8,
-    "legal_mask_us": 3.2,
-    "snapshot_us": 153.0,
-    "restore_us": 123.1,
+    "observe_encode_mask_us": 69.7,
+    "observe_us": 21.2,
+    "encode_us": 29.3,
+    "legal_mask_us": 3.7,
+    "snapshot_us": 161.5,
+    "restore_us": 136.9,
     "snapshot_bytes": 9079,
     "at_game_s": 450.0
    },
    "processes": {
     "1": {
      "games_per_hour": {
-      "median": 10470.0,
-      "min": 10218.0,
-      "max": 10582.0,
+      "median": 8857.0,
+      "min": 8854.0,
+      "max": 8922.0,
       "runs": 3
      },
      "agent_decisions_per_s": {
-      "median": 5235.0,
-      "min": 5109.0,
-      "max": 5291.0,
+      "median": 4428.0,
+      "min": 4427.0,
+      "max": 4461.0,
       "runs": 3
      },
      "games_per_timed_batch": 6,
@@ -68,56 +68,56 @@
     },
     "6": {
      "games_per_hour": {
-      "median": 55081.0,
-      "min": 50815.0,
-      "max": 57321.0,
+      "median": 35806.0,
+      "min": 34340.0,
+      "max": 36170.0,
       "runs": 3
      },
      "agent_decisions_per_s": {
-      "median": 27541.0,
-      "min": 25408.0,
-      "max": 28661.0,
+      "median": 17903.0,
+      "min": 17170.0,
+      "max": 18085.0,
       "runs": 3
      },
      "games_per_timed_batch": 36,
-     "speedup_over_1_process": 5.26
+     "speedup_over_1_process": 4.04
     },
     "12": {
      "games_per_hour": {
-      "median": 58021.0,
-      "min": 56097.0,
-      "max": 58142.0,
+      "median": 38379.0,
+      "min": 38295.0,
+      "max": 42393.0,
       "runs": 3
      },
      "agent_decisions_per_s": {
-      "median": 29011.0,
-      "min": 28049.0,
-      "max": 29071.0,
+      "median": 19189.0,
+      "min": 19147.0,
+      "max": 21197.0,
       "runs": 3
      },
      "games_per_timed_batch": 72,
-     "speedup_over_1_process": 5.54
+     "speedup_over_1_process": 4.33
     }
    }
   },
   "real_lane": {
    "single_process": {
     "ticks_per_s_dt_1.0": {
-     "median": 1239.0,
-     "min": 1206.0,
-     "max": 1256.0,
+     "median": 979.0,
+     "min": 848.0,
+     "max": 1075.0,
      "runs": 7
     },
     "ticks_per_s_dt_0.5": {
-     "median": 1457.0,
-     "min": 1413.0,
-     "max": 1468.0,
+     "median": 1231.0,
+     "min": 1117.0,
+     "max": 1268.0,
      "runs": 7
     },
     "game_seconds_per_s_dt_0.5": {
-     "median": 728.0,
-     "min": 706.0,
-     "max": 734.0,
+     "median": 616.0,
+     "min": 559.0,
+     "max": 634.0,
      "runs": 7
     },
     "work_per_game_dt_1.0": {
@@ -129,35 +129,35 @@
     }
    },
    "profiled_share_of_run_time": {
-    "lanes": 0.504,
-    "champions and intents": 0.071,
-    "vision and memory": 0.254,
-    "observation and encoding": 0.145,
+    "lanes": 0.509,
+    "champions and intents": 0.072,
+    "vision and memory": 0.249,
+    "observation and encoding": 0.142,
     "policy": 0.015,
-    "run loop and submit": 0.011
+    "run loop and submit": 0.013
    },
    "micro": {
-    "observe_encode_mask_us": 52.9,
-    "observe_us": 16.3,
-    "encode_us": 24.8,
-    "legal_mask_us": 3.0,
-    "snapshot_us": 250.2,
-    "restore_us": 210.9,
-    "snapshot_bytes": 16512,
+    "observe_encode_mask_us": 61.8,
+    "observe_us": 18.7,
+    "encode_us": 27.6,
+    "legal_mask_us": 3.3,
+    "snapshot_us": 300.0,
+    "restore_us": 252.0,
+    "snapshot_bytes": 17374,
     "at_game_s": 450.0
    },
    "processes": {
     "1": {
      "games_per_hour": {
-      "median": 5010.0,
-      "min": 4997.0,
-      "max": 5026.0,
+      "median": 3446.0,
+      "min": 3348.0,
+      "max": 4013.0,
       "runs": 3
      },
      "agent_decisions_per_s": {
-      "median": 2505.0,
-      "min": 2499.0,
-      "max": 2513.0,
+      "median": 1723.0,
+      "min": 1674.0,
+      "max": 2006.0,
       "runs": 3
      },
      "games_per_timed_batch": 6,
@@ -165,46 +165,46 @@
     },
     "6": {
      "games_per_hour": {
-      "median": 26250.0,
-      "min": 25972.0,
-      "max": 27419.0,
+      "median": 14622.0,
+      "min": 13728.0,
+      "max": 16618.0,
       "runs": 3
      },
      "agent_decisions_per_s": {
-      "median": 13125.0,
-      "min": 12986.0,
-      "max": 13709.0,
+      "median": 7311.0,
+      "min": 6864.0,
+      "max": 8309.0,
       "runs": 3
      },
      "games_per_timed_batch": 36,
-     "speedup_over_1_process": 5.24
+     "speedup_over_1_process": 4.24
     },
     "12": {
      "games_per_hour": {
-      "median": 27260.0,
-      "min": 26899.0,
-      "max": 27566.0,
+      "median": 19023.0,
+      "min": 15911.0,
+      "max": 19295.0,
       "runs": 3
      },
      "agent_decisions_per_s": {
-      "median": 13630.0,
-      "min": 13450.0,
-      "max": 13783.0,
+      "median": 9512.0,
+      "min": 7955.0,
+      "max": 9648.0,
       "runs": 3
      },
      "games_per_timed_batch": 72,
-     "speedup_over_1_process": 5.44
+     "speedup_over_1_process": 5.52
     }
    }
   },
-  "cpu_load_percent_after": 13.0
+  "cpu_load_percent_after": 48.0
  },
  "run": {
   "command": "python -m experiments.m7.kernel.bench",
-  "created_utc": "2026-11-11T18:51:39+00:00",
-  "git_head": "810829441600fef900d386ea4c14647dbb5df464",
+  "created_utc": "2026-11-11T19:38:10+00:00",
+  "git_head": "6c37723c5fcf7e1eaa3ad1ccc14df49942da8ed3",
   "git_dirty": true,
-  "code_id": "4bb490c2863edf55",
+  "code_id": "191aadac553bfffd",
   "sources": {
    "experiments/m7/kernel/bench.py": "d003777f5c8390ca0c41020e92861b78f10607eaac11c142704037aba7e909d0",
    "experiments/m7/kernel/lanes.py": "0f30edc437eb226930bed2eec56e3d3b6db24e318d54a6adb85523e190914991",
@@ -212,7 +212,7 @@
    "experiments/m7/kernel/policy.py": "d85e5741e6269e99a92aef51f89baef3d5ec7debf834e14d1312dea5972ea7b0",
    "experiments/m7/kernel/profiles.py": "91638576291efcc4f96031da2e6555c46d603ac80359f2348040fafc5e8c8e51",
    "experiments/m7/kernel/world.py": "534704345e3d3842ce2c774cf3004e629c358465059d47560b2a01c48c4b08d3",
-   "experiments/m7/waves/lane.py": "52c0351e6f976d017138b3f6d4fee1c09a581fbf033716c366280c7c59be8c5e",
+   "experiments/m7/waves/lane.py": "f580e920bfe0978e068a7d14308581e00a3348ff69c344631eeecc1d191fb4cb",
    "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
    "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
    "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",

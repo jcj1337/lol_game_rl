@@ -20,6 +20,11 @@ DAMAGE_TO_CHAMPIONS = MINIONS["damage_to_champions"]
 TOWER_RANGE = TOWERS["attack_range"]
 TOWER_ATTACK_SPEED = TOWERS["attack_speed"]
 EPS = 1e-6
+# Side-lane speed-up of the reference patch (wiki, Minion, "Sidelane Speed", read 2026-11-11): from wave 2 until 14:00 a
+# top or bot minion spawns with 111 bonus speed, 4.5 less for each later wave. The bonus drops by 15 after 7, 14, and 21 s
+# and is removed after 25 s.
+SIDE_SPEED_FIRST_WAVE, SIDE_SPEED_BONUS, SIDE_SPEED_PER_WAVE = 2, 111.0, 4.5
+SIDE_SPEED_STAGE_ENDS, SIDE_SPEED_STAGE_DROP, SIDE_SPEED_UNTIL_S = (7.0, 14.0, 21.0, 25.0), 15.0, 840.0
 SAME_INSTANT = 1e-9
 CHAMPION_KEY = 1 << 40
 SLOTS = (-1, 0, 1)
@@ -52,6 +57,7 @@ class LaneGeometry:
     tower_s: tuple[float, float]
     plus_team: Team = Team.BLUE
     far_spawn_offset: float | None = None
+    side: bool = False
 
     def direction(self, team: int) -> int:
         return 1 if team == self.plus_team else -1
@@ -68,7 +74,7 @@ class LaneGeometry:
     def swapped_sides(self) -> "LaneGeometry":
         blue, red = self.tower_s
         far = self.spawn_offset if self.far_spawn_offset is None else self.far_spawn_offset
-        return LaneGeometry(self.length, far, (self.length - blue, self.length - red), Team(1 - self.plus_team), self.spawn_offset)
+        return LaneGeometry(self.length, far, (self.length - blue, self.length - red), Team(1 - self.plus_team), self.spawn_offset, self.side)
 
 
 def lane_geometry(name: str) -> LaneGeometry:
@@ -77,7 +83,7 @@ def lane_geometry(name: str) -> LaneGeometry:
     length = data.rift.lanes[name].length
     outer = {site.team: site.s for site in data.towers if site.lane == name and site.tier == "outer"}
     blue, red = data.minion_spawn_s["blue", name], data.minion_spawn_s["red", name]
-    return LaneGeometry(length, blue, (outer["blue"], outer["red"]), far_spawn_offset=length - red)
+    return LaneGeometry(length, blue, (outer["blue"], outer["red"]), far_spawn_offset=length - red, side=name != "mid")
 
 
 MID = lane_geometry("mid")
@@ -93,11 +99,13 @@ class Mechanics:
     laterally closest. Draws for the ties that remain are keyed without the tick.
     current_hp_damage: a minion blow on a minion adds the reference patch's share of the target's current health.
     Turning it off is a sensitivity run on that sourced constant, not a candidate rule.
+    side_lane_speed: minions of a side lane get the reference patch's speed bonus after they spawn.
     """
 
     champion_aggro: bool = False
     lateral_slots: bool = False
     current_hp_damage: bool = True
+    side_lane_speed: bool = False
 
 
 BASELINE = Mechanics()
@@ -278,6 +286,8 @@ class Minion:
     draws: int = 0
     died_group: int = -1
     slot: float = 0.0
+    born: float = 0.0
+    boost: float = 0.0
 
 
 @dataclass(slots=True, eq=False)
@@ -423,10 +433,18 @@ class Lane:
                     room = min(room, ahead - stop)
             elif (body.target is None or type(body.target) is Tower) and tower.hp > 0 and heading * (tower.s - body.s) > 0:
                 room = min(room, abs(tower.s - body.s) - stop)
-            advance = max(0.0, min(SPEED * (self.dt - body.delay), room))
+            speed = self._speed(body)
+            advance = max(0.0, min(speed * (self.dt - body.delay), room))
             body.s += heading * advance
-            body.free_at = body.delay + advance / SPEED
+            body.free_at = body.delay + advance / speed
             body.delay = 0.0
+
+    def _speed(self, body) -> float:
+        boost = getattr(body, "boost", 0.0)
+        if not boost:
+            return SPEED
+        stage = sum(self.time - body.born >= end for end in SIDE_SPEED_STAGE_ENDS)
+        return SPEED if stage == len(SIDE_SPEED_STAGE_ENDS) else SPEED + max(0.0, boost - SIDE_SPEED_STAGE_DROP * stage)
 
     def _tower_target(self, tower: Tower):
         foes = [b for b in self.bodies[1 - tower.team] if b.hp > 0 and abs(b.s - tower.s) <= TOWER_RANGE + EPS]
@@ -479,6 +497,10 @@ class LaneSim(Lane):
 
     def _spawn(self, team: int, kind: Kind, wave: int, when: float, delay: float, slot: int) -> None:
         self.add_minion(team, kind, self.geometry.spawn_s(team), when, delay, slot=slot)
+        minion = self.bodies[team][-1]
+        minion.born = when
+        if self.mechanics.side_lane_speed and self.geometry.side and wave >= SIDE_SPEED_FIRST_WAVE and when < SIDE_SPEED_UNTIL_S:
+            minion.boost = max(0.0, SIDE_SPEED_BONUS - SIDE_SPEED_PER_WAVE * (wave - SIDE_SPEED_FIRST_WAVE))
 
     def _pick(self, m: Minion, tied: list) -> Minion:
         m.draws += 1

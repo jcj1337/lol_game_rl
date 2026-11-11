@@ -38,13 +38,15 @@ from experiments.m7.waves.lane import (
 BLUE, RED = Team.BLUE, Team.RED
 RECOMMENDED_NAME = "A+B"
 FLAT_NAME = "A+B flat damage"
-CHAMPION_PLAN_CONFIGS = (RECOMMENDED_NAME, FLAT_NAME)
+SIDE_SPEED_NAME = "A+B side speed"
+CHAMPION_PLAN_CONFIGS = (RECOMMENDED_NAME, FLAT_NAME, SIDE_SPEED_NAME)
 CONFIGS = {
     "baseline": BASELINE,
     "A": Mechanics(champion_aggro=True),
     "B": Mechanics(lateral_slots=True),
     RECOMMENDED_NAME: RECOMMENDED,
     FLAT_NAME: Mechanics(champion_aggro=True, lateral_slots=True, current_hp_damage=False),
+    SIDE_SPEED_NAME: Mechanics(champion_aggro=True, lateral_slots=True, side_lane_speed=True),
 }
 SEEDS = range(5)
 DTS = (0.125, 0.25, 0.5, 1.0)
@@ -86,7 +88,7 @@ RETURN_ABOVE = 0.60
 
 ASSUMPTIONS = {
     "laner": "level 1 to 3 laner: hit_damage 65, attack_speed 0.65, attack_range 550, aoe_dps 70 (ChampionInput defaults), always a valid minion target",
-    "mortal_laner": "the champion of the slow-push and freeze cases has 650 health, 30 armor, 1.5 health regeneration per second, and move speed 335, all placeholders; it walks to where it wants to stand; below 30 percent health it walks to its own tower and stays out of the wave until it is back above 60 percent; at zero health it is dead for the rest of the run; the lane has no width, so the champion is in the minions' path, and a valid target, only while the waves are in contact or while it holds, and otherwise it has stepped aside",
+    "mortal_laner": "the champion of the slow-push and freeze cases has 650 health, 30 armor, 1.5 health regeneration per second, and move speed 335, all placeholders; it walks to where it wants to stand; below 30 percent health it walks to its own tower and stays out of the wave until it is back above 60 percent; at zero health it is dead for the rest of the run; the lane has no width, so the champion is in the minions' path, and a valid target, while the waves are in contact, while it holds, or while it pushes; otherwise it has stepped aside, and a champion that has stepped aside hits nothing",
     "champion_stand": "a champion stands one melee range short of the enemy lead minion while the waves are in contact, and 550 short of it (outside minion acquisition range) once its own wave is gone; never inside enemy tower range plus 50; a mortal champion also never walks ahead of its own lead minion",
     "champion_hold": "a holding champion stands at the wave like any other while its own minions fight; with no minion of its own beyond the hold line it waits on that line, which stops the enemy lead minion 300 units outside its own tower range, and takes the wave attacks there until its next wave comes within acquisition range of the enemy minions, which then turn on the new wave by the ordinary targeting rule",
     "wave_span": "a wave is every minion within 1500 units of its team's lead minion, or of the front for the thin trigger",
@@ -94,7 +96,7 @@ ASSUMPTIONS = {
     "line": "front scalar: the contact point; out of contact, the lead minion of the team that has marched further from its spawn",
     "centre": "the lane centre is the midpoint of the two spawn points, where undisturbed waves meet",
     "perturbation": "S1b removes the last red caster of wave 1 before the waves meet",
-    "slow_push": "S4c runs on the game's own wave clock from 0:00. From first contact, the blue plan starts at once; from a red crash, a red champion first pushes until its lead minion is in the blue tower's range and then leaves, while blue last-hits, and the blue plan starts at that moment. The run stops 20 s after the first blue minion enters the red tower's range, or 300 s after the plan starts. 'thin 3 once' thins until three red casters have died after the plan started and then last-hits. 'thin casters' thins whenever a red caster is in range and last-hits otherwise",
+    "slow_push": "S4c runs on the game's own wave clock from 0:00. From first contact, the blue plan starts at once; from a red crash, a red champion first pushes until its lead minion is in the blue tower's range and then leaves, while blue last-hits, and the blue plan starts at that moment. The run stops 20 s after the first blue minion enters the red tower's range, or 300 s after the plan starts. 'thin 3 once' thins while a red caster is in range, until the champion itself has killed three casters, and last-hits otherwise. 'thin casters' thins whenever a red caster is in range and last-hits otherwise",
     "slow_push_test": "a slow push emerged if some thinning plan reaches the red tower later than the push plan and with a median of 12 or more minions within 1500 units of its lead; this is the first round's test, unchanged",
     "built_state": "S5c starts at 180 s with full-health waves in contact 300 units outside the blue outer tower's range in top lane, surplus red casters on the red caster line, next waves on the normal clock. On the natural clock the blue wave spawned at 150 s would have reached this point at 176.8 s and the red one at 184.8 s, so the built state is within 5 s of a natural phase",
     "freeze_thin": "S5c thin over n: the holding champion thins while red minions within 1500 of the front outnumber blue ones by more than n, and last-hits otherwise",
@@ -213,8 +215,8 @@ class Laner:
         want = sim.geometry.tower_s[self.team] if self.retreating else post(sim, self.team, hold)
         step = LANER_SPEED * sim.dt
         self.s += max(-step, min(step, want - self.s))
-        in_path = not self.retreating and (hold or sim.front().s is not None)
-        return [ChampionInput(int(self.team), self.team, self.s, Mode.NONE if self.retreating else mode, targetable=in_path)]
+        in_path = not self.retreating and (hold or mode is Mode.PUSH or sim.front().s is not None)
+        return [ChampionInput(int(self.team), self.team, self.s, mode if in_path else Mode.NONE, targetable=in_path)]
 
     def report(self) -> dict:
         return {
@@ -427,12 +429,12 @@ def slow_push(geometry: LaneGeometry, start: str, plan: str, red_last_hits: bool
                 began.append(sim.time)
             if not began:
                 return blue.act(sim, events, Mode.LAST_HIT) + [laner(sim, RED, Mode.PUSH)] * (bool(met) and start == "red crash")
-            casters[0] += sum(type(e) is MinionDeath and e.team is RED and e.kind is Kind.CASTER for e in events)
+            casters[0] += sum(type(e) is MinionDeath and e.team is RED and e.kind is Kind.CASTER and e.killer == BLUE for e in events)
             caster_near = any(m.rules.kind is Kind.CASTER and abs(m.s - blue.s) <= 550.0 for m in sim.bodies[RED])
             mode = {
                 "last hit": Mode.LAST_HIT,
                 "push": Mode.PUSH,
-                "thin 3 once": Mode.THIN if casters[0] < 3 else Mode.LAST_HIT,
+                "thin 3 once": Mode.THIN if casters[0] < 3 and caster_near else Mode.LAST_HIT,
                 "thin casters": Mode.THIN if caster_near else Mode.LAST_HIT,
             }[plan]
             return blue.act(sim, events, mode) + [laner(sim, RED, Mode.LAST_HIT)] * red_last_hits

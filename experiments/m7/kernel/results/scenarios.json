@@ -551,7 +551,7 @@
  "q4_snapshot_real_lane": {
   "a_ticks_replayed": 300,
   "a_ticks_matching": 300,
-  "a_snapshot_bytes": 18683,
+  "a_snapshot_bytes": 19855,
   "b_window_s": 300.0,
   "b_top_lane_first_differs_after_s": 0.0,
   "b_bot_lane_first_differs_after_s": null
@@ -2141,6 +2141,10 @@
     "red_memory_of_the_blue_jungler_tick": [
      null,
      0
+    ],
+    "red_bot_outer_tower_hp": [
+     9000.0,
+     8000.0
     ]
    },
    "worlds_differ": true,
@@ -2222,19 +2226,19 @@
  },
  "run": {
   "command": "python -m experiments.m7.kernel.scenarios",
-  "created_utc": "2026-11-11T18:48:16+00:00",
-  "git_head": "810829441600fef900d386ea4c14647dbb5df464",
+  "created_utc": "2026-11-11T19:27:49+00:00",
+  "git_head": "6c37723c5fcf7e1eaa3ad1ccc14df49942da8ed3",
   "git_dirty": true,
-  "code_id": "44ed41ff46723432",
+  "code_id": "79954a4feb1dc4d6",
   "sources": {
-   "experiments/m7/kernel/hindsight.py": "c18ff107f273c1933902d3c59417c2c18fddf1563dfc17983b92f70250b8ab88",
+   "experiments/m7/kernel/hindsight.py": "550a89fe688220ffcf248ad919711f9f6b63654cfc2384c30dd54b2f4ac4367c",
    "experiments/m7/kernel/lanes.py": "0f30edc437eb226930bed2eec56e3d3b6db24e318d54a6adb85523e190914991",
    "experiments/m7/kernel/observe.py": "a6f726b0b069cee2fb3f7fb045607dffb190b36593fafa20675c92ca50a0ab70",
    "experiments/m7/kernel/policy.py": "d85e5741e6269e99a92aef51f89baef3d5ec7debf834e14d1312dea5972ea7b0",
    "experiments/m7/kernel/profiles.py": "91638576291efcc4f96031da2e6555c46d603ac80359f2348040fafc5e8c8e51",
    "experiments/m7/kernel/scenarios.py": "dbccaf345456c90b8dc01162782ae379585ed7a93576a12640f59f4f077f4552",
    "experiments/m7/kernel/world.py": "534704345e3d3842ce2c774cf3004e629c358465059d47560b2a01c48c4b08d3",
-   "experiments/m7/waves/lane.py": "52c0351e6f976d017138b3f6d4fee1c09a581fbf033716c366280c7c59be8c5e",
+   "experiments/m7/waves/lane.py": "f580e920bfe0978e068a7d14308581e00a3348ff69c344631eeecc1d191fb4cb",
    "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
    "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
    "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",

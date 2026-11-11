@@ -44,7 +44,7 @@ class Known(NamedTuple):
     public: list         # (kills, deaths, respawn_tick) of each enemy champion
     visible: tuple       # the enemy champions in view
     memory: TeamMemory   # last-seen records of enemies, and what the team knows of each camp
-    lanes: dict          # per lane: its clock, the own minion groups, the enemy groups in view, each tower's state
+    lanes: dict          # per lane: its clock, the own minion groups, the enemy groups in view, own towers' state, and whether each enemy tower stands
     engaged: dict        # (hp, aggro) of each camp that an own champion is fighting
     sources: list        # own wards and shrines
     enemy_wards: tuple   # positions of the enemy wards in view
@@ -58,7 +58,9 @@ def known(world: World, team: int) -> Known:
     for name, lane in world.lanes.items():
         spots = [(group, RIFT.lane_pos(name, group[0])) for group in lane.groups[1 - team]]
         in_view = [group for group, pos in spots if in_sight(src, *RIFT.xy(pos), pos)]
-        lanes[name] = (lane.tick, lane.next_spawn_s, lane.groups[team], in_view, [(t.hp, t.target, t.ramp) for t in lane.towers])
+        # an enemy tower is known only as standing or fallen, which is all that `observe` gives
+        towers = [(t.hp, t.target, t.ramp) if t.team == team else t.hp > 0 for t in lane.towers]
+        lanes[name] = (lane.tick, lane.next_spawn_s, lane.groups[team], in_view, towers)
     own, foes = world.champs[team * 5:team * 5 + 5], world.champs[5 - team * 5:10 - team * 5]
     info = Known(team, world.dt, world.decision_interval, world.tick, world.first_blood, own,
                  [(c.kills, c.deaths, c.respawn_tick) for c in foes], world.views[team].enemies, world.memory[team], lanes,
@@ -116,7 +118,10 @@ def hypothesis(info: Known, k: int) -> World:
         lane.tick, lane.next_spawn_s = tick, next_spawn_s
         lane.groups[team][:], lane.groups[foe][:] = own, in_view
         for tower, state in zip(lane.towers, towers):
-            tower.hp, tower.target, tower.ramp = state
+            if tower.team == team:
+                tower.hp, tower.target, tower.ramp = state
+            elif not state:
+                tower.hp = 0.0
     src = w.watchers(team)[1]
 
     for name, lane in w.lanes.items():
@@ -208,6 +213,9 @@ def decision_point() -> tuple[World, World, dict]:
     changed = {"red_jungler_hp": (w1.champs[RED_JUNGLE].hp, 0.3 * jungler.max_hp), "red_jungler_gold": (100.0, 900.0),
                "red_jungler_upgrades": (jungler.upgrades, jungler.upgrades + 1), "red_raptors_alive": (camp.alive, not camp.alive),
                "red_memory_of_the_blue_jungler_tick": (getattr(w1.memory[1].enemies.get(BLUE_JUNGLE), "tick", None), 0)}
+    tower = next(t for t in w2.lanes["bot"].towers if t.team == 1 and t.tier == "outer")
+    changed["red_bot_outer_tower_hp"] = (tower.hp, tower.hp - 1000.0)
+    tower.hp -= 1000.0
     jungler.upgrades += 1
     jungler.refresh()
     jungler.hp, jungler.gold = 0.3 * jungler.max_hp, 900.0
