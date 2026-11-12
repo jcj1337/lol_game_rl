@@ -257,7 +257,7 @@ def freeze(surplus: int, plan: str, thin_over: int | None = None, trim_to: int |
 
     def case(rules, seed, dt):
         sim = waves_in_contact(make_lane("top", rules, seed, dt, BUILT_START_S), lo + BUILT_MARGIN, red_casters=surplus)
-        blue = Laner(BLUE, stance(sim, BLUE, Mode.HOLD)[0], **(laner or {}))
+        blue = Laner(BLUE, stance(sim, BLUE, Mode.LAST_HIT, hold=True)[0], **(laner or {}))
 
         def policy(sim, events):
             inputs = []

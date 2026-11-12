@@ -1,6 +1,7 @@
 """Measurements of the M8 kernel with its lanes and economy.
 
-  throughput  Simulated seconds per wall second on one process, for a random-action game and a farming game.
+  throughput  Simulated seconds per wall second on one process, for a random-action game, a farming game in which
+              the junglers hold, and a farming game in which they clear camps.
   profile     Where the time of the farming game goes.
   snapshot    Size and cost of a snapshot.
   intents     How the intents of a random-action game end.
@@ -27,12 +28,13 @@ from worlds import patient  # noqa: E402
 
 from experiments.m8.provenance import stamp  # noqa: E402
 from riftgame.champions import LANES, ROLES, SEATS, TEAMS, Income, level_of  # noqa: E402
-from riftgame.harness import farmer, random_legal, tick  # noqa: E402
+from riftgame.harness import farmer, random_legal, scripted, tick  # noqa: E402
+from riftgame.jungle import CampDeath  # noqa: E402
 from riftgame.lanes import RULESET_ID, MinionDeath  # noqa: E402
 from riftgame.world import Config, World  # noqa: E402
 
 RESULTS = Path(__file__).parent / "results" / "kernel.json"
-POLICIES = {"random legal actions": random_legal, "scripted farming": farmer}
+POLICIES = {"random legal actions": random_legal, "scripted farming": farmer, "scripted farming and jungling": scripted}
 PLAY_S, RUNS = 600.0, 7
 
 
@@ -44,6 +46,7 @@ def game(policy, seed: int, seconds: float = PLAY_S) -> tuple[float, dict, World
     for _ in range(ticks):
         tick(world, policy)
         work["minion deaths"] += sum(type(e) is MinionDeath for _, e in world.events)
+        work["camp deaths"] += sum(type(e) is CampDeath for _, e in world.events)
         work["champion deaths"] += sum(c.outcome_tick == world.tick - 1 and c.outcome.name == "DIED" for c in world.champions)
     wall = time.perf_counter() - began
     work["ticks"] = world.tick
@@ -70,7 +73,9 @@ def profile() -> dict:
     profiler.runcall(lambda: [tick(world, farmer) for _ in range(1200)])
     stats = pstats.Stats(profiler)
     watched = {("lanes.py", "step"): "lanes", ("economy.py", "lane_inputs"): "lane inputs", ("economy.py", "settle_lane"): "gold and XP",
-               ("vision.py", "observe"): "observe", ("vision.py", "legal_mask"): "legal mask", ("world.py", "_move"): "movement", ("world.py", "_settle"): "settle"}
+               ("vision.py", "observe"): "observe", ("vision.py", "legal_mask"): "legal mask", ("world.py", "_move"): "movement", ("world.py", "_settle"): "settle",
+               ("vision.py", "remember"): "team memory", ("jungle.py", "collect"): "camp attacks", ("combat.py", "collect"): "champion attacks",
+               ("combat.py", "land"): "damage", ("combat.py", "harassed"): "calls for help"}
     shares = {}
     for (file, _, name), (_, _, _, cumulative, _) in stats.stats.items():
         label = watched.get((Path(file).name, name))

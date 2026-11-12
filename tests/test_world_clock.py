@@ -2,21 +2,21 @@ import pytest
 
 from riftgame.champions import FOUNTAIN, HOLD, KEEP, RECALL, RIFT, Kind, Outcome, capability_of
 from riftgame.world import Config, World
-from worlds import BLUE_CARRY, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, act, lane_place, move, patient, play, staged, submit, until
+from worlds import BLUE_CARRY, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, act, busy, lane_place, move, patient, play, staged, submit, until
 
 TICKS = 600
 
 
 @pytest.mark.parametrize("n", [2, 4, 10])
 def test_a_run_at_interval_n_equals_a_run_at_interval_1_that_keeps_between_decisions(n):
-    spaced, ended = play(World(Config(decision_ticks=n), seed=11), patient, TICKS)
+    spaced, ended = play(World(Config(decision_ticks=n), seed=12), busy, TICKS)
 
     def keeping_between(o, noise):
-        return patient(o, noise) if round(o.time_s / EVERY_TICK.tick_s) % n == 0 else KEEP
+        return busy(o, noise) if round(o.time_s / EVERY_TICK.tick_s) % n == 0 else KEEP
 
-    every_tick, _ = play(World(EVERY_TICK, seed=11), keeping_between, TICKS)
+    every_tick, _ = play(World(EVERY_TICK, seed=12), keeping_between, TICKS)
     assert spaced == every_tick
-    assert {"ARRIVED", "ABSENT", "RECALLED"} <= set(ended), f"intents must end inside the run, got {dict(ended)}"
+    assert {"ARRIVED", "ABSENT", "CLEARED", "RECALLED", "DIED"} <= set(ended), f"intents must end inside the run, got {dict(ended)}"
 
 
 def test_a_policy_that_decides_every_tick_plays_a_different_game_from_one_that_decides_every_tenth():

@@ -1,4 +1,4 @@
-"""Running games: the policy interface, two scripted policies, and replays.
+"""Running games: the policy interface, scripted policies, and replays.
 
 A policy is `act(observation, noise) -> action index`. The noise is a keyed draw on the seat and the tick, so
 a policy holds no generator and a replay needs only the actions.
@@ -7,9 +7,11 @@ a policy holds no generator and a replay needs only the actions.
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from riftgame.champions import ACTIONS, HOME, KEEP, RETURNS, ROLES, SEATS, Action, Kind
+from riftgame.champions import ACTIONS, CAMP_OF, HOLD, HOME, KEEP, RECALL, RETURNS, ROLES, SEATS, Action, Kind, capability
+from riftgame.economy import JUNGLE_ITEM
+from riftgame.jungle import SITES
 from riftgame.rng import Stream, keyed_uniform
-from riftgame.vision import Observation, legal_mask, observe
+from riftgame.vision import Observation, Place, legal_mask, observe
 from riftgame.world import Config, InvariantError, World, check_invariants
 
 Policy = Callable[[Observation, float], int]
@@ -22,7 +24,7 @@ def random_legal(o: Observation, noise: float) -> int:
 
 _AWAY = tuple(tuple(i for i, a in enumerate(ACTIONS) if a.kind is Kind.MOVE and not RETURNS[role][i])
               for role in range(len(ROLES)))
-_HOMEWARD = tuple(None if lane is None else ACTIONS.index(Action(Kind.LANE, (lane, "passive"))) for lane in HOME)
+_HOMEWARD = tuple(None if lane is None else ACTIONS.index(Action(Kind.LANE, (lane, "passive", "wave"))) for lane in HOME)
 
 
 def roamer(o: Observation, noise: float) -> int:
@@ -40,13 +42,104 @@ def roamer(o: Observation, noise: float) -> int:
     return homeward if homeward is not None and mask[homeward] else KEEP
 
 
-_FARM = tuple(None if lane is None else ACTIONS.index(Action(Kind.LANE, (lane, "last_hit"))) for lane in HOME)
+_FARM = tuple(None if lane is None else ACTIONS.index(Action(Kind.LANE, (lane, "last_hit", "wave"))) for lane in HOME)
 
 
 def farmer(o: Observation, noise: float) -> int:
-    """Every laner last-hits in its own lane and junglers hold. The scripted baseline until C4 and C5 give more to do."""
+    """Every laner last-hits in its own lane and junglers hold. `scripted` adds the jungler."""
     farm = _FARM[o.me.role]
     return farm if farm is not None and legal_mask(o)[farm] else KEEP
+
+
+_CAMP = tuple(i for i, a in enumerate(ACTIONS) if a.kind is Kind.CAMP)
+_WALK_TO = tuple(ACTIONS.index(Action(Kind.MOVE, ACTIONS[i].target)) for i in _CAMP)
+_CAMP_KIND = tuple(SITES[CAMP_OF[0][i]].kind for i in _CAMP)
+_OWN_CAMPS = tuple(k for k, i in enumerate(_CAMP) if ACTIONS[i].target.startswith("own_"))
+_FOUNTAIN = Place("own_fountain>own_base", 0.0)
+# Shares of maximum health, all Assumed: the jungler starts no camp that would take it below the first, recalls
+# below the second, and leaves its fountain above the third.
+FIGHT_DOWN_TO, RECALL_BELOW, LEAVE_ABOVE = 0.25, 0.35, 0.8
+
+
+def approach(o: Observation, k: int) -> int:
+    """The action that takes a champion into a fight with camp `k` of its observation.
+
+    A walk that ends before a spawn that its team knows of would find the camp empty, so the champion walks to the
+    camp first and waits there.
+    """
+    camp = o.camps[k]
+    speed = capability(ROLES[o.me.role], o.me.level, o.me.upgrades).move_speed
+    if camp.hp <= 0 and camp.spawn_s and camp.spawn_s >= camp.walk / speed:
+        return _WALK_TO[k] if camp.walk > 0 else HOLD
+    return _CAMP[k]
+
+
+def jungler(o: Observation, noise: float) -> int:
+    """Clears the camp that pays the most gold plus XP per second of walking, waiting, and fighting, by what its
+    team remembers. The XP counts the jungle item's bonus for a camp.
+
+    It finishes a camp or a recall that it has started. It waits at a camp whose spawn its team knows. With no
+    camp that it could fight safely it recalls, and with no camp that its team knows of it walks to the own camp
+    that the team has not seen for the longest.
+    """
+    me = o.me
+    if me.hp <= 0 or ACTIONS[me.intent].kind in (Kind.CAMP, Kind.RECALL):
+        return KEEP
+    home = me.place == _FOUNTAIN
+    if me.hp < (LEAVE_ABOVE if home else RECALL_BELOW) * me.max_hp:
+        return HOLD if home else RECALL
+    can = capability(ROLES[me.role], me.level, me.upgrades)
+    # A camp spawns at the average level of all ten champions. The team's own average stands in for it.
+    level = round((me.level + sum(mate.level for mate in o.mates)) / 5)
+    best, best_rate, unsafe = None, 0.0, False
+    for k, camp in enumerate(o.camps):
+        if camp.hp <= 0 and camp.spawn_s is None:
+            continue
+        kind = _CAMP_KIND[k]
+        fight_s = (camp.hp or kind.health(level)) / can.camp_dps
+        if me.hp - kind.damage_per_s * fight_s < FIGHT_DOWN_TO * me.max_hp:
+            unsafe = True
+            continue
+        reward = sum(kind.reward(camp.level or level)) + JUNGLE_ITEM["large_monster_bonus_xp"]
+        rate = reward / (max(camp.walk / can.move_speed, camp.spawn_s or 0.0) + fight_s)
+        if rate > best_rate:
+            best, best_rate = k, rate
+    if best is not None:
+        return approach(o, best)
+    if unsafe:
+        return HOLD if home else RECALL
+    return _WALK_TO[max(_OWN_CAMPS, key=lambda k: float("inf") if o.camps[k].seen_age_s is None else o.camps[k].seen_age_s)]
+
+
+def scripted(o: Observation, noise: float) -> int:
+    """The scripted baseline for all ten seats: junglers clear camps and laners last-hit in their own lanes."""
+    return jungler(o, noise) if HOME[o.me.role] is None else farmer(o, noise)
+
+
+_FIGHT = tuple(i for i, a in enumerate(ACTIONS) if a.kind is Kind.FIGHT)
+_TO_FOUNTAIN = ACTIONS.index(Action(Kind.MOVE, "own_fountain"))
+
+
+def brawler(retreat_below: float = 0.0) -> Policy:
+    """A policy that fights what it sees: the enemy champion with the least health in its team's view.
+
+    It keeps a fight that it has started, also after the target has left the view. Below the share
+    `retreat_below` of its health it walks to its own fountain instead. It chooses nothing that its mask forbids.
+    """
+    def act(o: Observation, noise: float) -> int:
+        me, mask = o.me, legal_mask(o)
+        if me.hp <= 0:
+            return KEEP
+        if me.hp < retreat_below * me.max_hp:
+            return KEEP if me.intent == _TO_FOUNTAIN else _TO_FOUNTAIN
+        if ACTIONS[me.intent].kind is Kind.FIGHT and mask[KEEP]:
+            return KEEP
+        seen = [(enemy.hp, role) for role, enemy in enumerate(o.enemies) if enemy is not None and mask[_FIGHT[role]]]
+        if seen:
+            return _FIGHT[min(seen)[1]]
+        return KEEP if mask[KEEP] else _TO_FOUNTAIN
+
+    return act
 
 
 def tick(world: World, policy: Policy, check: bool = False) -> tuple[int, ...] | None:

@@ -3,7 +3,7 @@ from collections import Counter
 import pytest
 
 import riftgame.world
-from riftgame.champions import ACTIONS, FOUNTAIN, HOLD, KEEP, RIFT, SEATS, Kind, Outcome, capability_of
+from riftgame.champions import ACTIONS, FOUNTAIN, HOLD, KEEP, RIFT, SEATS, Kind, Outcome, speed_of
 from riftgame.harness import random_legal, run, tick
 from riftgame.map import Pos
 from riftgame.world import Config, InvariantError, World, check_invariants
@@ -22,13 +22,13 @@ def soak():
         world = World(config, seed)
         for _ in range(round(GAME_S / config.tick_s)):
             hazard(world, 0.02 * config.tick_s, 130.0)
-            stood = [c.pos for c in world.champions]
+            stood = [(c.pos, speed_of(world, c)) for c in world.champions]
             tick(world, policy, check=True)
             now = ended_now(world)
             ended += now
-            for c, was in zip(world.champions, stood):
+            for c, (was, speed) in zip(world.champions, stood):
                 if not (c.outcome_tick == world.tick - 1 and c.outcome in (Outcome.DIED, Outcome.RECALLED)):
-                    largest_step = max(largest_step, RIFT.distance(was, c.pos) / (capability_of(c).move_speed * config.tick_s))
+                    largest_step = max(largest_step, RIFT.distance(was, c.pos) / (speed * config.tick_s))
         assert world.tick * config.tick_s == GAME_S
     return ended, largest_step
 
@@ -96,7 +96,7 @@ def test_a_checked_tick_raises_when_a_policy_chooses_an_action_its_mask_forbids(
     fight = act(Kind.FIGHT, 0)
     with pytest.raises(InvariantError):
         tick(World(), lambda o, noise: fight, check=True)
-    lane_elsewhere = act(Kind.LANE, ("bot", "push"))
+    lane_elsewhere = act(Kind.LANE, ("bot", "push", "wave"))
     with pytest.raises(InvariantError):
         tick(World(), lambda o, noise: lane_elsewhere if o.me.role == 0 else KEEP, check=True)
     world = World()

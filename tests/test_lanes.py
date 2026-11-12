@@ -6,6 +6,7 @@ import pytest
 
 from riftgame.lanes import (
     ACQUIRE,
+    ADDED,
     CALL_RANGE,
     HOLD_MARGIN,
     LANE_NAMES,
@@ -34,6 +35,7 @@ from riftgame.lanes import (
 )
 
 BLUE, RED = Team.BLUE, Team.RED
+MINIONS_M8 = ADDED["minions"]
 DT = 0.5
 LATE = 300.0
 
@@ -280,7 +282,7 @@ def lone_red_wave(mode, in_path, attack_range=550.0, health=None):
 
 
 def test_minions_attack_a_champion_in_their_path_and_ignore_one_that_stepped_aside():
-    events, sim = lone_red_wave(Mode.HOLD, in_path=True)
+    events, sim = lone_red_wave(Mode.LAST_HIT, in_path=True)
     assert of(events, ChampionDamage)
     assert all(m.s >= sim.geometry.centre + MELEE_REACH - 1e-6 for m in sim.minions[RED]), "the wave walked through the champion"
     events, sim = lone_red_wave(Mode.LAST_HIT, in_path=False)
@@ -299,7 +301,7 @@ def test_minions_leave_a_champion_for_its_wave_when_the_wave_comes_into_range():
     sim = quiet_lane()
     centre = sim.geometry.centre
     sim.add_minion(RED, Kind.CASTER, centre + 300.0, count=3)
-    champion = ChampionInput(0, BLUE, centre, Mode.HOLD)
+    champion = ChampionInput(0, BLUE, centre, Mode.LAST_HIT)
     before = of(run(sim, LATE + 4.0, lambda sim: [champion]), ChampionDamage)
     sim.add_minion(BLUE, Kind.MELEE, centre - 150.0, count=3)
     after = of(run(sim, LATE + 10.0, lambda sim: [champion]), ChampionDamage)
@@ -324,7 +326,7 @@ def test_a_support_charge_executes_a_low_minion_and_marks_the_kill_as_shared():
     assert (death.killer, death.shared) == (4, False)
 
 
-def test_the_stance_of_each_wave_mode_follows_the_mode_table():
+def test_the_stance_follows_the_mode_table_and_a_hold_stands_on_the_hold_line_whatever_the_champion_hits():
     sim = quiet_lane("top")
     geometry = sim.geometry
     centre, blue_tower = geometry.centre, geometry.towers[BLUE][0]
@@ -333,10 +335,12 @@ def test_the_stance_of_each_wave_mode_follows_the_mode_table():
     for mode in (Mode.PASSIVE, Mode.LAST_HIT, Mode.THIN):
         assert lone[mode] == (pytest.approx(centre + 55.0 - STAND_OFF), False)
     assert lone[Mode.PUSH] == (pytest.approx(centre + 55.0 - 175.0), True)
-    assert lone[Mode.HOLD] == (pytest.approx(blue_tower + TOWER_RANGE + HOLD_MARGIN - MELEE_REACH), True)
+    for mode in Mode:
+        assert stance(sim, BLUE, mode, attack_range=175.0, hold=True) == (pytest.approx(blue_tower + TOWER_RANGE + HOLD_MARGIN - MELEE_REACH), True)
     sim.add_minion(BLUE, Kind.MELEE, centre - 55.0, count=3)
     for mode in Mode:
-        assert stance(sim, BLUE, mode) == (pytest.approx(centre + 55.0 - MELEE_REACH), True)
+        for hold in (False, True):
+            assert stance(sim, BLUE, mode, hold=hold) == (pytest.approx(centre + 55.0 - MELEE_REACH), True)
     sim.minions[BLUE].clear()
     sim.minions[RED].clear()
     sim.add_minion(RED, Kind.MELEE, geometry.towers[RED][0] - 100.0)
@@ -364,7 +368,7 @@ def retarget_after_a_kill(rules):
     sim.add_minion(BLUE, Kind.CASTER, centre - 100.0)
     sim.add_minion(BLUE, Kind.CASTER, centre - 400.0)
     sim.minions[BLUE][0].hp = 1.0
-    champion = ChampionInput(0, BLUE, centre - 60.0, Mode.LAST_HIT)
+    champion = ChampionInput(0, BLUE, centre - 100.0, Mode.LAST_HIT)
     events = []
     for _ in range(3):
         events += sim.step(sim.tick, [champion])
@@ -405,6 +409,191 @@ def test_a_champion_that_comes_back_to_a_lane_has_its_attack_ready():
     assert len(of(sim.step(sim.tick, [champion]), MinionDeath)) == 1
 
 
-def test_the_m7_rule_set_is_the_m8_lane_without_the_three_rules_m7_left_out_and_with_m7s_resolution():
-    assert replace(M8_LANE, side_lane_speed=False, call_for_help=False, pushing_advantage=False, m7_resolution=True) == M7_LANE
+def test_the_m7_rule_set_is_the_m8_lane_without_the_rules_m7_left_out_and_with_m7s_resolution():
+    assert replace(M8_LANE, side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
+                   first_wave_call=False, attack_timing=False, m7_resolution=True) == M7_LANE
     assert (M8_LANE.melee_cap, M8_LANE.minion_damage_scale, M8_LANE.current_hp_damage) == (0, 1.0, True)
+
+
+def test_a_range_inside_the_lane_is_the_straight_line_on_the_map_and_marching_stays_on_the_lane():
+    top = lane_geometry("top")
+    corner = next(s for s, x, y in top.bends if (x, y) == (1968, 12459))
+    before, after = corner - 290.0, corner + 290.0
+    assert top.gap(before, after) == pytest.approx(534.0, abs=1.0) and after - before == 580.0
+    assert top.gap(before - 400.0, before) == pytest.approx(400.0)
+    mid = lane_geometry("mid")
+    assert mid.gap(mid.centre - 300.0, mid.centre) == pytest.approx(300.0)
+    marched = after - SPEED * DT
+    reach = (top.gap(before, marched) + marched - before) / 2
+    assert top.gap(before, marched) < reach - 5.0 and reach + 5.0 < marched - before
+    for rules, in_range in ((M8_LANE, True), (replace(M8_LANE, straight_ranges=False), False)):
+        sim = quiet_lane("top", rules)
+        sim.add_minion(RED, Kind.MELEE, after)
+        sim.minions[RED][0].hp = 1.0
+        champion = ChampionInput(0, BLUE, before, Mode.LAST_HIT, attack_range=reach)
+        deaths = of(sim.step(sim.tick, [champion]), MinionDeath)
+        assert bool(deaths) is in_range
+        assert sim.minions[RED] == [] or sim.minions[RED][0].s == pytest.approx(marched)
+
+
+def test_minions_on_two_sides_of_a_corner_acquire_each_other_by_the_straight_line():
+    top = lane_geometry("top")
+    corner = next(s for s, x, y in top.bends if (x, y) == (1968, 12459))
+    gap = top.gap(corner - 270.0, corner + 270.0)
+    assert gap < ACQUIRE < 540.0
+    for rules, engaged in ((M8_LANE, True), (replace(M8_LANE, straight_ranges=False), False)):
+        sim = quiet_lane("top", rules)
+        sim.add_minion(BLUE, Kind.CASTER, corner - 270.0)
+        sim.add_minion(RED, Kind.CASTER, corner + 270.0)
+        sim.step(sim.tick)
+        blue, red = sim.minions[BLUE][0], sim.minions[RED][0]
+        assert (blue.target is red) is engaged
+        closed = 0.0 if engaged else (540.0 - ACQUIRE) / 2
+        assert (blue.s, red.s) == (pytest.approx(corner - 270.0 + closed), pytest.approx(corner + 270.0 - closed)), "minions in reach stand still"
+
+
+def tanked(rules, from_tower, harassing=False, wave=0, fallen=False):
+    """Blows on a blue champion that stands in the path `from_tower` units outside its own outer tower."""
+    sim = quiet_lane(rules=rules)
+    tower = sim.geometry.towers[BLUE][0]
+    sim.towers[BLUE][0].hp *= not fallen
+    sim.add_minion(RED, Kind.CASTER, tower + from_tower + 450.0, count=3, wave=wave)
+    champion = ChampionInput(0, BLUE, tower + from_tower, Mode.LAST_HIT, in_path=True, harassing=harassing)
+    return of(run(sim, LATE + 6.0, lambda sim: [champion]), ChampionDamage)
+
+
+def test_a_champion_inside_a_towers_range_is_not_attacked_for_standing_in_the_path():
+    assert tanked(M8_LANE, TOWER_RANGE + 100.0)
+    assert tanked(M8_LANE, TOWER_RANGE - 100.0) == []
+    assert tanked(replace(M8_LANE, tower_shelter=False), TOWER_RANGE - 100.0)
+    assert tanked(M8_LANE, TOWER_RANGE - 100.0, harassing=True), "a call for help reaches a champion under its tower"
+    assert tanked(M8_LANE, TOWER_RANGE - 100.0, fallen=True), "a fallen tower shelters nobody"
+
+
+def test_only_minions_of_the_first_wave_answer_a_call_for_help_while_they_attack_a_tower():
+    def called(rules, wave):
+        sim = quiet_lane(rules=rules)
+        tower = sim.geometry.towers[BLUE][0]
+        sim.add_minion(RED, Kind.MELEE, tower + 300.0, wave=wave)
+        champion = ChampionInput(0, BLUE, tower + 250.0, Mode.PASSIVE, in_path=False, harassing=True)
+        run(sim, LATE + 2.0)
+        return of(run(sim, LATE + 6.0, lambda sim: [champion]), ChampionDamage)
+
+    assert called(M8_LANE, wave=1) and called(M8_LANE, wave=2) == []
+    assert called(replace(M8_LANE, first_wave_call=False), wave=1) == []
+
+
+def test_a_champion_on_the_hold_line_hits_what_its_mode_says():
+    def held(mode):
+        sim = quiet_lane()
+        tower = sim.geometry.towers[BLUE][0]
+        sim.add_minion(RED, Kind.MELEE, tower + TOWER_RANGE + 700.0, count=3)
+        sim.add_minion(RED, Kind.CASTER, tower + TOWER_RANGE + 900.0, count=3)
+
+        deepest = []
+
+        def policy(sim):
+            deepest.append(min(m.s for m in sim.minions[RED]) if sim.minions[RED] else math.inf)
+            s, in_path = stance(sim, BLUE, mode, hold=True)
+            return [ChampionInput(0, BLUE, s, mode, in_path)]
+
+        events = run(sim, LATE + 12.0, policy)
+        deaths = of(events, MinionDeath)
+        return {e.kind for e in deaths if e.killer == 0}, bool(of(events, ChampionDamage)), min(deepest) - tower - TOWER_RANGE
+
+    for mode in Mode:
+        killed, bitten, margin = held(mode)
+        assert bitten and margin >= HOLD_MARGIN - 1e-6, f"{mode.name} on the hold line keeps the wave {HOLD_MARGIN} outside the tower's range"
+        if mode is Mode.PASSIVE or mode is Mode.LAST_HIT:
+            assert killed == set()
+        if mode is Mode.THIN:
+            assert killed == {Kind.CASTER}
+        if mode is Mode.PUSH:
+            assert Kind.MELEE in killed
+
+
+INSTANT = replace(M8_LANE, attack_timing=False)
+TIMING = {kind: MINIONS_M8["attack_timing"][kind.name.lower()] for kind in Kind}
+
+
+def blows_on_a_champion(rules, kind, gap, seconds=30.0):
+    """Times, from the first tick, at which a lone red minion `gap` units from a blue champion in its path hits it."""
+    sim = quiet_lane(rules=rules)
+    centre = sim.geometry.centre
+    sim.add_minion(RED, kind, centre + gap)
+    champion = ChampionInput(0, BLUE, centre, Mode.PASSIVE, in_path=True)
+    return [e.t - LATE for e in of(run(sim, LATE + seconds, lambda sim: [champion]), ChampionDamage)]
+
+
+@pytest.mark.parametrize("kind, gap", [(Kind.MELEE, 100.0), (Kind.CASTER, 500.0), (Kind.SIEGE, 290.0)])
+def test_a_blow_leaves_the_minion_one_cast_time_after_the_attack_starts_and_a_missile_then_flies(kind, gap):
+    timing, period = TIMING[kind], 1.0 / MINIONS[kind.name.lower()]["attack_speed"]
+    flight = gap / timing["missile_speed"] if "missile_speed" in timing else 0.0
+    timed, instant = blows_on_a_champion(M8_LANE, kind, gap), blows_on_a_champion(INSTANT, kind, gap)
+    assert instant[0] == 0.0
+    assert timed[0] == pytest.approx(timing["cast_s"] + flight)
+    assert [b - a for a, b in zip(timed, timed[1:])] == pytest.approx([period] * (len(timed) - 1)), "the cadence is the attack speed"
+    assert len(instant) - len(timed) in (0, 1)
+
+
+def fine_lane():
+    """A quiet lane on a 0.1 s tick, fine enough to tell a cast time from a missile flight."""
+    sim = LaneSim("mid", 0, 0.1, M8_LANE, start_s=LATE)
+    sim.clock.next_wave = math.inf
+    return sim
+
+
+def first_hurt(sim, minion, limit=5.0):
+    """Seconds from the lane's start until `minion` first loses health."""
+    health = minion.hp
+    while minion.hp == health and sim.time < LATE + limit:
+        sim.step(sim.tick)
+    return sim.time - LATE
+
+
+def test_a_cast_whose_target_dies_starts_again_and_costs_only_the_time_spent_on_the_dead_target():
+    cast, period = TIMING[Kind.MELEE]["cast_s"], 1.0 / MINIONS["melee"]["attack_speed"]
+
+    def second_target_hurt(killed_at):
+        sim = fine_lane()
+        centre = sim.geometry.centre
+        sim.add_minion(BLUE, Kind.MELEE, centre - 50.0)
+        sim.add_minion(RED, Kind.MELEE, centre + 50.0)
+        sim.add_minion(RED, Kind.MELEE, centre + 60.0)
+        near, far = sim.minions[RED]
+        while sim.time < LATE + killed_at - 1e-9:
+            sim.step(sim.tick)
+        assert far.hp == far.max_hp, "the blue minion hits the nearer target first"
+        near.hp, near.died_at = 0.0, sim.time
+        return first_hurt(sim, far), sim.cancelled
+
+    # the blue minion's second cast runs from 0.8 s to 1.193 s
+    hurt, cancelled = second_target_hurt(killed_at=1.0)
+    assert cancelled == 1 and hurt == pytest.approx(1.0 + cast, abs=0.1 + 1e-9), "the cast starts again when the target dies"
+    hurt, cancelled = second_target_hurt(killed_at=0.5)
+    assert cancelled == 0 and hurt == pytest.approx(period + cast, abs=0.1 + 1e-9), "a target that dies between casts costs nothing"
+
+
+def test_a_missile_whose_target_dies_in_flight_is_lost():
+    sim = fine_lane()
+    centre = sim.geometry.centre
+    sim.add_minion(BLUE, Kind.CASTER, centre - 250.0)
+    sim.add_minion(RED, Kind.CASTER, centre + 250.0, count=2)
+    while not sim._missiles and sim.time < LATE + 5.0:
+        sim.step(sim.tick)
+    blue = [missile for missile in sim._missiles if missile[3] == BLUE]
+    assert len(blue) == 1 and len(sim.values()[-1]) == len(sim._missiles), "a missile in flight is part of the lane's state"
+    victim = blue[0][-1]
+    other = next(m for m in sim.minions[RED] if m is not victim)
+    victim.hp, victim.died_at = 0.0, sim.time
+    run(sim, sim.time + 500.0 / TIMING[Kind.CASTER]["missile_speed"] + 0.1)
+    assert sim.lost == 1 and other.hp == other.max_hp, "the missile does not turn to another target"
+
+
+def test_two_equal_minions_still_kill_each_other_in_the_same_instant():
+    sim = quiet_lane()
+    centre = sim.geometry.centre
+    sim.add_minion(BLUE, Kind.MELEE, centre - 50.0)
+    sim.add_minion(RED, Kind.MELEE, centre + 50.0)
+    events = of(run(sim, LATE + 120.0), MinionDeath)
+    assert len(events) == 2 and events[0].t == events[1].t

@@ -1,12 +1,12 @@
 import pytest
 
 from riftgame import economy
-from riftgame.champions import LANES, OUTER_TOWER, RIFT, SEATS, Income, Kind, R, capability_of, level_of
+from riftgame.champions import LANES, OUTER_TOWER, RIFT, SEATS, Income, R, capability_of, level_of
 from riftgame.lanes import TOWER_RANGE, ChampionDamage, MinionDeath, unit_stats
 from riftgame.lanes import Kind as Minion
 from riftgame.vision import legal_mask, observe
 from riftgame.world import Config, World
-from worlds import (BLUE_CARRY, BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, RED_CARRY, RED_MID, RED_SUPPORT, RED_TOP, act,
+from worlds import (BLUE_CARRY, BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, RED_CARRY, RED_MID, RED_SUPPORT, RED_TOP, lane,
                     staged, submit)
 
 TICK_S = 0.5
@@ -14,10 +14,6 @@ PASSIVE_PER_S = R["economy"]["passive_gold_per_10s"] / 10
 PASSIVE_FROM_S = R["economy"]["passive_gold_start_s"]
 ITEM = R["support_item"]
 BLUE, RED = 0, 1
-
-
-def lane(name, mode):
-    return act(Kind.LANE, (name, mode))
 
 
 def at_towers(*seats):
@@ -93,14 +89,14 @@ def test_a_support_without_an_ally_in_range_shares_nothing():
     assert support.earned[Income.SUPPORT_ITEM] == pytest.approx(ITEM["passive_gold_per_10s"] / 10 * world.tick * TICK_S)
 
 
-def test_every_champions_gold_is_the_sum_of_its_ledger_and_each_source_is_accounted_for_apart():
+def test_every_champions_gold_is_the_sum_of_its_ledger_less_its_boots_and_each_source_is_accounted_for_apart():
     orders = {BLUE_TOP: lane("top", "push"), BLUE_MID: lane("mid", "thin"), BLUE_CARRY: lane("bot", "last_hit"), BLUE_SUPPORT: lane("bot", "passive"),
               RED_TOP: lane("top", "last_hit"), RED_MID: lane("mid", "push"), RED_CARRY: lane("bot", "last_hit"), RED_SUPPORT: lane("bot", "last_hit")}
     world, events = played(orders)
     now = world.tick * TICK_S
     farmers = set(orders) - {BLUE_SUPPORT}
     for c in world.champions:
-        assert c.gold == pytest.approx(sum(c.earned))
+        assert c.upgrades == 1 and c.gold == pytest.approx(sum(c.earned) - R["champions"]["boots_tier1_gold"])
         assert c.earned[Income.STARTING] == R["economy"]["starting_gold"]
         assert c.earned[Income.PASSIVE] == pytest.approx(PASSIVE_PER_S * (now - PASSIVE_FROM_S))
         assert (c.earned[Income.SUPPORT_ITEM] > 0) == (c.seat in (BLUE_SUPPORT, RED_SUPPORT))
@@ -160,7 +156,7 @@ def test_minions_hurt_a_champion_that_holds_them_and_its_health_then_comes_back_
     world = staged(at_towers(BLUE_MID), Config(decision_ticks=1))
     tower = world.lanes["mid"].geometry.towers[BLUE][0]
     world.lanes["mid"].add_minion(RED, Minion.CASTER, tower + TOWER_RANGE + 900.0, count=2)
-    submit(world, {BLUE_MID: lane("mid", "hold")})
+    submit(world, {BLUE_MID: lane("mid", "last_hit", "hold")})
     champion = world.champions[BLUE_MID]
     full = capability_of(champion).max_hp
     bitten = []
@@ -201,7 +197,7 @@ def test_a_champion_in_one_lane_changes_nothing_in_another_lane():
 
 def test_a_restored_world_with_champions_in_every_lane_replays_tick_for_tick():
     orders = {BLUE_TOP: lane("top", "push"), BLUE_MID: lane("mid", "thin"), BLUE_CARRY: lane("bot", "last_hit"), BLUE_SUPPORT: lane("bot", "last_hit"),
-              RED_TOP: lane("top", "hold"), RED_MID: lane("mid", "last_hit"), RED_CARRY: lane("bot", "push"), RED_SUPPORT: lane("bot", "passive")}
+              RED_TOP: lane("top", "thin", "hold"), RED_MID: lane("mid", "last_hit"), RED_CARRY: lane("bot", "push"), RED_SUPPORT: lane("bot", "passive")}
     world, _ = played(orders, seconds=120.0, seed=3)
     saved = world.snapshot()
     first = []

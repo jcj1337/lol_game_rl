@@ -1,0 +1,695 @@
+{
+ "ruleset": "ref-26.22-r1+m8.2",
+ "config": "tick 0.5 s, a decision on every tick",
+ "trip_starts_at_s": 45.0,
+ "wave_interval_s": 30,
+ "trips": [
+  {
+   "team": "blue",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": true,
+   "boot_steps": 0,
+   "move_speed": 340.0,
+   "route_units": 10449.7,
+   "recall_s": 8.5,
+   "walk_s": 21.5,
+   "trip_s": 30.0,
+   "arithmetic_s": 29.788,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": true,
+   "boot_steps": 1,
+   "move_speed": 365.0,
+   "route_units": 10449.7,
+   "recall_s": 8.5,
+   "walk_s": 20.0,
+   "trip_s": 28.5,
+   "arithmetic_s": 28.291,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": true,
+   "boot_steps": 2,
+   "move_speed": 385.0,
+   "route_units": 10449.7,
+   "recall_s": 8.5,
+   "walk_s": 19.0,
+   "trip_s": 27.5,
+   "arithmetic_s": 27.233,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": false,
+   "boot_steps": 0,
+   "move_speed": 340.0,
+   "route_units": 10449.7,
+   "recall_s": 8.5,
+   "walk_s": 31.0,
+   "trip_s": 39.5,
+   "arithmetic_s": 39.235,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": false,
+   "boot_steps": 1,
+   "move_speed": 365.0,
+   "route_units": 10449.7,
+   "recall_s": 8.5,
+   "walk_s": 29.0,
+   "trip_s": 37.5,
+   "arithmetic_s": 37.129,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": false,
+   "boot_steps": 2,
+   "move_speed": 385.0,
+   "route_units": 10449.7,
+   "recall_s": 8.5,
+   "walk_s": 27.5,
+   "trip_s": 36.0,
+   "arithmetic_s": 35.642,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": true,
+   "boot_steps": 0,
+   "move_speed": 340.0,
+   "route_units": 10497.3,
+   "recall_s": 8.5,
+   "walk_s": 21.5,
+   "trip_s": 30.0,
+   "arithmetic_s": 29.888,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": true,
+   "boot_steps": 1,
+   "move_speed": 365.0,
+   "route_units": 10497.3,
+   "recall_s": 8.5,
+   "walk_s": 20.0,
+   "trip_s": 28.5,
+   "arithmetic_s": 28.384,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": true,
+   "boot_steps": 2,
+   "move_speed": 385.0,
+   "route_units": 10497.3,
+   "recall_s": 8.5,
+   "walk_s": 19.0,
+   "trip_s": 27.5,
+   "arithmetic_s": 27.322,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": false,
+   "boot_steps": 0,
+   "move_speed": 340.0,
+   "route_units": 10497.3,
+   "recall_s": 8.5,
+   "walk_s": 31.0,
+   "trip_s": 39.5,
+   "arithmetic_s": 39.374,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": false,
+   "boot_steps": 1,
+   "move_speed": 365.0,
+   "route_units": 10497.3,
+   "recall_s": 8.5,
+   "walk_s": 29.0,
+   "trip_s": 37.5,
+   "arithmetic_s": 37.26,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "top",
+   "walker": "top",
+   "homeguard": false,
+   "boot_steps": 2,
+   "move_speed": 385.0,
+   "route_units": 10497.3,
+   "recall_s": 8.5,
+   "walk_s": 27.5,
+   "trip_s": 36.0,
+   "arithmetic_s": 35.766,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": true,
+   "boot_steps": 0,
+   "move_speed": 335.0,
+   "route_units": 8060.8,
+   "recall_s": 8.5,
+   "walk_s": 16.5,
+   "trip_s": 25.0,
+   "arithmetic_s": 25.021,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": true,
+   "boot_steps": 1,
+   "move_speed": 360.0,
+   "route_units": 8060.8,
+   "recall_s": 8.5,
+   "walk_s": 15.5,
+   "trip_s": 24.0,
+   "arithmetic_s": 23.834,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": true,
+   "boot_steps": 2,
+   "move_speed": 380.0,
+   "route_units": 8060.8,
+   "recall_s": 8.5,
+   "walk_s": 14.5,
+   "trip_s": 23.0,
+   "arithmetic_s": 22.997,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": false,
+   "boot_steps": 0,
+   "move_speed": 335.0,
+   "route_units": 8060.8,
+   "recall_s": 8.5,
+   "walk_s": 24.5,
+   "trip_s": 33.0,
+   "arithmetic_s": 32.562,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": false,
+   "boot_steps": 1,
+   "move_speed": 360.0,
+   "route_units": 8060.8,
+   "recall_s": 8.5,
+   "walk_s": 22.5,
+   "trip_s": 31.0,
+   "arithmetic_s": 30.891,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": false,
+   "boot_steps": 2,
+   "move_speed": 380.0,
+   "route_units": 8060.8,
+   "recall_s": 8.5,
+   "walk_s": 21.5,
+   "trip_s": 30.0,
+   "arithmetic_s": 29.713,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": true,
+   "boot_steps": 0,
+   "move_speed": 335.0,
+   "route_units": 7964.9,
+   "recall_s": 8.5,
+   "walk_s": 16.5,
+   "trip_s": 25.0,
+   "arithmetic_s": 24.817,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": true,
+   "boot_steps": 1,
+   "move_speed": 360.0,
+   "route_units": 7964.9,
+   "recall_s": 8.5,
+   "walk_s": 15.0,
+   "trip_s": 23.5,
+   "arithmetic_s": 23.644,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": true,
+   "boot_steps": 2,
+   "move_speed": 380.0,
+   "route_units": 7964.9,
+   "recall_s": 8.5,
+   "walk_s": 14.5,
+   "trip_s": 23.0,
+   "arithmetic_s": 22.817,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": false,
+   "boot_steps": 0,
+   "move_speed": 335.0,
+   "route_units": 7964.9,
+   "recall_s": 8.5,
+   "walk_s": 24.0,
+   "trip_s": 32.5,
+   "arithmetic_s": 32.276,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": false,
+   "boot_steps": 1,
+   "move_speed": 360.0,
+   "route_units": 7964.9,
+   "recall_s": 8.5,
+   "walk_s": 22.5,
+   "trip_s": 31.0,
+   "arithmetic_s": 30.625,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "mid",
+   "walker": "mid",
+   "homeguard": false,
+   "boot_steps": 2,
+   "move_speed": 380.0,
+   "route_units": 7964.9,
+   "recall_s": 8.5,
+   "walk_s": 21.0,
+   "trip_s": 29.5,
+   "arithmetic_s": 29.46,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": true,
+   "boot_steps": 0,
+   "move_speed": 325.0,
+   "route_units": 10638.9,
+   "recall_s": 8.5,
+   "walk_s": 23.0,
+   "trip_s": 31.5,
+   "arithmetic_s": 31.213,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": true,
+   "boot_steps": 1,
+   "move_speed": 350.0,
+   "route_units": 10638.9,
+   "recall_s": 8.5,
+   "walk_s": 21.0,
+   "trip_s": 29.5,
+   "arithmetic_s": 29.55,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": true,
+   "boot_steps": 2,
+   "move_speed": 370.0,
+   "route_units": 10638.9,
+   "recall_s": 8.5,
+   "walk_s": 20.0,
+   "trip_s": 28.5,
+   "arithmetic_s": 28.381,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": false,
+   "boot_steps": 0,
+   "move_speed": 325.0,
+   "route_units": 10638.9,
+   "recall_s": 8.5,
+   "walk_s": 33.0,
+   "trip_s": 41.5,
+   "arithmetic_s": 41.235,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": false,
+   "boot_steps": 1,
+   "move_speed": 350.0,
+   "route_units": 10638.9,
+   "recall_s": 8.5,
+   "walk_s": 30.5,
+   "trip_s": 39.0,
+   "arithmetic_s": 38.897,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "blue",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": false,
+   "boot_steps": 2,
+   "move_speed": 370.0,
+   "route_units": 10638.9,
+   "recall_s": 8.5,
+   "walk_s": 29.0,
+   "trip_s": 37.5,
+   "arithmetic_s": 37.254,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": true,
+   "boot_steps": 0,
+   "move_speed": 325.0,
+   "route_units": 10277.1,
+   "recall_s": 8.5,
+   "walk_s": 22.0,
+   "trip_s": 30.5,
+   "arithmetic_s": 30.418,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": true,
+   "boot_steps": 1,
+   "move_speed": 350.0,
+   "route_units": 10277.1,
+   "recall_s": 8.5,
+   "walk_s": 20.5,
+   "trip_s": 29.0,
+   "arithmetic_s": 28.812,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": true,
+   "boot_steps": 2,
+   "move_speed": 370.0,
+   "route_units": 10277.1,
+   "recall_s": 8.5,
+   "walk_s": 19.0,
+   "trip_s": 27.5,
+   "arithmetic_s": 27.683,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    0,
+    1
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": false,
+   "boot_steps": 0,
+   "move_speed": 325.0,
+   "route_units": 10277.1,
+   "recall_s": 8.5,
+   "walk_s": 32.0,
+   "trip_s": 40.5,
+   "arithmetic_s": 40.122,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": false,
+   "boot_steps": 1,
+   "move_speed": 350.0,
+   "route_units": 10277.1,
+   "recall_s": 8.5,
+   "walk_s": 29.5,
+   "trip_s": 38.0,
+   "arithmetic_s": 37.863,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "red",
+   "lane": "bot",
+   "walker": "carry",
+   "homeguard": false,
+   "boot_steps": 2,
+   "move_speed": 370.0,
+   "route_units": 10277.1,
+   "recall_s": 8.5,
+   "walk_s": 28.0,
+   "trip_s": 36.5,
+   "arithmetic_s": 36.276,
+   "waves_spawned": 1,
+   "waves_any_start": [
+    1,
+    2
+   ]
+  }
+ ],
+ "run": {
+  "command": "python -m experiments.m8.recall",
+  "created_utc": "2026-11-12T18:53:53+00:00",
+  "git_head": "ae1ea15cef0d082930643a34b6099d25e176895d",
+  "git_dirty": true,
+  "code_id": "5dd5f951793afb2b",
+  "sources": {
+   "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
+   "experiments/m8/recall.py": "c651e61e35123cb4b0feedfe7a3906deec9e72ed8a6c513ce34c2912cd8d1769",
+   "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
+   "riftgame/champions.py": "ee779689ca862c06e7b11f3acc6f5eba1b2235726744aa2cef321dc367fb46ae",
+   "riftgame/combat.py": "cde60b87c0dc2eb1627d8b1a73499fc91e8de714da8481e2ba435ea02e9daa1d",
+   "riftgame/economy.py": "4bda5e2815579734a0803a6b3f6c191eb883bcb3f169501aa7d7d3167143e823",
+   "riftgame/harness.py": "a42a04fb589d537a0fd42fbd929b8d939bea51c102b9a576984c55a968cb6317",
+   "riftgame/jungle.py": "475f1e864239d59563c78d84b84265870f5bd2d0e16cd541bb0a775f573f70ac",
+   "riftgame/lanes.py": "e2034ada063fc2ba35f26f5efb9929712464b78357b9761ed3e682724ca9b1b2",
+   "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
+   "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
+   "riftgame/rulesets/patch_26_22_m8.toml": "c52498543d9c7b5059dd9896184b422da7e9bde0031e97f3612c5be2d3611b7c",
+   "riftgame/vision.py": "fb7ed55195a449134161dda48a1b696b2bf4f1645f389ff9d1226ba6514c86de",
+   "riftgame/world.py": "882fd8040088bb5eba6a119de37e8d4d523eaa81d8ab1e55d9e73dd13f90689f",
+   "tests/test_recall.py": "ecba3b32803271d71923b4cc5b245a14395a875bba494db50b31ead749cb4e27",
+   "tests/worlds.py": "ec8f537f758b66a78e13216efe3e18423cc813b8bc007bcb72b6af0553eb5578"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {},
+  "seeds": [
+   0
+  ],
+  "config": {
+   "start_s": 45.0,
+   "tick_s": 0.5
+  }
+ }
+}

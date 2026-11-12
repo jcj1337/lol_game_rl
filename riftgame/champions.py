@@ -7,6 +7,8 @@ map's `blue_*` and `red_*` nodes, and an ally or an enemy is named by its role.
 A champion holds one intent, the index of the action it is carrying out. `RULES` says how each kind is carried
 out: the world calls `walk` in the move step and `settle` after damage. The functions here take the world and
 never import it.
+
+The fountain's rules are here too: regeneration, the purchases of a profile's fixed progression, and Homeguard.
 """
 
 from bisect import bisect_right
@@ -25,6 +27,7 @@ if TYPE_CHECKING:
     from riftgame.world import World
 
 R = ruleset.load()
+ADDED = ruleset.load("patch_26_22_m8")
 MAP = load_map()
 RIFT = MAP.rift
 
@@ -32,13 +35,21 @@ TEAMS = ("blue", "red")
 ROLES = ("top", "jungle", "mid", "carry", "support")
 LANES = ("top", "mid", "bot")
 HOME = ("top", None, "mid", "bot", "bot")
-MODES = ("passive", "last_hit", "thin", "push", "hold")
+MODES = ("passive", "last_hit", "thin", "push")
+STANDS = ("wave", "hold")
 SEATS = range(10)
 
 FOUNTAIN = tuple(RIFT.at(f"{team}_fountain") for team in TEAMS)
 OUTER_TOWER = tuple({t.lane: RIFT.lane_pos(t.lane, t.s) for t in MAP.towers if t.team == team and t.tier == "outer"}
                     for team in TEAMS)
 RECALL_S = R["recall"]["cast_s"] + R["recall"]["channel_s"]
+FOUNTAIN_REGEN = R["fountain"]
+HOMEGUARD = R["homeguard"]
+NO_HOMEGUARD = -1
+IN_RANGE = 1e-6
+# Per team and lane, the lane coordinate where Homeguard ends, on the base side of the outer tower's site.
+HOMEGUARD_END = tuple({t.lane: t.s + (2 * i - 1) * HOMEGUARD["ends_before_outer_tower"]
+                       for t in MAP.towers if t.team == team and t.tier == "outer"} for i, team in enumerate(TEAMS))
 
 
 class Capability(NamedTuple):
@@ -50,26 +61,62 @@ class Capability(NamedTuple):
     attack_speed: float
     attack_range: float
     area_dps: float
+    camp_dps: float
+    champion_dps: float
+    lockdown_slow: float
+    lockdown_s: float
+    lockdown_cooldown_s: float
+    lockdown_mana: float
 
 
-# Assumed until M9. The numbers come from the M7 prototype, except hp_regen and max_mana, which are new guesses.
+# Assumed until M9. The numbers come from the M7 prototype, except hp_regen, max_mana, and lockdown_mana, which are
+# new guesses, and camp_dps, which is set so that the jungler alone clears its six camps in about 75 s of fighting.
+# The last five columns are the damage per second against champions and the lockdown: the share of move speed it
+# removes, with 1.0 a stop, its duration, its cooldown, and its mana cost. The carry has no lockdown.
 PROFILES = {
-    "top":     Capability(650.0, 1.7, 300.0, 340.0, 65.0, 0.65, 175.0, 20.0),
-    "jungle":  Capability(600.0, 1.6, 320.0, 345.0, 62.0, 0.68, 175.0, 25.0),
-    "mid":     Capability(540.0, 1.2, 420.0, 335.0, 55.0, 0.63, 525.0, 40.0),
-    "carry":   Capability(520.0, 0.8, 330.0, 325.0, 60.0, 0.70, 550.0, 10.0),
-    "support": Capability(560.0, 1.1, 380.0, 335.0, 50.0, 0.60, 500.0, 5.0),
+    "top":     Capability(650.0, 1.7, 300.0, 340.0, 65.0, 0.65, 175.0, 20.0, 95.0, 55.0, 0.30, 2.0, 10.0, 50.0),
+    "jungle":  Capability(600.0, 1.6, 320.0, 345.0, 62.0, 0.68, 175.0, 25.0, 190.0, 60.0, 0.40, 2.0, 10.0, 50.0),
+    "mid":     Capability(540.0, 1.2, 420.0, 335.0, 55.0, 0.63, 525.0, 40.0, 110.0, 65.0, 0.25, 2.0, 12.0, 60.0),
+    "carry":   Capability(520.0, 0.8, 330.0, 325.0, 60.0, 0.70, 550.0, 10.0, 100.0, 70.0, 0.00, 0.0, 0.0, 0.0),
+    "support": Capability(560.0, 1.1, 380.0, 335.0, 50.0, 0.60, 500.0, 5.0, 55.0, 35.0, 0.45, 2.5, 12.0, 60.0),
 }
 LEVEL_GROWTH = 0.08
-LEVEL_SCALED = frozenset(("max_hp", "hp_regen", "max_mana", "hit_damage", "area_dps"))
+LEVEL_SCALED = frozenset(("max_hp", "hp_regen", "max_mana", "hit_damage", "area_dps", "camp_dps", "champion_dps"))
+
+
+class Upgrade(NamedTuple):
+    """One entry of a progression: its price, and the amount it adds to each capability field it names."""
+
+    cost: float
+    adds: dict[str, float]
+
+
+def _progression(profile: str) -> tuple[Upgrade, ...]:
+    """Two boot steps on the reference prices and speeds, then the profile's placeholder entries."""
+    boots, listed = R["champions"], ADDED["upgrades"]
+    tier1 = Upgrade(boots["boots_tier1_gold"], {"move_speed": boots["boots_tier1_speed"]})
+    tier2 = Upgrade(listed["boots_tier2_gold"] - tier1.cost,
+                    {"move_speed": boots["boots_tier2_speed"] - boots["boots_tier1_speed"]})
+    return (tier1, tier2, *(Upgrade(entry["cost"], entry["adds"]) for entry in listed[profile]))
+
+
+# What each profile buys, in order. Assumed until M9, except the boots.
+PROGRESSIONS = {profile: _progression(profile) for profile in PROFILES}
 
 
 @cache
 def capability(profile: str, level: int, upgrades: int) -> Capability:
-    """What a champion can do. `upgrades` changes nothing until C3 adds the progressions."""
+    """What a champion can do at a level with the first `upgrades` entries of its profile's progression.
+
+    Level growth scales the profile, and each upgrade adds its amounts on top. Unspent gold is no input.
+    """
     growth = 1.0 + LEVEL_GROWTH * (level - 1)
     base = PROFILES[profile]
-    return Capability(*(value * growth if name in LEVEL_SCALED else value for name, value in zip(base._fields, base)))
+    can = {name: value * growth if name in LEVEL_SCALED else value for name, value in zip(base._fields, base)}
+    for upgrade in PROGRESSIONS[profile][:upgrades]:
+        for name, amount in upgrade.adds.items():
+            can[name] += amount
+    return Capability(**can)
 
 
 def damage(raw: float, target: Capability) -> float:
@@ -134,14 +181,32 @@ class Income(IntEnum):
     PASSIVE = 1
     MINION = 2
     SUPPORT_ITEM = 3
+    CAMP = 4
+    KILL = 5
+    ASSIST = 6
+    PLATE = 7
+    TOWER = 8
+
+
+class Target(IntEnum):
+    """What a champion's one attack goes to on a tick (M7 section 7.4). Its intent alone decides the class."""
+
+    NONE = 0
+    MINIONS = 1
+    CHAMPION = 2
+    CAMP = 3
+    TOWER = 4
 
 
 class Action(NamedTuple):
-    """`target` is a frame node name for MOVE, CAMP and WARD, a (lane, mode) pair for LANE, a lane for SIEGE,
-    and a role index for FOLLOW and FIGHT."""
+    """`target` is a frame node name for MOVE, CAMP and WARD, a lane for SIEGE, and a role index for FOLLOW and FIGHT.
+
+    For LANE it is (lane, mode, stand). The mode says what the champion hits. The stand says where it stands:
+    `wave` walks with the wave, and `hold` stays on the hold line in front of its own tower. The two are separate,
+    so a champion can hold a wave and thin it at once."""
 
     kind: Kind
-    target: str | int | tuple[str, str] | None = None
+    target: str | int | tuple[str, str, str] | None = None
 
 
 def frame_name(team: int, node: str) -> str:
@@ -159,7 +224,7 @@ CAMP_NODES = tuple(frame_name(0, node) for node in (*MAP.camps, *MAP.scuttlers.v
 ACTIONS = (
     Action(Kind.KEEP), Action(Kind.HOLD), Action(Kind.RECALL),
     *(Action(Kind.MOVE, node) for node in NODES),
-    *(Action(Kind.LANE, (lane, mode)) for lane in LANES for mode in MODES),
+    *(Action(Kind.LANE, (lane, mode, stand)) for lane in LANES for stand in STANDS for mode in MODES),
     *(Action(Kind.CAMP, node) for node in CAMP_NODES),
     *(Action(Kind.FOLLOW, role) for role in range(len(ROLES))),
     *(Action(Kind.FIGHT, role) for role in range(len(ROLES))),
@@ -168,15 +233,36 @@ ACTIONS = (
 )
 KEEP, HOLD, RECALL = 0, 1, 2
 
+# Per action: the lane, the wave mode, and whether the champion holds. None for every other kind.
+LANE_ORDER = tuple((a.target[0], Mode(MODES.index(a.target[1])), a.target[2] == "hold") if a.kind is Kind.LANE else None
+                   for a in ACTIONS)
+
 NODE_POS = tuple({frame_name(team, node): RIFT.at(node) for node in RIFT.node_names} for team in range(2))
 DEST = tuple(tuple(NODE_POS[team][a.target] if a.kind in (Kind.MOVE, Kind.CAMP) else None for a in ACTIONS)
              for team in range(2))
+# The world keeps its camps in the order of `CAMP_SITES`, which are map nodes. By team and action: the index of the
+# camp that a `CAMP` action names, and -1 for every other action.
+CAMP_SITES = (*MAP.camps, *MAP.scuttlers.values())
+CAMP_OF = tuple(tuple([frame_name(team, node) for node in CAMP_SITES].index(a.target) if a.kind is Kind.CAMP else -1
+                      for a in ACTIONS) for team in range(2))
+# Per action: the role of the enemy that a `FIGHT` action names, and the lane that a `SIEGE` action names.
+FOE = tuple(a.target if a.kind is Kind.FIGHT else -1 for a in ACTIONS)
+SIEGE_LANE = tuple(a.target if a.kind is Kind.SIEGE else None for a in ACTIONS)
+NEVER = -1_000_000_000
 
 
 @dataclass(slots=True)
 class Champion:
-    """One champion's mutable state. Team, role, profile and home lane follow from the seat, level from XP, and
-    liveness from health."""
+    """One champion's mutable state. Team, role, profile and home lane follow from the seat, level from XP,
+    liveness from health, and the gold it has spent from its upgrades.
+
+    `homeguard_tick` is the tick of its last move that began on its fountain with Homeguard, or `NO_HOMEGUARD`.
+    `homeguard_block` is the first tick on which it may have Homeguard again after combat.
+
+    `attack_credit` is the share of an attack that is ready, at most 1.0. It is the one budget for every target
+    class. `hurt_tick` holds, by enemy role, the last tick on which that enemy damaged this champion, or `NEVER`, a
+    tick long before the game. Every window that reads it is shorter than the shortest death. A lockdown removes the share `slow` of its move speed on every tick before
+    `slow_until`. Its own lockdown is ready again from `lockdown_tick` on."""
 
     seat: int
     pos: Pos
@@ -195,6 +281,12 @@ class Champion:
     attack_credit: float
     item_charges: int
     respawn_tick: int
+    homeguard_tick: int
+    homeguard_block: int
+    hurt_tick: list[int]
+    slow: float
+    slow_until: int
+    lockdown_tick: int
 
     @property
     def team(self) -> int:
@@ -214,13 +306,30 @@ def pay(c: Champion, source: Income, amount: float) -> None:
     c.earned[source] += amount
 
 
+def spent(c: Champion) -> float:
+    """The gold a champion has paid for the upgrades it owns."""
+    return sum(upgrade.cost for upgrade in PROGRESSIONS[ROLES[c.seat % 5]][:c.upgrades])
+
+
+def shop(c: Champion) -> None:
+    """Buy the next upgrades of the champion's progression, in order, while its unspent gold covers them."""
+    progression = PROGRESSIONS[ROLES[c.seat % 5]]
+    while c.upgrades < len(progression) and c.gold >= progression[c.upgrades].cost:
+        c.gold -= progression[c.upgrades].cost
+        c.upgrades += 1
+
+
 def spawn(seat: int, allowance: float) -> Champion:
-    """A champion at the start of a game: on its fountain, at full health, holding."""
+    """A champion at the start of a game: on its fountain, at full health, holding, its starting gold spent on
+    what its progression offers for it."""
     full = capability(ROLES[seat % 5], 1, 0)
     c = Champion(seat=seat, pos=FOUNTAIN[seat // 5], hp=full.max_hp, mana=full.max_mana, xp=0.0, gold=0.0,
                  earned=[0.0] * len(Income), upgrades=0, intent=HOLD, intent_tick=0, channel=0, outcome=Outcome.NONE,
-                 outcome_tick=-1, allowance=allowance, attack_credit=0.0, item_charges=0, respawn_tick=-1)
+                 outcome_tick=-1, allowance=allowance, attack_credit=0.0, item_charges=0, respawn_tick=-1,
+                 homeguard_tick=NO_HOMEGUARD, homeguard_block=0, hurt_tick=[NEVER] * len(ROLES), slow=0.0, slow_until=0,
+                 lockdown_tick=0)
     pay(c, Income.STARTING, _E["starting_gold"])
+    shop(c)
     return c
 
 
@@ -247,14 +356,77 @@ def on_fountain(c: Champion) -> bool:
     return RIFT.separation(c.pos, FOUNTAIN[c.seat // 5]) <= R["fountain"]["regen_radius"]
 
 
+def in_homeguard_zone(team: int, pos: Pos) -> bool:
+    """True on the way from a team's fountain into a lane, up to the lane's Homeguard endpoint.
+
+    The way is the edge between fountain and base and the lanes themselves. A jungle or river edge is off it.
+    """
+    if pos.edge == FOUNTAIN[team].edge:
+        return True
+    for lane, end in HOMEGUARD_END[team].items():
+        s = RIFT.lane_s(lane, pos)
+        if s is not None:
+            return s < end if team == 0 else s > end
+    return False
+
+
+def homeguard_bonus(world: "World", c: Champion) -> float:
+    """The share of its move speed that Homeguard adds to a champion's move on this tick. 0.0 without Homeguard.
+
+    The bonus falls in a straight line from its full value to its decayed value. The line is an assumption. The
+    reference gives the two values and the time between them, and no shape.
+    """
+    if c.homeguard_tick == NO_HOMEGUARD:
+        return 0.0
+    # The move that begins on the fountain keeps the full bonus. After it the bonus is read at the middle of the
+    # tick, which on a straight line is its mean over the tick, so the distance walked is exact.
+    off_fountain_s = (world.tick - c.homeguard_tick - 0.5) * world.config.tick_s
+    decayed = min(1.0, max(0.0, off_fountain_s) / HOMEGUARD["decay_s"])
+    return HOMEGUARD["speed_bonus"] - (HOMEGUARD["speed_bonus"] - HOMEGUARD["speed_bonus_after_decay"]) * decayed
+
+
+def speed_of(world: "World", c: Champion) -> float:
+    """The speed a champion moves at on this tick: Homeguard adds to it and a lockdown takes from it."""
+    slowed = 1.0 - c.slow if world.tick < c.slow_until else 1.0
+    return capability_of(c).move_speed * (1.0 + homeguard_bonus(world, c)) * slowed
+
+
+def enter_combat(world: "World", c: Champion) -> None:
+    """Combat takes Homeguard away and blocks it for a while. Taking damage is combat, and so is dealing damage to
+    a champion."""
+    c.homeguard_tick = NO_HOMEGUARD
+    c.homeguard_block = world.tick + world.config.ticks(HOMEGUARD["blocked_after_combat_s"])
+
+
+def settle_fountain(world: "World", c: Champion) -> None:
+    """The fountain's part of the tick's last step.
+
+    On its fountain a living champion regenerates and gets Homeguard for its next move, and any champion shops,
+    the dead included. Off it, Homeguard ends once the champion is outside the Homeguard zone, and walking back
+    into the zone does not return it.
+    """
+    if not on_fountain(c):
+        if c.homeguard_tick != NO_HOMEGUARD and not in_homeguard_zone(c.seat // 5, c.pos):
+            c.homeguard_tick = NO_HOMEGUARD
+        return
+    if c.hp > 0:
+        can, config = capability_of(c), world.config
+        c.hp = min(can.max_hp, c.hp + FOUNTAIN_REGEN["hp_regen_per_s"] * can.max_hp * config.tick_s)
+        c.mana = min(can.max_mana, c.mana + FOUNTAIN_REGEN["mana_regen_per_s"] * can.max_mana * config.tick_s)
+        next_move = world.tick + 1
+        if next_move >= max(config.ticks(HOMEGUARD["start_s"]), c.homeguard_block):
+            c.homeguard_tick = next_move
+    shop(c)
+
+
 def lane_post(world: "World", seat: int, lane: str) -> Pos:
-    """Where a champion with a `LANE` intent for `lane` walks to: the stance of its wave mode.
+    """Where a champion with a `LANE` intent for `lane` walks to: the stance of its wave mode and its stand.
 
     The stance reads the lane's true front. C6 has to pass the front that the champion's team sees.
     """
     c = world.champions[seat]
-    mode = Mode(MODES.index(ACTIONS[c.intent].target[1]))
-    s, _ = stance(world.lanes[lane], seat // 5, mode, capability_of(c).attack_range)
+    _, mode, hold = LANE_ORDER[c.intent]
+    s, _ = stance(world.lanes[lane], seat // 5, mode, capability_of(c).attack_range, hold=hold)
     return RIFT.lane_pos(lane, s)
 
 
@@ -305,12 +477,14 @@ class Rule(NamedTuple):
 
     `walk` gives the position the champion heads for in the move step, or None to stand. `settle` runs after
     damage: it advances the intent and returns its outcome once it is over. A pursuer moves after everyone else,
-    against the positions held before the move step. A kind with an `enabled_by` note is masked off until then.
+    against the positions held before the move step. `attacks` is the one class of target that the champion's
+    attack goes to under this intent. A kind with an `enabled_by` note is masked off until then.
     """
 
     walk: Callable[["World", Champion, Sequence[Pos]], Pos | None] | None = None
     settle: Callable[["World", Champion], Outcome] | None = None
     pursues: bool = False
+    attacks: Target = Target.NONE
     enabled_by: str = ""
 
 
@@ -327,10 +501,49 @@ def _to_ally(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
     return stood[ally] if world.champions[ally].hp > 0 else None
 
 
+def _short_of(c: Champion, target: Pos) -> Pos | None:
+    """Where a champion walks to bring `target` into its attack range: the place on its route that is one attack
+    range short of the target. None once the target is in range by the straight line."""
+    reach = capability_of(c).attack_range
+    if RIFT.separation(c.pos, target) <= reach + IN_RANGE:
+        return None
+    return RIFT.advance(target, c.pos, reach)
+
+
+def _to_enemy(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
+    """A fighter pursues its target while its team's record of the target is current, and otherwise walks to where
+    the team last saw it (M7 section 7.1). It never reads the place of a target that its team does not see.
+
+    Pursuers move last. A target that does not pursue has moved by then, and the fighter heads for where it
+    stands now. Otherwise a fighter could never keep a target that walks away in its range, however fast it is.
+    A target that pursues too is taken where it stood before the move step, so the seat order changes nothing.
+    """
+    foe = FOE[c.intent]
+    record = world.memory[c.seat // 5].enemies[foe]
+    if record.seen_tick != world.tick:
+        return _short_of(c, record.pos)
+    target = world.champions[(1 - c.seat // 5) * 5 + foe]
+    return _short_of(c, stood[target.seat] if RULE[target.intent].pursues else target.pos)
+
+
+def _to_tower(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
+    lane = SIEGE_LANE[c.intent]
+    tower = world.lanes[lane].front_tower(1 - c.seat // 5)
+    return None if tower is None else _short_of(c, RIFT.lane_pos(lane, tower.s))
+
+
 def _on_arrival(outcome: Outcome) -> Callable[["World", Champion], Outcome]:
     def settle(world: "World", c: Champion) -> Outcome:
         return outcome if c.pos == DEST[c.seat // 5][c.intent] else Outcome.NONE
     return settle
+
+
+def _find_empty(world: "World", c: Champion) -> Outcome:
+    """A camp that is not alive when the champion stands at it was found empty. A camp that dies under the champion
+    ends the intent with `CLEARED` in the damage step, before this runs."""
+    team = c.seat // 5
+    empty = c.pos == DEST[team][c.intent] and world.camps[CAMP_OF[team][c.intent]].hp <= 0
+    return Outcome.ABSENT if empty else Outcome.NONE
 
 
 def _channel_recall(world: "World", c: Champion) -> Outcome:
@@ -341,18 +554,45 @@ def _channel_recall(world: "World", c: Champion) -> Outcome:
     return Outcome.RECALLED
 
 
+def _lose_track(world: "World", c: Champion) -> Outcome:
+    """A fight is lost once the champion has stood within its attack range of the target's last-seen place for a
+    whole tick and its team still does not see the target. The view that it gives up on was then taken from that
+    place. `channel` counts those ticks. A target seen again on the way resets the count and records nothing.
+    """
+    record = world.memory[c.seat // 5].enemies[FOE[c.intent]]
+    if record.seen_tick == world.tick or RIFT.separation(c.pos, record.pos) > capability_of(c).attack_range + IN_RANGE:
+        c.channel = 0
+        return Outcome.NONE
+    c.channel += 1
+    return Outcome.LOST if c.channel > 1 else Outcome.NONE
+
+
+def _find_no_tower(world: "World", c: Champion) -> Outcome:
+    """A siege of a lane with no enemy tower left to damage was a walk for nothing. The fall of the lane's last
+    tower under a siege ends it with `CLEARED` in the damage step, before this runs."""
+    standing = world.lanes[SIEGE_LANE[c.intent]].front_tower(1 - c.seat // 5)
+    return Outcome.ABSENT if standing is None else Outcome.NONE
+
+
 RULES = {
     Kind.KEEP: Rule(),
-    Kind.HOLD: Rule(),
+    Kind.HOLD: Rule(attacks=Target.CHAMPION),
     Kind.RECALL: Rule(settle=_channel_recall),
     Kind.MOVE: Rule(walk=_to_node, settle=_on_arrival(Outcome.ARRIVED)),
-    Kind.LANE: Rule(walk=_to_post),
-    # No camp exists until C4, so every camp is found empty.
-    Kind.CAMP: Rule(walk=_to_node, settle=_on_arrival(Outcome.ABSENT)),
-    Kind.FOLLOW: Rule(walk=_to_ally, pursues=True),
-    Kind.FIGHT: Rule(enabled_by="C5 adds combat, and C6 the team view that a target must be in"),
-    Kind.SIEGE: Rule(enabled_by="C5 adds combat against towers"),
+    Kind.LANE: Rule(walk=_to_post, attacks=Target.MINIONS),
+    Kind.CAMP: Rule(walk=_to_node, settle=_find_empty, attacks=Target.CAMP),
+    Kind.FOLLOW: Rule(walk=_to_ally, pursues=True, attacks=Target.CHAMPION),
+    Kind.FIGHT: Rule(walk=_to_enemy, settle=_lose_track, pursues=True, attacks=Target.CHAMPION),
+    Kind.SIEGE: Rule(walk=_to_tower, settle=_find_no_tower, attacks=Target.TOWER),
     Kind.WARD: Rule(enabled_by="C6 adds wards"),
 }
 RULE = tuple(RULES[a.kind] for a in ACTIONS)
 ENABLED = tuple(not rule.enabled_by for rule in RULE)
+
+
+def attacks(c: Champion) -> Target:
+    """The class of target that a champion's attack goes to on this tick. This is the one place that decides it:
+    minions for `LANE`, a camp for `CAMP`, a tower for `SIEGE`, the named enemy for `FIGHT`, and for `HOLD` and
+    `FOLLOW` the enemy champion that is attacking it. A champion on any other intent, and a dead one, attacks
+    nothing. Whether a target of that class is in reach is for the subsystem that owns the class to say."""
+    return RULE[c.intent].attacks if c.hp > 0 else Target.NONE

@@ -1,113 +1,99 @@
-"""Incentive screen: what a scripted laner earns in five minutes under each wave mode, over twelve lane states.
+"""Incentive screen: what a laner earns in five minutes under each `LANE` action, over twelve lane states.
 
-The screen reports. It has no pass condition on which mode earns most. If one mode earns most in every state, the
-output says so, and the handoff has to trace the cause to named mechanics.
+Every run is a full world, and the laner plays one entry of the action table for the whole window (with a walk to
+its tower when it is low). The screen reports. It has no pass condition on which action earns most. If one action
+earns most in every state, the output says so, and the handoff has to trace the cause to named mechanics.
 
 Run: python -m experiments.m8.waves.incentives
 """
 
 import json
 import re
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 from experiments.m8.provenance import stamp
-from experiments.m8.waves.harness import BLUE, RED, Laner, legacy_laner, make_lane, outer, rounded, run, summarize, tower_damage, under_tower
-from riftgame.lanes import M8_LANE, MINIONS, RULESET_ID, MinionDeath, Mode, xp_share
+from experiments.m8.waves import agents
+from experiments.m8.waves.agents import Laner, always, seat_of
+from experiments.m8.waves.harness import BLUE, RED, rounded, summarize, tower_damage
+from riftgame.champions import MODES, STANDS, Income
+from riftgame.lanes import RULESET_ID
 
 SEEDS = range(5)
-DT = 0.5
 WINDOW_S = 300.0
+WORKERS = 8
 RESULTS = Path(__file__).parent / "results" / "incentives.json"
-MODES = (Mode.PASSIVE, Mode.LAST_HIT, Mode.THIN, Mode.PUSH, Mode.HOLD)
-OPPONENTS = {"absent": None, "last hits": Mode.LAST_HIT, "pushes": Mode.PUSH}
+ACTIONS = tuple((mode, stand) for stand in STANDS for mode in MODES)
+OPPONENTS = {"absent": None, "last hits": "last_hit", "pushes": "push"}
 STATES = {}
 for lane in ("top", "mid"):
     for opponent in OPPONENTS:
-        STATES[f"{lane}, from first contact, opponent {opponent}"] = (lane, "first contact", opponent, 0.0)
-    STATES[f"{lane}, after a crash at the own tower, opponent absent"] = (lane, "own tower", "absent", 0.0)
-    STATES[f"{lane}, after a crash at the own tower, opponent last hits"] = (lane, "own tower", "last hits", 0.0)
-    STATES[f"{lane}, from first contact, opponent last hits, own team one level ahead"] = (lane, "first contact", "last hits", 1.0)
+        STATES[f"{lane}, from first contact, opponent {opponent}"] = (lane, "first contact", opponent)
+    for opponent in ("absent", "last hits", "pushes"):
+        STATES[f"{lane}, after a crash at the own tower, opponent {opponent}"] = (lane, "own tower", opponent)
 
 
-def earn(lane: str, start: str, opponent: str, level_lead: float, mode: Mode):
-    def case(seed):
-        sim = make_lane(lane, M8_LANE, seed, DT)
-        geometry = sim.geometry
-        blue = Laner(BLUE, outer(geometry, BLUE))
-        began, met = [], []
+def earn(args) -> dict:
+    """One laner at level 1 from 0:00. The window starts at first contact, or when a red push reaches blue's tower."""
+    state, mode, stand, seed = args
+    lane, start, opponent = STATES[state]
+    world = agents.staged(seed, {lane: 1})
+    began = []
 
-        def policy(sim, events):
-            front = sim.front()
-            if front.s is not None and not met:
-                met.append(sim.time)
-            if not began and met and (start == "first contact" or under_tower(geometry, BLUE, front.lead[RED])):
-                began.append(sim.time)
-            if not began:
-                return blue.act(sim, events, Mode.LAST_HIT) + [legacy_laner(sim, RED, Mode.PUSH)] * bool(met)
-            red = OPPONENTS[opponent]
-            return blue.act(sim, events, mode) + ([legacy_laner(sim, RED, red)] if red is not None else [])
+    def opened(seen) -> bool:
+        if not began and seen.contact and (start == "first contact" or seen.foe_at_own_tower):
+            began.append(seen.time_s)
+        return bool(began)
 
-        positions = []
+    def blue(seen):
+        return (mode, stand) if opened(seen) else ("last_hit", "wave")
 
-        def stop(row) -> bool:
-            positions.append((row.t, blue.s, blue.dead))
-            return bool(began) and row.t >= began[0] + WINDOW_S
+    def red(seen):
+        if not began:
+            return ("push", "wave") if start == "own tower" else ("last_hit", "wave") if OPPONENTS[opponent] else "leave"
+        return (OPPONENTS[opponent], "wave") if OPPONENTS[opponent] else "leave"
 
-        trace = run(sim, policy, 3600.0, stop, level_lead)
-        where = dict((round(t / DT), (s, dead)) for t, s, dead in positions)
-        gold = xp = kills = 0.0
-        for e in trace.events:
-            if type(e) is not MinionDeath or e.team != RED or e.t < began[0]:
-                continue
-            s, dead = where.get(int(e.t // DT) + 1, (blue.s, blue.dead))
-            if e.killer == BLUE:
-                gold += e.gold
-                kills += 1
-            if not dead and abs(e.s - s) <= MINIONS["xp_range"]:
-                xp += xp_share(e.xp, 1)
-        report = blue.report()
-        return {
-            "gold": gold,
-            "xp": xp,
-            "gold_plus_xp": gold + xp,
-            "minions_killed": kills,
-            "own_tower_damage": tower_damage(trace.events, BLUE, began[0]),
-            "enemy_tower_damage": tower_damage(trace.events, RED, began[0]),
-            "lowest_health": report["champion_lowest_health"],
-            "retreats": report["champion_retreats"],
-            "died": report["champion_died"],
-        }
+    me = Laner(seat_of(BLUE, lane), blue)
+    foe = Laner(seat_of(RED, lane), red)
+    champion = world.champions[me.seat]
+    before = []
 
-    return case
+    def stop(row) -> bool:
+        if began and not before:
+            before.append((champion.earned[Income.MINION], champion.xp))
+        return bool(began) and row.t >= began[0] + WINDOW_S
+
+    trace = agents.play(world, lane, [me, foe], 900.0, stop)
+    gold, xp = champion.earned[Income.MINION] - before[0][0], champion.xp - before[0][1]
+    return {"gold": gold, "xp": xp, "gold_plus_xp": gold + xp, "own_tower_damage": tower_damage(trace.events, BLUE, began[0]),
+            "enemy_tower_damage": tower_damage(trace.events, RED, began[0]), "lowest_health": me.lowest, "retreats": me.retreats, "deaths": me.deaths}
 
 
 def main() -> None:
-    table, winners = {}, {}
-    for state, (lane, start, opponent, level_lead) in STATES.items():
-        table[state] = {mode.name.lower(): summarize([earn(lane, start, opponent, level_lead, mode)(seed) for seed in SEEDS]) for mode in MODES}
-        winners[state] = max(table[state], key=lambda name: table[state][name]["gold_plus_xp"]["median"])
-    always = set(winners.values())
+    jobs = [(state, mode, stand, seed) for state in STATES for mode, stand in ACTIONS for seed in SEEDS]
+    with ProcessPoolExecutor(WORKERS) as pool:
+        done = list(pool.map(earn, jobs, chunksize=4))
+    runs: dict = {}
+    for (state, mode, stand, _), metrics in zip(jobs, done):
+        runs.setdefault(state, {}).setdefault(f"{mode}, {stand}", []).append(metrics)
+    table = {state: {action: summarize(rows) for action, rows in by.items()} for state, by in runs.items()}
+    winners = {state: max(by, key=lambda action: by[action]["gold_plus_xp"]["median"]) for state, by in table.items()}
+    always_most = set(winners.values())
     results = {
         "ruleset": RULESET_ID,
         "seeds": list(SEEDS),
-        "dt": DT,
-        "window_s": WINDOW_S,
-        "laner": "the scripted champion of harness.Laner: 650 health, 30 armor, 65 damage, 0.65 attacks per second, range 550, all placeholders. XP counts alone in the lane, within 1500 units of the death.",
-        "mode_that_earns_most_by_state": winners,
-        "one_mode_earns_most_in_every_state": always.pop() if len(always) == 1 else None,
+        "laner": "the top or mid profile of riftgame.champions at level 1 from 0:00, a placeholder. Gold is minion gold. XP is the champion's own.",
+        "action_that_earns_most_by_state": winners,
+        "one_action_earns_most_in_every_state": always_most.pop() if len(always_most) == 1 else None,
         "states": table,
     }
-    results["run"] = stamp(SEEDS, {"dt": DT, "window_s": WINDOW_S, "states": len(STATES)})
+    results["run"] = stamp(SEEDS, {"window_s": WINDOW_S, "states": len(STATES), "actions": len(ACTIONS)})
     RESULTS.parent.mkdir(exist_ok=True)
     one_row_per_line = re.sub(r"\[[^\[\]]*\]|\{[^{}]*\}", lambda row: re.sub(r"\s+", " ", row.group()), json.dumps(rounded(results), indent=1))
     RESULTS.write_text(one_row_per_line, encoding="utf-8")
-    print(f"gold + XP in {WINDOW_S:.0f} s, median over seeds {SEEDS.start}..{SEEDS.stop - 1} (gold, XP, lowest health, own tower damage)")
-    for state, modes in table.items():
-        print(state)
-        for name, row in modes.items():
-            mark = " <- most" if winners[state] == name else ""
-            print(f"   {name:<9} {row['gold_plus_xp']['median']:7.0f}  ({row['gold']['median']:5.0f}, {row['xp']['median']:5.0f}, {row['lowest_health']['median']:.2f}, {row['own_tower_damage']['median']:6.0f}){mark}")
-    print("one mode earns most in every state:", results["one_mode_earns_most_in_every_state"])
+    for state, by in table.items():
+        print(state, "->", winners[state], {action: round(row["gold_plus_xp"]["median"]) for action, row in by.items()})
+    print("one action earns most in every state:", results["one_action_earns_most_in_every_state"])
     print(f"wrote {RESULTS}")
 
 

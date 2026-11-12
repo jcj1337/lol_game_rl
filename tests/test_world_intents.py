@@ -3,29 +3,30 @@ from collections import Counter
 
 import pytest
 
-from riftgame.champions import (ACTIONS, CAMP_NODES, FOUNTAIN, HOLD, KEEP, LANES, MAP, MODES, NODES, RECALL, RIFT, SEATS,
+from riftgame.champions import (ACTIONS, CAMP_NODES, FOUNTAIN, HOLD, KEEP, LANES, MAP, MODES, NODES, RECALL, RIFT, SEATS, STANDS,
                                 TEAMS, Kind, Outcome, capability_of, level_of)
 from riftgame.lanes import HOLD_MARGIN, MELEE_REACH, TOWER_RANGE
 from riftgame.vision import legal_mask, observe
 from riftgame.world import Config, InvariantError, World
-from worlds import BLUE_CARRY, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_TOP, act, lane_place, move, staged, submit, until
+from worlds import BLUE_CARRY, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_TOP, act, lane_place, move, raze, staged, submit, until
 
 TICK_S = EVERY_TICK.tick_s
 
 
 def test_the_action_table_keeps_its_layout():
     first = {kind: next(i for i, a in enumerate(ACTIONS) if a.kind is kind) for kind in Kind}
-    assert first == {Kind.KEEP: 0, Kind.HOLD: 1, Kind.RECALL: 2, Kind.MOVE: 3, Kind.LANE: 42, Kind.CAMP: 57, Kind.FOLLOW: 71,
-                     Kind.FIGHT: 76, Kind.SIEGE: 81, Kind.WARD: 84}
-    assert len(ACTIONS) == len(set(ACTIONS)) == 98
+    assert first == {Kind.KEEP: 0, Kind.HOLD: 1, Kind.RECALL: 2, Kind.MOVE: 3, Kind.LANE: 42, Kind.CAMP: 66, Kind.FOLLOW: 80,
+                     Kind.FIGHT: 85, Kind.SIEGE: 90, Kind.WARD: 93}
+    assert len(ACTIONS) == len(set(ACTIONS)) == 107
     assert [a.kind for a in ACTIONS] == sorted(a.kind for a in ACTIONS), "each kind is one block"
 
 
 def test_the_action_table_is_built_from_the_map_and_the_seats():
     count = Counter(a.kind for a in ACTIONS)
     assert count[Kind.MOVE] == len(RIFT.node_names) == 39
-    assert count[Kind.LANE] == len(LANES) * 5 and {a.target[1] for a in ACTIONS if a.kind is Kind.LANE} == set(MODES)
-    assert set(MODES) == {"passive", "last_hit", "thin", "push", "hold"}
+    assert count[Kind.LANE] == len(LANES) * len(MODES) * len(STANDS) == 24
+    assert {a.target for a in ACTIONS if a.kind is Kind.LANE} == {(lane, mode, stand) for lane in LANES for mode in MODES for stand in STANDS}
+    assert (MODES, STANDS) == (("passive", "last_hit", "thin", "push"), ("wave", "hold"))
     assert count[Kind.CAMP] == len(MAP.camps) + len(MAP.scuttlers) == 14
     assert count[Kind.FOLLOW] == count[Kind.FIGHT] == 5 and count[Kind.SIEGE] == 3
 
@@ -42,7 +43,7 @@ WALKS = [(Kind.MOVE, node) for node in NODES] + [(Kind.CAMP, node) for node in C
 def test_a_walk_ends_at_the_node_its_action_names_in_the_teams_frame_after_distance_over_speed(batch):
     """Blue and red seats get the same action indices, so each index must name mirrored nodes."""
     config = Config(tick_s=1.0, decision_ticks=1)
-    world = World(config)
+    world = raze(World(config))
     orders = {seat: act(*WALKS[batch + seat % 5]) for seat in SEATS if batch + seat % 5 < len(WALKS)}
     due = {}
     for seat, action in orders.items():
@@ -98,19 +99,20 @@ def test_a_finished_intent_records_its_outcome_and_tick_and_the_champion_holds_u
 
 
 @pytest.mark.parametrize("seat", [BLUE_TOP, RED_TOP])
+@pytest.mark.parametrize("stand", STANDS)
 @pytest.mark.parametrize("mode", MODES)
-def test_a_lane_action_waits_at_the_own_outer_tower_for_its_wave_in_every_mode_and_never_ends(seat, mode):
+def test_a_lane_action_waits_for_its_wave_at_the_own_outer_tower_or_on_the_hold_line_and_never_ends(seat, mode, stand):
     world = World(Config(tick_s=1.0, decision_ticks=1))
     me = world.champions[seat]
     tower = next(t for t in MAP.towers if t.name == f"{TEAMS[seat // 5]}_top_outer")
-    submit(world, {seat: act(Kind.LANE, ("top", mode))})
+    submit(world, {seat: act(Kind.LANE, ("top", mode, stand))})
     for _ in range(45):
         world.step()
     assert world.lanes["top"].front().counts == (6, 6)
     outward = 1 if seat < 5 else -1
-    post = tower.s + outward * (TOWER_RANGE + HOLD_MARGIN - MELEE_REACH) * (mode == "hold")
+    post = tower.s + outward * (TOWER_RANGE + HOLD_MARGIN - MELEE_REACH) * (stand == "hold")
     assert RIFT.distance(me.pos, RIFT.lane_pos("top", post)) == pytest.approx(0.0, abs=1e-6)
-    assert (me.outcome, me.intent) == (Outcome.NONE, act(Kind.LANE, ("top", mode)))
+    assert (me.outcome, me.intent) == (Outcome.NONE, act(Kind.LANE, ("top", mode, stand)))
 
 
 def test_a_follower_stops_while_its_ally_is_dead_and_never_ends():
@@ -200,10 +202,9 @@ def test_damage_to_a_dead_champion_changes_nothing():
     assert world.digest() == before
 
 
-@pytest.mark.parametrize("kind", [Kind.FIGHT, Kind.WARD, Kind.SIEGE])
-def test_fight_ward_and_siege_are_in_the_table_and_cannot_be_chosen_yet(kind):
+def test_ward_is_in_the_table_and_cannot_be_chosen_yet():
     world = staged({seat: lane_place(seat // 5, "mid", 7000.0) for seat in SEATS})
-    indices = [i for i, a in enumerate(ACTIONS) if a.kind is kind]
+    indices = [i for i, a in enumerate(ACTIONS) if a.kind is Kind.WARD]
     assert indices
     for seat in SEATS:
         mask = legal_mask(observe(world, seat))

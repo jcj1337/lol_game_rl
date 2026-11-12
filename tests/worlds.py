@@ -2,8 +2,8 @@
 
 from collections import Counter
 
-from riftgame.champions import ACTIONS, HOLD, KEEP, RIFT, SEATS, Action, Kind
-from riftgame.harness import tick
+from riftgame.champions import ACTIONS, HOLD, HOME, KEEP, RIFT, SEATS, Action, Kind
+from riftgame.harness import jungler, tick
 from riftgame.rng import Stream, keyed_uniform
 from riftgame.vision import Observation, legal_mask
 from riftgame.world import Config, World
@@ -19,6 +19,10 @@ def act(kind: Kind, target=None) -> int:
 
 def move(node: str) -> int:
     return act(Kind.MOVE, node)
+
+
+def lane(name: str, mode: str, stand: str = "wave") -> int:
+    return act(Kind.LANE, (name, mode, stand))
 
 
 def lane_place(team: int, lane: str, from_own_end: float):
@@ -58,6 +62,11 @@ def patient(o: Observation, noise: float) -> int:
     return legal[int(noise * 5 % 1 * len(legal))]
 
 
+def busy(o: Observation, noise: float) -> int:
+    """Scripted junglers among patient laners, so that camps are cleared while the laners act at random."""
+    return jungler(o, noise) if HOME[o.me.role] is None else patient(o, noise)
+
+
 def hazard(world: World, per_tick: float, amount: float) -> None:
     """Damage from nowhere, keyed on the seat and the tick, so that champions die without combat."""
     for seat in SEATS:
@@ -80,8 +89,17 @@ def play(world: World, policy, ticks: int) -> tuple[list[str], Counter]:
     return digests, ended
 
 
+def raze(world: World) -> World:
+    """Take every lane tower down, for a test that walks champions where towers would shoot them."""
+    for sim in world.lanes.values():
+        for tower in (*sim.towers[0], *sim.towers[1]):
+            tower.hp = 0.0
+    return world
+
+
 class StubLane:
-    """A lane behind the four members the world codes against. One team's outer tower may have fallen."""
+    """A lane behind the five members the world codes against. One team's outer tower may have fallen. It has no
+    tower that can take damage."""
 
     def __init__(self, fallen_team: int | None = None, values: tuple = ()):
         self.fallen_team, self.state = fallen_team, values
@@ -91,6 +109,9 @@ class StubLane:
 
     def tower_alive(self, team, tier):
         return not (tier == "outer" and team == self.fallen_team)
+
+    def front_tower(self, team):
+        return None
 
     def values(self):
         return self.state

@@ -3,13 +3,18 @@
 One `LaneSim` serves every lane. It owns the lane's minions, its six towers, and its wave clock. Champions enter
 only as per-tick `ChampionInput`s, and everything that crosses into the rest of the world leaves as an event.
 `LaneRules` names each optional rule, so an experiment can switch one rule and nothing else.
+
+A tower has one attack for minions and champions, so its shots on champions are here, and so are a champion's
+hits on a tower. Both happen only where an input asks for them: a tower shoots a champion whose input is a
+`tower_target`, and a champion hits a tower when its input says `siege`.
 """
 
 import heapq
+from bisect import bisect_right
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import IntEnum
-from math import inf
+from math import hypot, inf
 
 from riftgame.map import load_map
 from riftgame.rng import Stream, keyed_uniform
@@ -22,6 +27,7 @@ MINIONS = RULES["minions"]
 TOWERS = RULES["towers"]
 SIDE_SPEED = ADDED["minions"]["side_lane_speed"]
 PUSHING = ADDED["minions"]["pushing_advantage"]
+TIMING = ADDED["minions"]["attack_timing"]
 SPEED = MINIONS["move_speed"]
 ACQUIRE = MINIONS["acquisition_range"]
 CALL_RANGE = ADDED["minions"]["call_for_help_range"]
@@ -29,11 +35,23 @@ XP_SHARE = MINIONS["xp_share"]
 DAMAGE_TO_CHAMPIONS = MINIONS["damage_to_champions"]
 TOWER_RANGE = TOWERS["attack_range"]
 TOWER_ATTACK_SPEED = TOWERS["attack_speed"]
+TOWER_ADDED = ADDED["towers"]
+RAMP_PER_HIT = TOWERS["champion_ramp_per_hit"]
+RAMP_MAX = TOWERS["champion_ramp_max"]
+RAMP_RESET_S = TOWER_ADDED["champion_ramp_reset_s"]
+SWITCH_RANGE = TOWERS["target_switch_range"]
+ARMOR = TOWERS["armor"]
+ARMOR_HALVING = TOWER_ADDED["armor_halving"]
+MELEE_TAKEN = TOWERS["melee_champion_damage_taken"]
+BACKDOOR = TOWERS["backdoor_damage_reduction"]
+BACKDOOR_RANGE = TOWER_ADDED["backdoor_minion_range"]
+PLATES = tuple(TOWERS["plate_break_missing_hp"])
 TIERS = ("outer", "inner", "inhibitor")
 LANE_NAMES = ("top", "mid", "bot")
 EPS = 1e-6
 SAME_INSTANT = 1e-9
 CHAMPION_KEY = 1 << 40
+BLOW, START, RELEASE, LAND = range(4)
 SLOTS = (-1, 0, 1)
 STAND_OFF = 550.0
 HOLD_MARGIN = 300.0
@@ -52,11 +70,12 @@ class Kind(IntEnum):
 
 
 class Mode(IntEnum):
+    """What a champion at a wave hits. Where it stands is a separate choice: with the wave, or on the hold line."""
+
     PASSIVE = 0
     LAST_HIT = 1
     THIN = 2
     PUSH = 3
-    HOLD = 4
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +96,23 @@ class LaneRules:
     collision could do to a fight, not a rule of the M8 lane.
     minion_damage_scale: scales every minion blow on a minion. A diagnostic for how fight length changes the lane,
     not a rule of the M8 lane.
+    straight_ranges: every range inside the lane is the straight line on the map: acquisition, attack, tower, and
+    call ranges, between minions, towers, and champions alike. Marching stays on the lane coordinate. Without the
+    rule a range is a distance along the lane, which is longer around a lane corner.
+    tower_shelter: a champion inside the range of a standing lane tower is not attacked for standing in the
+    minions' path. A call for help still reaches it.
+    first_wave_call: minions of the first wave answer a call for help even while they attack a tower.
+    attack_timing: a minion's blow leaves it one cast time after the attack starts, and a caster's or a siege
+    minion's blow then flies to its target. A cast whose target dies or leaves reach is cancelled and starts again
+    on a new target. A missile whose target dies in flight is lost. Without the rule every blow lands at the
+    instant the attack is ready. Tower shots and champion hits are instant either way.
+    free_cancel: a cast whose target died lands on the new target when the old cast would have landed, so a
+    cancelled cast costs nothing. A diagnostic for how much rests on the unsourced cancel, not a rule of the M8 lane.
+    missiles_turn: a missile whose target died lands on whatever its shooter can reach now. A diagnostic for how
+    much rests on the unsourced lost missile, not a rule of the M8 lane.
+    detour_s: a melee minion that turns to a new minion target loses this long before its cast, as if it walked
+    around other bodies to reach it. A diagnostic bound on movement obstruction, not a rule of the M8 lane. It
+    needs attack_timing.
     m7_resolution: resolve three details as M7's lane did, so that its results can be reproduced. A minion whose target
     dies inside a tick may hit a champion in reach although an enemy minion is in acquisition range. Champions that
     attack at the same instant are served in input order. A champion that leaves the lane keeps its attack credit.
@@ -92,22 +128,35 @@ class LaneRules:
     pushing_advantage: bool = True
     melee_cap: int = 0
     minion_damage_scale: float = 1.0
+    straight_ranges: bool = True
+    tower_shelter: bool = True
+    first_wave_call: bool = True
+    attack_timing: bool = True
+    free_cancel: bool = False
+    missiles_turn: bool = False
+    detour_s: float = 0.0
     m7_resolution: bool = False
 
 
 M8_LANE = LaneRules()
-M7_LANE = LaneRules(side_lane_speed=False, call_for_help=False, pushing_advantage=False, m7_resolution=True)
+M7_LANE = LaneRules(side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
+                    first_wave_call=False, attack_timing=False, m7_resolution=True)
 
 
 @dataclass(frozen=True, slots=True)
 class LaneGeometry:
-    """`spawn` and `towers` are indexed by team. Each team's towers run from the outer tower inward."""
+    """`spawn` and `towers` are indexed by team. Each team's towers run from the outer tower inward.
+
+    `bends` holds the lane's nodes as (lane coordinate, x, y), in rising order of the coordinate. Without them the
+    lane is one straight line.
+    """
 
     name: str
     length: float
     spawn: tuple[float, float]
     towers: tuple[tuple[float, ...], tuple[float, ...]]
     side: bool
+    bends: tuple[tuple[float, float, float], ...] = ()
 
     def direction(self, team: int) -> int:
         return 1 if self.spawn[team] < self.spawn[1 - team] else -1
@@ -120,7 +169,23 @@ class LaneGeometry:
     def mirrored(self) -> "LaneGeometry":
         """The same lane with every position reflected, so blue marches toward the low end."""
         flip = lambda spots: tuple(self.length - s for s in spots)
-        return LaneGeometry(self.name, self.length, flip(self.spawn), (flip(self.towers[0]), flip(self.towers[1])), self.side)
+        bends = tuple((self.length - s, x, y) for s, x, y in reversed(self.bends))
+        return LaneGeometry(self.name, self.length, flip(self.spawn), (flip(self.towers[0]), flip(self.towers[1])), self.side, bends)
+
+    def xy(self, s: float) -> tuple[float, float]:
+        """Map coordinates of a lane coordinate."""
+        bends = self.bends
+        if not bends:
+            return s, 0.0
+        after = min(max(bisect_right(bends, (s, inf)), 1), len(bends) - 1)
+        (s0, x0, y0), (s1, x1, y1) = bends[after - 1], bends[after]
+        f = (s - s0) / (s1 - s0)
+        return x0 + (x1 - x0) * f, y0 + (y1 - y0) * f
+
+    def gap(self, a: float, b: float) -> float:
+        """The straight line on the map between two lane coordinates. It is shorter than the walk around a bend."""
+        (ax, ay), (bx, by) = self.xy(a), self.xy(b)
+        return hypot(bx - ax, by - ay)
 
 
 def lane_geometry(name: str) -> LaneGeometry:
@@ -128,7 +193,10 @@ def lane_geometry(name: str) -> LaneGeometry:
     sites = {(site.team, site.tier): site.s for site in data.towers if site.lane == name}
     towers = tuple(tuple(sites[team, tier] for tier in TIERS) for team in ("blue", "red"))
     spawn = (data.minion_spawn_s["blue", name], data.minion_spawn_s["red", name])
-    return LaneGeometry(name, data.rift.lanes[name].length, spawn, towers, name != "mid")
+    rift, lane = data.rift, data.rift.lanes[name]
+    nodes = [rift.edges[lane.edges[0]].a] + [rift.edges[e].b for e in lane.edges]
+    bends = tuple((s, *rift.node_xy[node]) for s, node in zip((*lane.starts, lane.length), nodes))
+    return LaneGeometry(name, lane.length, spawn, towers, name != "mid", bends)
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +207,14 @@ class ChampionInput:
     execute_below: with a support-item charge and an ally in range, a hit kills a minion at or below this share of
     its maximum health, and the kill is shared. 0 without a charge.
     harassing: the champion damaged an enemy champion, so nearby enemy minions answer the call for help.
+    credit: the share of an attack that the champion has ready. The lane spends it on the champion's hits and
+    hands what is left back in an `AttackCredit`. Without it the lane keeps a credit for the seat itself.
+    xy: the champion's map coordinates where it stands beside the lane. Without them it stands on the lane at `s`.
+    tower_target: towers may shoot the champion.
+    victims: the seats of the enemy champions that it damaged, for as long as it is harassing. A tower turns on
+    it when one of them stands near the tower.
+    siege: the champion hits the enemy front tower and nothing else.
+    melee: a tower takes more damage from its hits.
     """
 
     seat: int
@@ -153,6 +229,12 @@ class ChampionInput:
     capacity: float = 1.0
     execute_below: float = 0.0
     harassing: bool = False
+    credit: float | None = None
+    xy: tuple[float, float] | None = None
+    tower_target: bool = False
+    victims: tuple[int, ...] = ()
+    siege: bool = False
+    melee: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -194,12 +276,40 @@ class TowerDestroyed:
 
 
 @dataclass(frozen=True, slots=True)
+class TowerPlate:
+    """A tower's missing health crossed one of the plate thresholds, whoever dealt the damage."""
+
+    t: float
+    team: int
+    tier: int
+
+
+@dataclass(frozen=True, slots=True)
 class ChampionDamage:
     """One minion blow on a champion, before the champion's armor."""
 
     t: float
     seat: int
     damage: float
+
+
+@dataclass(frozen=True, slots=True)
+class TowerShot:
+    """One tower shot on a champion, before the champion's armor. `team` and `tier` name the tower."""
+
+    t: float
+    team: int
+    tier: int
+    seat: int
+    damage: float
+
+
+@dataclass(frozen=True, slots=True)
+class AttackCredit:
+    """The attack credit that a hitting champion's input brought, as this tick leaves it."""
+
+    seat: int
+    credit: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -223,13 +333,17 @@ class KindRules:
     tower_multiplier: float
     tower_priority: int
     table: dict
+    cast_s: float
+    missile_speed: float
 
 
 def _kind_rules(kind: Kind, tower_priority: int) -> KindRules:
     table = MINIONS[kind.name.lower()]
     to_towers = MINIONS["siege_damage_to_towers" if kind is Kind.SIEGE else "damage_to_towers"]
+    timing = TIMING[kind.name.lower()]
     return KindRules(kind, table["attack_speed"], table["attack_range"], min(table["attack_range"], ACQUIRE),
-                     table["pct_current_hp_vs_minions"], table["xp"], table["tower_shot_pct_max_hp"], to_towers, tower_priority, table)
+                     table["pct_current_hp_vs_minions"], table["xp"], table["tower_shot_pct_max_hp"], to_towers, tower_priority, table,
+                     timing["cast_s"], timing.get("missile_speed", 0.0))
 
 
 KINDS = (_kind_rules(Kind.MELEE, 1), _kind_rules(Kind.CASTER, 2), _kind_rules(Kind.SIEGE, 0))
@@ -278,12 +392,20 @@ class WaveClock:
 
 @dataclass(slots=True, eq=False)
 class Tower:
+    """`heat` counts the tower's consecutive shots on champions, and `heat_at` is the time of the last one."""
+
     team: int
     tier: int
     s: float
     hp: float
     credit: float = 1.0
     free_at: float = 0.0
+    x: float = 0.0
+    y: float = 0.0
+    heat: int = 0
+    heat_at: float = -inf
+    lo: float = -inf
+    hi: float = inf
 
 
 @dataclass(slots=True, eq=False)
@@ -306,9 +428,17 @@ class Minion:
     delay: float = 0.0
     near: "Minion | None" = None
     near_gap: float = inf
+    near_walk: float = inf
     anchored: bool = False
     free_at: float = 0.0
     died_group: int = -1
+    x: float = 0.0
+    y: float = 0.0
+    died_at: float = -1.0
+    ready: float = 0.0
+    swing: float = 0.0
+    swing_at: "Minion | Tower | ChampionTarget | None" = None
+    aimed: "Minion | Tower | ChampionTarget | None" = None
 
 
 @dataclass(slots=True, eq=False)
@@ -317,6 +447,8 @@ class ChampionTarget:
 
     inp: ChampionInput
     s: float
+    x: float = 0.0
+    y: float = 0.0
     hp: float = 1.0
     free_at: float = 0.0
 
@@ -350,6 +482,10 @@ class LaneSim:
         self.tick = round(start_s / tick_s)
         self.minions: tuple[list[Minion], list[Minion]] = ([], [])
         self.towers = tuple([Tower(team, tier, s, TOWERS[TIERS[tier]]["hp"]) for tier, s in enumerate(self.geometry.towers[team])] for team in Team)
+        self._straight = rules.straight_ranges
+        for tower in (*self.towers[0], *self.towers[1]):
+            self._place(tower)
+            self._span(tower)
         self.clock = WaveClock(start_s)
         self.spawned = 0
         self.dead = 0
@@ -357,11 +493,17 @@ class LaneSim:
         self.level_lead = 0.0
         self._serial = [0, 0]
         self._champion_credit: dict[int, float] = {}
+        self._stand: dict[int, ChampionTarget] = {}
         self._prey: tuple[list[ChampionTarget], ...] = ([], [])
         self._callers: tuple[list[ChampionTarget], ...] = ([], [])
+        self._marks: tuple[list[ChampionTarget], ...] = ([], [])
         self._group = 0
         self._events: list = []
         self._t0 = 0.0
+        self._missiles: list[tuple] = []
+        self._order = 0
+        self.cancelled = 0
+        self.lost = 0
 
     @property
     def time(self) -> float:
@@ -380,19 +522,21 @@ class LaneSim:
             spots = [m.s for m in self.minions[team]]
             leads.append((max(spots) if self.geometry.direction(team) > 0 else min(spots)) if spots else None)
         blue, red = leads
-        touching = blue is not None and red is not None and abs(red - blue) <= ACQUIRE + EPS
+        touching = blue is not None and red is not None and self._apart(blue, red) <= ACQUIRE + EPS
         return Front((blue + red) / 2 if touching else None, (blue, red), (len(self.minions[0]), len(self.minions[1])))
 
     def values(self) -> tuple:
         """Every mutable fact of the lane as nested tuples of plain values, for the world digest."""
         minions = tuple(
-            (m.uid, m.rules.kind.value, m.s, m.hp, m.max_hp, m.ad, m.gold, m.wave, m.slot, m.born, m.boost, m.credit, m.draws, _target_code(m.target))
+            (m.uid, m.rules.kind.value, m.s, m.hp, m.max_hp, m.ad, m.gold, m.wave, m.slot, m.born, m.boost, m.credit, m.draws, _target_code(m.target),
+             m.ready, m.swing, _target_code(m.swing_at), _target_code(m.aimed))
             for team in Team for m in self.minions[team]
         )
-        towers = tuple((t.team, t.tier, t.hp, t.credit) for team in Team for t in self.towers[team])
+        missiles = tuple((land, uid, team, rules.kind.value, ad, _target_code(target)) for land, uid, _, team, rules, ad, target in sorted(self._missiles, key=lambda blow: blow[:3]))
+        towers = tuple((t.team, t.tier, t.hp, t.credit, t.heat, t.heat_at) for team in Team for t in self.towers[team])
         clock = (self.clock.wave, self.clock.next_wave, tuple((when, kind.value, wave, slot) for when, kind, wave, slot in self.clock.queue))
-        counts = (self.tick, self.spawned, self.dead, self.removed, *self._serial)
-        return (self.name, counts, clock, towers, minions, tuple(sorted(self._champion_credit.items())))
+        counts = (self.tick, self.spawned, self.dead, self.removed, *self._serial, self.cancelled, self.lost)
+        return (self.name, counts, clock, towers, minions, tuple(sorted(self._champion_credit.items())), missiles)
 
     def add_minion(self, team: int, kind: Kind, s: float, when: float | None = None, delay: float = 0.0, count: int = 1, slot: float | None = None, wave: int = 0) -> None:
         """Without a slot, the count minions take neighbouring slots centred on the middle of the lane."""
@@ -403,6 +547,7 @@ class LaneSim:
             self._serial[team] += 1
             uid = 2 * (self._serial[team] - 1) + team
             self.minions[team].append(Minion(uid, team, KINDS[kind], s, hp, hp, ad, gold, wave, lateral, born, delay=delay))
+            self._place(self.minions[team][-1])
             self.spawned += 1
 
     def step(self, tick: int, inputs: Sequence[ChampionInput] = (), level_lead: float = 0.0) -> list:
@@ -415,10 +560,18 @@ class LaneSim:
         for when, kind, wave, slot in self.clock.due(t0 + dt):
             for team in Team:
                 self._spawn(team, kind, wave, when, max(0.0, when - t0), slot)
-        in_path = [c for c in inputs if c.in_path and self.rules.champion_aggro]
-        self._prey = tuple([ChampionTarget(c, c.s) for c in in_path if c.team != team] for team in Team)
-        callers = [c for c in inputs if c.harassing and self.rules.call_for_help]
-        self._callers = tuple([ChampionTarget(c, c.s) for c in callers if c.team != team] for team in Team)
+        stand = self._stand = {c.seat: ChampionTarget(c, c.s) for c in inputs}
+        for spot in stand.values():
+            if spot.inp.xy is None:
+                self._place(spot)
+            else:
+                spot.x, spot.y = spot.inp.xy
+        marked = [stand[c.seat] for c in inputs if c.tower_target]
+        self._marks = tuple([spot for spot in marked if spot.inp.team != team] for team in Team)
+        in_path = [stand[c.seat] for c in inputs if c.in_path and self.rules.champion_aggro and not self._sheltered(stand[c.seat])]
+        self._prey = tuple([spot for spot in in_path if spot.inp.team != team] for team in Team)
+        callers = [stand[c.seat] for c in inputs if c.harassing and self.rules.call_for_help]
+        self._callers = tuple([spot for spot in callers if spot.inp.team != team] for team in Team)
         self._acquire()
         self._march()
         self._fight(inputs)
@@ -426,6 +579,48 @@ class LaneSim:
             self.minions[team][:] = [m for m in self.minions[team] if m.hp > 0]
         self.tick = tick + 1
         return self._events
+
+    def _span(self, tower: Tower) -> None:
+        """Set the stretch of lane coordinates outside which no point of the lane is within the tower's range."""
+        reach = TOWER_RANGE + EPS
+        if not self._straight:
+            tower.lo, tower.hi = tower.s - reach, tower.s + reach
+            return
+        step, geometry = 10.0, self.geometry
+        near = [i * step for i in range(int(self.length // step) + 2) if hypot(*(a - b for a, b in zip(geometry.xy(i * step), (tower.x, tower.y)))) <= reach + 2 * step]
+        tower.lo, tower.hi = min(near) - step, max(near) + step
+
+    def _place(self, unit) -> None:
+        if self.rules.straight_ranges:
+            unit.x, unit.y = self.geometry.xy(unit.s)
+
+    def _range(self, a, b) -> float:
+        """The distance that decides whether two units of the lane can interact. Marching uses the lane coordinate.
+
+        The loops that run for every pair of units on every tick compute the same distance in place.
+        """
+        return hypot(a.x - b.x, a.y - b.y) if self._straight else abs(a.s - b.s)
+
+    def _in_range_of(self, tower: Tower, team: int) -> list[Minion]:
+        """The living minions of `team` within the tower's attack range, in the lane's order.
+
+        `tower.lo` and `tower.hi` bound the lane coordinates that can be in range at all, so that a tower with no
+        minion near it costs two comparisons.
+        """
+        lo, hi, limit = tower.lo, tower.hi, TOWER_RANGE + EPS
+        if self._straight:
+            x, y = tower.x, tower.y
+            return [m for m in self.minions[team] if lo <= m.s <= hi and m.hp > 0 and hypot(m.x - x, m.y - y) <= limit]
+        s = tower.s
+        return [m for m in self.minions[team] if lo <= m.s <= hi and m.hp > 0 and abs(m.s - s) <= limit]
+
+    def _apart(self, a: float, b: float) -> float:
+        return self.geometry.gap(a, b) if self.rules.straight_ranges else abs(a - b)
+
+    def _sheltered(self, spot: ChampionTarget) -> bool:
+        if not self.rules.tower_shelter:
+            return False
+        return any(tower.hp > 0 and self._range(tower, spot) <= TOWER_RANGE + EPS for team in Team for tower in self.towers[team])
 
     def _spawn(self, team: int, kind: Kind, wave: int, when: float, delay: float, slot: int) -> None:
         self.add_minion(team, kind, self.geometry.spawn[team], when, delay, slot=slot, wave=wave)
@@ -447,10 +642,11 @@ class LaneSim:
 
     def _nearest(self, m: Minion, limit: float, foes: list | None = None):
         best, tied = limit, []
+        straight, x, y, s = self._straight, m.x, m.y, m.s
         for foe in self.minions[1 - m.team] if foes is None else foes:
             if foe.hp <= 0:
                 continue
-            gap = abs(foe.s - m.s)
+            gap = hypot(foe.x - x, foe.y - y) if straight else abs(foe.s - s)
             if gap < best - EPS:
                 best, tied = gap, [foe]
             elif gap <= best + EPS:
@@ -463,17 +659,17 @@ class LaneSim:
         return (tied[0] if len(tied) == 1 else self._pick(m, tied)), best
 
     def _champion_near(self, m: Minion, limit: float):
-        near = [c for c in self._prey[m.team] if abs(c.s - m.s) <= limit + EPS]
-        return min(near, key=lambda c: (abs(c.s - m.s), c.inp.seat)) if near else None
+        near = [c for c in self._prey[m.team] if self._range(c, m) <= limit + EPS]
+        return min(near, key=lambda c: (self._range(c, m), c.inp.seat)) if near else None
 
     def _in_reach(self, m: Minion):
         foe, _ = self._nearest(m, m.rules.attack_range)
         if foe is not None:
             return foe
-        if not self.rules.m7_resolution and any(foe.hp > 0 and abs(foe.s - m.s) <= ACQUIRE + EPS for foe in self.minions[1 - m.team]):
+        if not self.rules.m7_resolution and any(foe.hp > 0 and self._range(foe, m) <= ACQUIRE + EPS for foe in self.minions[1 - m.team]):
             return None
         tower = self.front_tower(1 - m.team)
-        if tower is not None and abs(tower.s - m.s) <= m.rules.attack_range + EPS:
+        if tower is not None and self._range(tower, m) <= m.rules.attack_range + EPS:
             return tower
         return self._champion_near(m, m.rules.attack_range)
 
@@ -485,20 +681,21 @@ class LaneSim:
                 for m in self.minions[team]:
                     if m.rules.kind is Kind.MELEE and type(m.target) is Minion and m.target.hp > 0:
                         crowd[m.target.uid] = crowd.get(m.target.uid, 0) + 1
+        apart, first_wave_call = self._range, self.rules.first_wave_call
         for team in Team:
             tower = self.front_tower(1 - team)
             callers = self._callers[team]
             for m in self.minions[team]:
                 target = m.target
                 reach = m.rules.attack_range + EPS
-                if callers and type(target) is not Tower:
-                    caller = min(callers, key=lambda c: (abs(c.s - m.s), c.inp.seat))
-                    if abs(caller.s - m.s) <= CALL_RANGE + EPS:
+                if callers and (type(target) is not Tower or (first_wave_call and m.wave == 1)):
+                    caller = min(callers, key=lambda c: (apart(c, m), c.inp.seat))
+                    if apart(caller, m) <= CALL_RANGE + EPS:
                         m.target = caller
-                        m.near, m.near_gap = None, inf
-                        m.anchored = abs(caller.s - m.s) <= reach
+                        m.near, m.near_gap, m.near_walk = None, inf, inf
+                        m.anchored = apart(caller, m) <= reach
                         continue
-                if type(target) is Minion and target.hp > 0 and abs(target.s - m.s) <= reach:
+                if type(target) is Minion and target.hp > 0 and apart(target, m) <= reach:
                     m.anchored = True
                     continue
                 if cap and type(target) is Minion and m.rules.kind is Kind.MELEE:
@@ -507,16 +704,18 @@ class LaneSim:
                 if cap and m.rules.kind is Kind.MELEE and m.near is not None and crowd.get(m.near.uid, 0) >= cap:
                     open_foes = [foe for foe in self.minions[1 - team] if crowd.get(foe.uid, 0) < cap]
                     m.near, m.near_gap = self._nearest(m, inf, open_foes)
+                # the walk to the target is measured now, before anyone marches, so the order of marching cannot matter
+                m.near_walk = abs(m.near.s - m.s) if m.near is not None and self.rules.straight_ranges else m.near_gap
                 if m.near_gap <= ACQUIRE + EPS:
                     target = m.near
                     if cap and m.rules.kind is Kind.MELEE:
                         crowd[target.uid] = crowd.get(target.uid, 0) + 1
-                elif tower is not None and abs(tower.s - m.s) <= ACQUIRE + EPS:
+                elif tower is not None and apart(tower, m) <= ACQUIRE + EPS:
                     target = tower
                 else:
                     target = self._champion_near(m, ACQUIRE)
                 m.target = target
-                m.anchored = target is not None and abs(target.s - m.s) <= reach
+                m.anchored = target is not None and apart(target, m) <= reach
 
     def _march(self) -> None:
         geometry, dt = self.geometry, self.tick_s
@@ -542,7 +741,7 @@ class LaneSim:
                 self._events.append(MinionRemoved(self._t0, m.team, m.rules.kind))
                 continue
             if m.near is not None:
-                room = min(room, m.near_gap - stop)
+                room = min(room, m.near_walk - stop)
             if lead_walker[1 - m.team] is not None:
                 # two walkers closing on each other each take half the gap, so they meet instead of crossing within a tick
                 room = min(room, (abs(lead_walker[1 - m.team] - m.s) - stop) / 2)
@@ -557,6 +756,7 @@ class LaneSim:
             speed = self._speed(m)
             advance = max(0.0, min(speed * (dt - m.delay), room))
             m.s += heading * advance
+            self._place(m)
             m.free_at = m.delay + advance / speed
             m.delay = 0.0
 
@@ -565,8 +765,104 @@ class LaneSim:
         total = credit + speed * (self.tick_s - start)
         attacks = int(total)
         for k in range(1, attacks + 1):
-            queue.append((start + (k - credit) / speed, key, actor))
+            self._push(queue, start + (k - credit) / speed, key, BLOW, actor)
         actor.credit = total - attacks
+
+    def _push(self, queue: list, when: float, key: int, what: int, actor) -> None:
+        """Queue one event of this tick. The running number keeps events of one actor at one instant in the order
+        they were queued."""
+        self._order += 1
+        heapq.heappush(queue, (when, key, self._order, what, actor))
+
+    def _resume(self, queue: list, m: Minion) -> None:
+        """Queue a minion's next attack event of this tick: the release of a cast in progress, or the start of one."""
+        if m.swing_at is not None:
+            when, what = m.swing - self._t0, RELEASE
+        else:
+            target = m.target
+            if target is None or self._range(m, target) > m.rules.attack_range + EPS:
+                return
+            when, what = max(m.free_at, target.free_at, m.ready - self._t0), START
+        if when < self.tick_s:
+            self._push(queue, max(when, 0.0), m.uid, what, m)
+
+    def _cast(self, queue: list, m: Minion, target, start: float) -> None:
+        """Start an attack on `target` at `start`. The blow leaves the minion one cast time later."""
+        t0 = self._t0
+        if self.rules.detour_s and m.rules.kind is Kind.MELEE and type(target) is Minion and m.aimed is not None and m.aimed is not target:
+            start += self.rules.detour_s
+        m.target = m.swing_at = m.aimed = target
+        m.swing = t0 + start + m.rules.cast_s
+        m.ready = t0 + start + 1.0 / m.rules.attack_speed
+        if m.swing - t0 < self.tick_s:
+            self._push(queue, m.swing - t0, m.uid, RELEASE, m)
+
+    def _live(self, m: Minion, target):
+        """The target of a cast or a missile as it stands now, or None when it can no longer be hit."""
+        if type(target) is ChampionTarget:
+            target = self._stand.get(target.inp.seat)
+            if target is None or not (target in self._prey[m.team] or target in self._callers[m.team]):
+                return None
+        elif target.hp <= 0:
+            return None
+        return target
+
+    def _start(self, queue: list, m: Minion, now: float) -> None:
+        if m.hp <= 0:
+            return
+        target = m.target
+        if target is None or target.hp <= 0 or self._range(m, target) > m.rules.attack_range + EPS:
+            target = self._in_reach(m)
+        if target is None:
+            m.ready = self._t0 + now
+            return
+        self._cast(queue, m, target, now)
+
+    def _release(self, queue: list, m: Minion, now: float) -> None:
+        aimed, m.swing_at = m.swing_at, None
+        if m.hp <= 0 and m.died_group != self._group:
+            return
+        t0 = self._t0
+        target = self._live(m, aimed)
+        if target is None or self._range(m, target) > m.rules.attack_range + EPS:
+            self.cancelled += 1
+            died = aimed.died_at - t0 if type(aimed) is Minion and aimed.hp <= 0 else now
+            again = self._in_reach(m) if m.hp > 0 else None
+            if again is None:
+                m.ready = t0 + now
+            else:
+                # the cast began again when the old target died, so the time lost is the part of the cast spent on it
+                began = max(min(died, now), now - m.rules.cast_s)
+                if self.rules.free_cancel:
+                    began = now - m.rules.cast_s
+                arrived = max(m.free_at, again.free_at)
+                self._cast(queue, m, again, max(began, arrived) if arrived > 0 else began)
+            return
+        if m.rules.missile_speed:
+            land = now + self._range(m, target) / m.rules.missile_speed
+            missile = (t0 + land, m.uid, self._order, m.team, m.rules, m.ad, target)
+            if land < self.tick_s:
+                self._push(queue, land, m.uid, LAND, missile)
+            else:
+                self._missiles.append(missile)
+        else:
+            self._strike(m.team, m.rules, m.ad, target, now)
+        if m.hp > 0 and m.ready - t0 < self.tick_s:
+            self._push(queue, max(m.ready - t0, now), m.uid, START, m)
+
+    def _land(self, missile: tuple, now: float) -> None:
+        _, uid, _, team, rules, ad, aimed = missile
+        if type(aimed) is ChampionTarget:
+            target = self._stand.get(aimed.inp.seat)
+        else:
+            target = aimed if aimed.hp > 0 else None
+        if target is None and self.rules.missiles_turn:
+            shooter = next((m for m in self.minions[team] if m.uid == uid and m.hp > 0), None)
+            target = self._in_reach(shooter) if shooter is not None else None
+        if target is None:
+            self.lost += 1
+        else:
+            self._strike(team, rules, ad, target, now)
 
     def _fight(self, inputs: Sequence[ChampionInput]) -> None:
         dt = self.tick_s
@@ -576,16 +872,27 @@ class LaneSim:
             present = {inp.seat for inp in inputs}
             self._champion_credit = {seat: credit for seat, credit in self._champion_credit.items() if seat in present}
         queue: list = []
+        timed = self.rules.attack_timing
+        if timed:
+            due = [missile for missile in self._missiles if missile[0] - self._t0 < dt]
+            self._missiles = [missile for missile in self._missiles if missile[0] - self._t0 >= dt]
+            for missile in due:
+                self._push(queue, max(missile[0] - self._t0, 0.0), missile[1], LAND, missile)
         for team in Team:
             for m in self.minions[team]:
                 target, speed = m.target, m.rules.attack_speed
-                if m.hp <= 0 or target is None or abs(target.s - m.s) > m.rules.attack_range + EPS:
+                if timed:
+                    self._resume(queue, m)
+                elif m.hp <= 0 or target is None or self._range(m, target) > m.rules.attack_range + EPS:
                     m.credit = min(1.0, m.credit + speed * dt)
                 else:
                     self._schedule(queue, m, m.uid, speed, max(m.free_at, target.free_at))
         for team in Team:
             for tower in self.towers[team]:
-                arrivals = [m.free_at for m in self.minions[1 - team] if m.hp > 0 and abs(m.s - tower.s) <= TOWER_RANGE + EPS]
+                arrivals = [m.free_at for m in self._in_range_of(tower, 1 - team)]
+                marks = self._marks_in_range(tower)
+                if marks and (not arrivals or any(self._provokes(spot, tower) for spot in marks)):
+                    arrivals = [0.0]
                 if tower.hp > 0 and arrivals:
                     self._schedule(queue, tower, -1 - 3 * team - tower.tier, TOWER_ATTACK_SPEED, min(arrivals))
                 else:
@@ -593,14 +900,13 @@ class LaneSim:
         champions = []
         for i, inp in enumerate(inputs):
             rate = inp.attack_speed * inp.capacity
-            credit = self._champion_credit.get(inp.seat, 1.0)
+            credit = self._champion_credit.get(inp.seat, 1.0) if inp.credit is None else inp.credit
             ready = 0.0 if credit >= 1.0 else (1.0 - credit) / rate if rate > 0 else inf
             champion = _Champion(inp, rate, ready)
             champions.append((CHAMPION_KEY + i, champion))
             if self._hits(inp) and ready < dt:
-                queue.append((ready, CHAMPION_KEY + i, champion))
+                self._push(queue, ready, CHAMPION_KEY + i, BLOW, champion)
         pushers = [c.inp for _, c in champions if c.inp.mode is Mode.PUSH and c.inp.in_path and c.inp.aoe_dps * c.inp.capacity > 0]
-        heapq.heapify(queue)
         swept = 0.0
         self._group = 0
         while queue:
@@ -611,9 +917,15 @@ class LaneSim:
             group = []
             while queue and queue[0][0] <= now + SAME_INSTANT:
                 group.append(heapq.heappop(queue)[1:])
-            group.sort(key=lambda entry: entry[0])
-            for _, actor in group:
-                if type(actor) is Minion:
+            group.sort(key=lambda entry: entry[:2])
+            for _, _, what, actor in group:
+                if what == START:
+                    self._start(queue, actor, now)
+                elif what == RELEASE:
+                    self._release(queue, actor, now)
+                elif what == LAND:
+                    self._land(actor, now)
+                elif type(actor) is Minion:
                     self._minion_attack(actor, now)
                 elif type(actor) is Tower:
                     self._tower_attack(actor, now)
@@ -621,14 +933,22 @@ class LaneSim:
                 if champion.ready <= now + SAME_INSTANT and self._champion_attack(champion.inp, now):
                     champion.ready = now + 1.0 / champion.rate
                     if champion.ready < dt:
-                        heapq.heappush(queue, (champion.ready, key, champion))
+                        self._push(queue, champion.ready, key, BLOW, champion)
         self._sweep(pushers, dt - swept, dt)
         for _, champion in champions:
-            if champion.rate > 0:
-                self._champion_credit[champion.inp.seat] = min(1.0, 1.0 - (champion.ready - dt) * champion.rate)
+            inp = champion.inp
+            if champion.rate <= 0:
+                continue
+            left = min(1.0, 1.0 - (champion.ready - dt) * champion.rate)
+            if inp.credit is None:
+                self._champion_credit[inp.seat] = left
+            elif self._hits(inp):
+                self._events.append(AttackCredit(inp.seat, max(0.0, left)))
 
     @staticmethod
     def _hits(inp: ChampionInput) -> bool:
+        if inp.siege:
+            return True
         return inp.in_path and inp.mode is not Mode.PASSIVE
 
     def _push_edge(self, attacker_team: int) -> tuple[float, float]:
@@ -653,35 +973,102 @@ class LaneSim:
             if target is None:
                 m.credit = min(1.0, m.credit + 1.0)
                 return
+        self._strike(m.team, m.rules, m.ad, target, now)
+
+    def _strike(self, team: int, rules: KindRules, ad: float, target, now: float) -> None:
+        """One minion blow lands on a tower, a champion, or an enemy minion."""
         if type(target) is Tower:
-            self._hit_tower(target, m.ad * m.rules.tower_multiplier, now)
+            self._hit_tower(target, ad * rules.tower_multiplier, now)
         elif type(target) is ChampionTarget:
-            self._events.append(ChampionDamage(self._t0 + now, target.inp.seat, m.ad * DAMAGE_TO_CHAMPIONS))
+            self._events.append(ChampionDamage(self._t0 + now, target.inp.seat, ad * DAMAGE_TO_CHAMPIONS))
         else:
-            multiplier, reduction = self._push_edge(m.team)
-            blow = m.ad + m.rules.pct_current_hp * target.hp * self.rules.current_hp_damage
+            multiplier, reduction = self._push_edge(team)
+            blow = ad + rules.pct_current_hp * target.hp * self.rules.current_hp_damage
             self._hurt(target, max(0.0, blow * multiplier - reduction) * self.rules.minion_damage_scale, None, now)
 
+    def _marks_in_range(self, tower: Tower) -> list[ChampionTarget]:
+        """The enemy champions that a standing tower may shoot now."""
+        if tower.hp <= 0:
+            return []
+        return [spot for spot in self._marks[tower.team] if self._range(spot, tower) <= TOWER_RANGE + EPS]
+
+    def _provokes(self, spot: ChampionTarget, tower: Tower) -> bool:
+        """Whether a champion damaged one of the tower's allied champions that stands near the tower."""
+        for seat in spot.inp.victims:
+            victim = self._stand.get(seat)
+            if victim is not None and victim.inp.team == tower.team and self._range(victim, tower) <= SWITCH_RANGE + EPS:
+                return True
+        return False
+
     def _tower_attack(self, tower: Tower, now: float) -> None:
-        foes = [m for m in self.minions[1 - tower.team] if m.hp > 0 and abs(m.s - tower.s) <= TOWER_RANGE + EPS] if tower.hp > 0 else []
+        """One tower shot. It goes to an enemy champion in range that damaged an allied champion near the tower,
+        else to a minion, else to the closest enemy champion in range (reference rows E16c and E16d)."""
+        foes = self._in_range_of(tower, 1 - tower.team) if tower.hp > 0 else []
+        marks = self._marks_in_range(tower)
+        marks = [spot for spot in marks if self._provokes(spot, tower)] or ([] if foes else marks)
+        if marks:
+            self._shoot(tower, min(marks, key=lambda spot: (self._range(spot, tower), spot.inp.seat)), now)
+            return
         if not foes:
             tower.credit = min(1.0, tower.credit + 1.0)
             return
-        target = min(foes, key=lambda m: (m.rules.tower_priority, abs(m.s - tower.s), m.uid))
+        target = min(foes, key=lambda m: (m.rules.tower_priority, self._range(m, tower), m.uid))
         self._hurt(target, target.rules.tower_shot_pct * target.max_hp, None, now)
+
+    def _shoot(self, tower: Tower, spot: ChampionTarget, now: float) -> None:
+        """A shot on a champion deals the tower's attack damage at this game time, and half of it more for each
+        shot on a champion before it, up to the ramp's limit. The ramp does not care which champion the shots
+        hit. It starts again once the tower has hit no champion for the reset time (reference row E13g)."""
+        t = self._t0 + now
+        if t - tower.heat_at >= RAMP_RESET_S:
+            tower.heat = 0
+        table = TOWERS[TIERS[tower.tier]]
+        damage = interpolated(table["ad"], table["ad_span_s"], t) * (1.0 + min(RAMP_MAX, RAMP_PER_HIT * tower.heat))
+        tower.heat, tower.heat_at = tower.heat + 1, t
+        self._events.append(TowerShot(t, tower.team, tower.tier, spot.inp.seat, damage))
+
+    def _siege_blow(self, inp: ChampionInput, tower: Tower, now: float) -> float:
+        """The health that one champion hit takes from a tower: cut by the tower's armor, raised for a melee
+        champion, and cut again while none of the champion's minions is near the tower. An outer tower's armor
+        falls to zero over its decay span. The straight line over that span is Assumed."""
+        table = TOWERS[TIERS[tower.tier]]
+        armor = interpolated([ARMOR, 0.0], table["armor_decay_span_s"], self._t0 + now) if "armor_decay_span_s" in table else ARMOR
+        damage = inp.hit_damage * ARMOR_HALVING / (ARMOR_HALVING + armor)
+        if inp.melee:
+            damage *= MELEE_TAKEN
+        if not any(m.hp > 0 and self._range(m, tower) <= BACKDOOR_RANGE + EPS for m in self.minions[inp.team]):
+            damage *= 1.0 - BACKDOOR
+        return damage
 
     def _hit_tower(self, tower: Tower, damage: float, now: float) -> None:
         if tower.hp <= 0:
             return
+        full = TOWERS[TIERS[tower.tier]]["hp"]
+        missing = full - tower.hp
         tower.hp -= damage
         self._events.append(TowerDamage(self._t0 + now, tower.team, tower.tier, damage))
+        for share in PLATES:
+            if missing < share * full <= full - tower.hp:
+                self._events.append(TowerPlate(self._t0 + now, tower.team, tower.tier))
         if tower.hp <= 0:
             self._events.append(TowerDestroyed(self._t0 + now, tower.team, tower.tier))
 
     def _champion_attack(self, inp: ChampionInput, now: float) -> bool:
         if not self._hits(inp):
             return False
-        foes = [m for m in self.minions[1 - inp.team] if m.hp > 0 and abs(m.s - inp.s) <= inp.attack_range + EPS]
+        me = self._stand[inp.seat]
+        if inp.siege:
+            tower = self.front_tower(1 - inp.team)
+            if tower is None or self._range(tower, me) > inp.attack_range + EPS:
+                return False
+            self._hit_tower(tower, self._siege_blow(inp, tower, now), now)
+            return True
+        reach = inp.attack_range + EPS
+        if self._straight:
+            x, y = me.x, me.y
+            foes = [m for m in self.minions[1 - inp.team] if m.hp > 0 and hypot(m.x - x, m.y - y) <= reach]
+        else:
+            foes = [m for m in self.minions[1 - inp.team] if m.hp > 0 and abs(m.s - me.s) <= reach]
         choice = [m for m in foes if m.hp <= inp.hit_damage]
         shared = False
         if not choice and inp.execute_below > 0:
@@ -703,21 +1090,25 @@ class LaneSim:
             return
         for inp in pushers:
             damage = inp.aoe_dps * inp.capacity * span
+            me = self._stand[inp.seat]
             for m in self.minions[1 - inp.team]:
-                if m.hp > 0 and abs(m.s - inp.s) <= inp.attack_range + EPS:
+                if m.hp > 0 and self._range(m, me) <= inp.attack_range + EPS:
                     self._hurt(m, damage, inp.seat, now)
 
     def _hurt(self, target: Minion, damage: float, killer: int | None, now: float, shared: bool = False) -> None:
         target.hp -= damage
         if target.hp <= 0:
             target.died_group = self._group
+            target.died_at = self._t0 + now
             self.dead += 1
             gold = target.gold if killer is not None else 0
             self._events.append(MinionDeath(self._t0 + now, target.team, target.rules.kind, target.s, killer, gold, target.rules.xp, shared))
 
 
-def stance(lane: LaneSim, team: int, mode: Mode, attack_range: float = STAND_OFF, front: Front | None = None) -> tuple[float, bool]:
-    """Where a champion in this wave mode wants to stand, and whether it stands in the minions' path there.
+def stance(lane: LaneSim, team: int, mode: Mode, attack_range: float = STAND_OFF, front: Front | None = None, hold: bool = False) -> tuple[float, bool]:
+    """Where a champion that hits in `mode` wants to stand, and whether it stands in the minions' path there.
+
+    `hold` is the champion's choice to stand on the hold line. It is independent of what the champion hits.
 
     `front` is the wave front that the champion's team knows. Without it the lane's true front is used, which is
     only right while nothing hides a wave from a team.
@@ -735,7 +1126,6 @@ def stance(lane: LaneSim, team: int, mode: Mode, attack_range: float = STAND_OFF
     own, foe = front.lead[team], front.lead[1 - team]
     own_tower, enemy_tower = lane.front_tower(team), lane.front_tower(1 - team)
     home = own_tower.s if own_tower is not None else geometry.spawn[team]
-    hold = mode is Mode.HOLD
     contact = front.s is not None
 
     def beyond(a: float, b: float) -> bool:

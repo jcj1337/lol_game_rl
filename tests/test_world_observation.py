@@ -2,15 +2,17 @@ from dataclasses import fields, is_dataclass
 
 import pytest
 
-from riftgame.champions import HOLD, KEEP, RECALL, RIFT, SEATS, Champion, Kind, Outcome
+from riftgame.champions import ACTIONS, HOLD, KEEP, RECALL, RIFT, SEATS, Champion, Kind, Outcome
 from riftgame.harness import run
-from riftgame.vision import Observation, Place, legal_mask, observe
+from riftgame.jungle import SITES
+from riftgame.vision import CampView, EnemyView, Observation, Place, Sight, legal_mask, observe, sees
 from riftgame.world import Config, World
-from worlds import EVERY_TICK, act, lane_place, move, patient, staged
+from worlds import EVERY_TICK, act, busy, lane_place, move, patient, staged
 
 CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "xp": 3300.0, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
            "upgrades": 2, "intent": move("mid_river"), "intent_tick": 3, "channel": 4, "outcome": Outcome.INTERRUPTED,
-           "outcome_tick": 5, "allowance": -12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44}
+           "outcome_tick": 5, "allowance": -12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44,
+           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11}
 
 
 def team_knowledge(world: World, team: int) -> list:
@@ -32,12 +34,44 @@ def test_changing_every_field_of_every_enemy_champion_changes_no_observation_and
     assert all(now != was for now, was in zip(team_knowledge(world, 1 - team), enemy_before)), "the test must be able to see a change"
 
 
-def test_an_observation_holds_the_champion_its_four_teammates_and_the_clock():
+@pytest.mark.parametrize("team", [0, 1])
+def test_changing_every_camp_fact_a_team_has_not_seen_changes_no_observation_and_no_mask_now_or_while_it_stays_unseen(team):
+    world = World(Config(), seed=8)
+    run(world, busy, 420)
+    hidden = [i for i, site in enumerate(SITES) if not sees(world, team, site.pos)]
+    assert 0 < len(hidden) < len(SITES), "the team must see some camps and not others"
+    assert {s.team for s in world.sights} == {0, 1} and any(camp.hp <= 0 for camp in world.camps)
+    twin = World.restore(world.snapshot())
+    for i in hidden:
+        camp = twin.camps[i]
+        if camp.hp > 0:
+            camp.hp, camp.max_hp, camp.level, camp.spawn_tick, camp.engaged = 0.0, 77.0, 9, twin.tick + 3, -1
+        else:
+            camp.hp, camp.max_hp, camp.level, camp.spawn_tick, camp.engaged = 123.0, 456.0, 7, -1, -1
+    for memory in twin.memory[1 - team].camps:
+        memory.hp, memory.level, memory.seen_tick, memory.spawn_tick = memory.hp + 5.0, memory.level + 2, memory.seen_tick + 9, memory.spawn_tick + 30
+    twin.sights[:] = [s for s in twin.sights if s.team == team] + [Sight(1 - team, SITES[hidden[0]].pos, 2000.0, twin.tick + 500)]
+    assert all(now != was for now, was in zip(team_knowledge(twin, 1 - team), team_knowledge(world, 1 - team))), "the test must be able to see a change"
+    hold = [HOLD if c.hp > 0 else KEEP for c in world.champions]
+    for step in range(60):
+        assert team_knowledge(twin, team) == team_knowledge(world, team), f"step {step}"
+        for game in (world, twin):
+            game.step(hold if step == 0 else None)
+    assert [camp.hp > 0 for camp in twin.camps] != [camp.hp > 0 for camp in world.camps], "the two worlds still differ where the team cannot see"
+    for game in (world, twin):
+        game.champions[team * 5 + 1].pos = SITES[hidden[0]].pos
+        game.step()
+    assert team_knowledge(twin, team) != team_knowledge(world, team), "sight of a changed camp shows the change"
+
+
+def test_an_observation_holds_the_champion_its_four_teammates_the_camps_and_the_clock():
     world = World(Config(), seed=8)
     run(world, patient, 30)
     for seat in SEATS:
         o = observe(world, seat)
-        assert [f.name for f in fields(Observation)] == ["time_s", "me", "mates"]
+        assert [f.name for f in fields(Observation)] == ["time_s", "me", "mates", "camps", "enemies"]
+        assert EnemyView._fields == ("place", "hp", "level") and len(o.enemies) == 5
+        assert CampView._fields == ("hp", "level", "seen_age_s", "spawn_s", "walk")
         assert o.time_s == 15.0 and o.me.role == seat % 5
         assert [mate.role for mate in o.mates] == [role for role in range(5) if role != seat % 5]
         others = [mate for mate in range(seat // 5 * 5, seat // 5 * 5 + 5) if mate != seat]
@@ -57,6 +91,9 @@ def test_a_place_is_measured_outward_from_the_teams_own_fountain():
 
 
 def flat(value) -> list:
+    if isinstance(value, CampView):
+        # The map mirrors no walk off the lanes, so a camp's walk is left out of the mirror test.
+        value = value[:-1]
     if is_dataclass(value):
         return [leaf for f in fields(value) for leaf in flat(getattr(value, f.name))]
     if isinstance(value, tuple):
@@ -129,6 +166,6 @@ def test_the_mask_comes_from_the_observation_alone_and_is_never_empty():
         for seat in SEATS:
             o = observe(world, seat)
             mask = legal_mask(o)
-            assert any(mask) and len(mask) == 98
+            assert any(mask) and len(mask) == len(ACTIONS)
             assert mask == legal_mask(observe(world, seat))
         run(world, patient, 1)

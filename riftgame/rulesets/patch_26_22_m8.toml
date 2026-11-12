@@ -2,15 +2,19 @@
 #
 # patch_26_22.toml stays byte-identical, because every M7 results file records its hash.
 # Status tags are the same as in patch_26_22.toml. tests/test_ruleset.py enforces them.
-# Source for every F1 value here: wiki page "Minion (League of Legends)", read on 2026-11-11 for M7 and read again
-# through the same summarizing fetch tool for M8. Two readings of one page stay F1.
+# Each section names its source. Where it names none, the F1 values come from the wiki page "Minion (League of
+# Legends)", read on 2026-11-11 for M7 and again for M8 through the same summarizing fetch tool. Two readings of one
+# page stay F1.
 
 [meta]
-id = "ref-26.22-r1+m8.1"       # A
+id = "ref-26.22-r1+m8.2"       # A
 extends = "ref-26.22-r1"       # A
 
 [minions]
 call_for_help_range = 1000     # F1
+# Read on the wiki pages "Melee minion" and "Caster minion" and in the game's character data files (see attack_timing).
+# The lane has no bodies. Only the crowding measurement of the wave experiments reads this value.
+pathing_radius = 35.74         # F2
 
 # Top and bot minions of wave 2 and later spawn with bonus speed until 14:00. The bonus is 111 on wave 2 and 4.5 less
 # for each later wave. It drops by 15 at the end of each of the first three stages and ends after the fourth.
@@ -33,3 +37,139 @@ damage_per_tower = 0.05        # F1
 damage_max = 0.60              # F1
 reduction_base = 1.0           # F1
 reduction_max = 10.0           # F1
+
+# Attack timing of lane minions. cast_s is the time from the start of an attack until the blow leaves the minion.
+# A melee blow lands then. A caster's or a siege minion's blow flies to its target at missile_speed.
+# Source: Community Dragon 16.22, game/data/characters/sru_orderminion{melee,ranged,siege}/*.bin.json, record Root,
+# keys basicAttack.mAttackCastTime and the basic-attack spell's missileSpeed, read 2026-11-12 through a summarizing
+# fetch tool. mAttackTotalTime in the same records is 0.8, 1.5, and 1.0 s, the inverse of the attack speeds.
+[minions.attack_timing.melee]
+cast_s = 0.393                 # F1
+
+[minions.attack_timing.caster]
+cast_s = 0.47                  # F1
+missile_speed = 650            # F1
+
+[minions.attack_timing.siege]
+cast_s = 0.30                  # F1
+missile_speed = 1200           # F1
+
+# Upgrade progressions (M7 section 5.5). On its fountain a champion buys the next entry of its profile's list while
+# its unspent gold covers the price. Every list starts with two boot steps. patch_26_22.toml has the price of the
+# first step and the speed of both. Most tier-2 boots cost 1100 in total, so the second step costs that less the first.
+# Source for the F1 value: Data Dragon 16.22.1 item.json, row B6c of docs/reference/patch_26_22_map_and_structures.md.
+[upgrades]
+boots_tier2_gold = 1100        # F1
+
+# The entries after the boots, in buying order: a price, and the amount added to each capability field it names.
+# Placeholders until M9. They only need to be few, plausible, and different between profiles. An entry that adds
+# damage against minions adds damage against champions too, about a fifth to a third of the profile's rate.
+[[upgrades.top]]
+cost = 900                     # A
+adds = {max_hp = 150.0}        # A
+
+[[upgrades.top]]
+cost = 1100                    # A
+adds = {hit_damage = 15.0, max_hp = 100.0, champion_dps = 14.0}   # A
+
+[[upgrades.top]]
+cost = 1300                    # A
+adds = {max_hp = 200.0, hp_regen = 1.5}      # A
+
+[[upgrades.jungle]]
+cost = 900                     # A
+adds = {hit_damage = 15.0, champion_dps = 12.0}   # A
+
+[[upgrades.jungle]]
+cost = 1100                    # A
+adds = {max_hp = 150.0}        # A
+
+[[upgrades.jungle]]
+cost = 1300                    # A
+adds = {hit_damage = 20.0, attack_speed = 0.10, champion_dps = 15.0}   # A
+
+[[upgrades.mid]]
+cost = 900                     # A
+adds = {area_dps = 15.0, max_mana = 150.0, champion_dps = 16.0}   # A
+
+[[upgrades.mid]]
+cost = 1100                    # A
+adds = {area_dps = 20.0, champion_dps = 16.0}   # A
+
+[[upgrades.mid]]
+cost = 1300                    # A
+adds = {max_hp = 150.0, area_dps = 15.0, champion_dps = 13.0}   # A
+
+[[upgrades.carry]]
+cost = 900                     # A
+adds = {hit_damage = 20.0, champion_dps = 21.0}   # A
+
+[[upgrades.carry]]
+cost = 1100                    # A
+adds = {attack_speed = 0.15, champion_dps = 21.0}   # A
+
+[[upgrades.carry]]
+cost = 1300                    # A
+adds = {hit_damage = 25.0, attack_speed = 0.10, champion_dps = 21.0}   # A
+
+[[upgrades.support]]
+cost = 500                     # A
+adds = {max_hp = 100.0}        # A
+
+[[upgrades.support]]
+cost = 800                     # A
+adds = {max_mana = 150.0, hp_regen = 1.0}    # A
+
+[[upgrades.support]]
+cost = 1100                    # A
+adds = {max_hp = 150.0}        # A
+
+# Jungle camps (C4). The reference's camp and Scuttler values are in patch_26_22.toml. The reference gives no value
+# for the leash and the damage below, so every number here is a placeholder with no source.
+
+# A camp attacks the champion that engaged it while that champion is within this straight-line distance of the camp.
+[camps]
+leash_range = 800.0            # A
+
+# Damage per second of a camp on the champion it attacks, before the champion's armor, at every camp level. The
+# values are set so that the placeholder jungler ends its first six camps with over a third of its health.
+[camps.damage_per_s]
+blue_sentinel = 7.0            # A
+red_brambleback = 8.0          # A
+gromp = 8.0                    # A
+murk_wolves = 6.0              # A
+raptors = 9.0                  # A
+krugs = 7.0                    # A
+# The Rift Scuttler does not fight back.
+scuttler = 0.0                 # M
+
+# Combat between champions (C5). The reference gives no value for any of the three windows.
+[combat]
+# A champion that damaged a victim within this time before its death assists in the kill. If nobody damaged the
+# victim on the tick it died, the champion that damaged it last within this time is its killer.
+assist_window_s = 10.0         # A
+# A champion may fight an enemy that damaged it within this time, whatever its laning role allows.
+self_defence_window_s = 5.0    # A
+# Enemy minions and towers answer a champion's attack on an enemy champion for this long after its last such tick.
+# The wiki says that minions keep their target "for a short time afterwards" and gives no number.
+call_for_help_window_s = 2.0   # A
+
+# XP for a champion kill at victim level 1 and at victim level 18: for a killer alone, and the total that the killer
+# shares equally with the assisters and with its allies in range. Reference row E18e of
+# docs/reference/patch_26_22_timing_and_economy.md. It gives these two ends and no table between them.
+[combat.kill_xp]
+solo = [42.0, 990.0]           # F1
+shared_total = [27.97, 891.0]  # F1
+
+# Lane towers against champions (C5). Reference rows E13g and E15d of docs/reference/patch_26_22_map_and_structures.md.
+[towers]
+# A tower's ramp against champions starts again this long after its last hit on a champion.
+champion_ramp_reset_s = 5.0    # F1
+# Plate gold and the first-tower bonus are split among the living enemy champions within this distance of the tower.
+local_gold_range = 1200.0      # F1
+# The reference names no radius for the minions that switch a tower's backdoor protection off. The tower's own attack
+# range stands in for it.
+backdoor_minion_range = 750.0  # A
+# Damage on a tower is multiplied by armor_halving / (armor_halving + armor), the game's usual armor formula. No
+# reference row states it.
+armor_halving = 100.0          # M

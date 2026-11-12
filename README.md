@@ -2,7 +2,7 @@
 
 > An ongoing research project exploring whether agents can learn League of Legends macro strategy through multi-agent reinforcement learning and self-play.
 
-**Status:** Planning and design stage · See the [Roadmap](docs/ROADMAP.md)
+**Status:** Building the full-map foundation (roadmap milestone M8). Four of its eight checkpoints pass their criteria, a fifth (lanes and waves) is built but not complete, and nothing is validated against the real game yet · See the [Roadmap](docs/ROADMAP.md)
 
 ---
 
@@ -26,9 +26,9 @@ Given a game state, the system would compare possible actions and identify the s
 
 ## Development
 
-The project is currently in the planning and design stage.
+The simulator's foundation is under construction in `riftgame/`. No agent has been trained on it yet.
 
-See [ROADMAP.md](docs/ROADMAP.md) for the proposed milestones, research goals, and development plan.
+See [ROADMAP.md](docs/ROADMAP.md) for the milestones, research goals, and development plan, and [docs/design/M8_foundation.md](docs/design/M8_foundation.md) for what is built, how it is tested, and what is still open.
 
 ## Previous Work
 

@@ -1,0 +1,737 @@
+{
+ "ruleset": "ref-26.22-r1+m8.2",
+ "config": "tick 0.5 s, decision every 4 ticks, except where a gank row names its interval",
+ "placeholder_profiles": {
+  "top": {
+   "champion_dps": 55.0,
+   "attack_range": 175.0,
+   "move_speed": 340.0,
+   "max_hp": 650.0,
+   "lockdown_slow": 0.3,
+   "lockdown_s": 2.0,
+   "lockdown_cooldown_s": 10.0,
+   "lockdown_mana": 50.0
+  },
+  "jungle": {
+   "champion_dps": 60.0,
+   "attack_range": 175.0,
+   "move_speed": 345.0,
+   "max_hp": 600.0,
+   "lockdown_slow": 0.4,
+   "lockdown_s": 2.0,
+   "lockdown_cooldown_s": 10.0,
+   "lockdown_mana": 50.0
+  },
+  "mid": {
+   "champion_dps": 65.0,
+   "attack_range": 525.0,
+   "move_speed": 335.0,
+   "max_hp": 540.0,
+   "lockdown_slow": 0.25,
+   "lockdown_s": 2.0,
+   "lockdown_cooldown_s": 12.0,
+   "lockdown_mana": 60.0
+  },
+  "carry": {
+   "champion_dps": 70.0,
+   "attack_range": 550.0,
+   "move_speed": 325.0,
+   "max_hp": 520.0,
+   "lockdown_slow": 0.0,
+   "lockdown_s": 0.0,
+   "lockdown_cooldown_s": 0.0,
+   "lockdown_mana": 0.0
+  },
+  "support": {
+   "champion_dps": 35.0,
+   "attack_range": 500.0,
+   "move_speed": 335.0,
+   "max_hp": 560.0,
+   "lockdown_slow": 0.45,
+   "lockdown_s": 2.5,
+   "lockdown_cooldown_s": 12.0,
+   "lockdown_mana": 60.0
+  }
+ },
+ "retreat_at_half_health": {
+  "cases": [
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": false,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 90,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 12.5
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": false,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 90,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 12.5
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 197,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 12.5
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": true,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 90,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 12.5
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 90,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 12.5
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 1000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 197,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 12.5
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 197,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 16.5
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 197,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 16.5
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": false,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": false,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 4000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 197,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 20.5
+   },
+   {
+    "runner_speed_edge": -20.0,
+    "lockdown": true,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 4000.0,
+    "outcome": "death",
+    "runner_lowest_hp": 0,
+    "chaser_dead": false,
+    "tower_shots_on_chaser": 0,
+    "seconds": 14.5
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 4000.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 197,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 20.5
+   }
+  ],
+  "escapes": 10,
+  "deaths": 8,
+  "undecided": 0,
+  "escapes_in_which_the_chaser_died": 10
+ },
+ "reinforcement": {
+  "alone": {
+   "ally_start_units": null,
+   "foe_dead": false,
+   "a_dead": true,
+   "ally_dead": false,
+   "foe_hp_left": 516,
+   "tower_shots_on_foe": 0,
+   "seconds": 10.5
+  },
+  "cases": [
+   {
+    "ally_start_units": 0.0,
+    "foe_dead": true,
+    "a_dead": false,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 11.5
+   },
+   {
+    "ally_start_units": 250.0,
+    "foe_dead": true,
+    "a_dead": false,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 11.5
+   },
+   {
+    "ally_start_units": 500.0,
+    "foe_dead": true,
+    "a_dead": false,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 11.5
+   },
+   {
+    "ally_start_units": 750.0,
+    "foe_dead": true,
+    "a_dead": false,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 12.0
+   },
+   {
+    "ally_start_units": 1000.0,
+    "foe_dead": true,
+    "a_dead": false,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 12.5
+   },
+   {
+    "ally_start_units": 1250.0,
+    "foe_dead": true,
+    "a_dead": false,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 13.0
+   },
+   {
+    "ally_start_units": 1500.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": false,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 14.5
+   },
+   {
+    "ally_start_units": 1750.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": false,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 15.5
+   },
+   {
+    "ally_start_units": 2000.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": false,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 16.0
+   },
+   {
+    "ally_start_units": 2250.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": false,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 16.5
+   },
+   {
+    "ally_start_units": 2500.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": false,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 17.5
+   },
+   {
+    "ally_start_units": 2750.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": false,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 18.0
+   },
+   {
+    "ally_start_units": 3000.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 18.5
+   },
+   {
+    "ally_start_units": 3250.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 56,
+    "tower_shots_on_foe": 0,
+    "seconds": 18.5
+   },
+   {
+    "ally_start_units": 3500.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 57,
+    "tower_shots_on_foe": 0,
+    "seconds": 19.0
+   },
+   {
+    "ally_start_units": 3750.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 59,
+    "tower_shots_on_foe": 0,
+    "seconds": 19.5
+   },
+   {
+    "ally_start_units": 4000.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 60,
+    "tower_shots_on_foe": 0,
+    "seconds": 20.0
+   },
+   {
+    "ally_start_units": 4250.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 470,
+    "tower_shots_on_foe": 0,
+    "seconds": 180.0
+   },
+   {
+    "ally_start_units": 4500.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 470,
+    "tower_shots_on_foe": 0,
+    "seconds": 180.0
+   },
+   {
+    "ally_start_units": 4750.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 470,
+    "tower_shots_on_foe": 0,
+    "seconds": 180.0
+   },
+   {
+    "ally_start_units": 5000.0,
+    "foe_dead": false,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 470,
+    "tower_shots_on_foe": 0,
+    "seconds": 180.0
+   },
+   {
+    "ally_start_units": 5250.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 5500.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 5750.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 6000.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 6250.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 6500.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 6750.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 7000.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 7250.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 7500.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 7750.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 47.5
+   },
+   {
+    "ally_start_units": 8000.0,
+    "foe_dead": true,
+    "a_dead": true,
+    "ally_dead": true,
+    "foe_hp_left": 0,
+    "tower_shots_on_foe": 0,
+    "seconds": 48.0
+   }
+  ],
+  "largest_ally_distance_side_wins": 2750.0,
+  "largest_ally_distance_a_survives": 1250.0,
+  "outcome_is_monotone_in_distance": true
+ },
+ "duel": [
+  {
+   "under_defender_tower": false,
+   "winner": "attacker",
+   "attacker_hp": 91,
+   "defender_hp": 0,
+   "tower_shots_on_attacker": 0,
+   "tower_damage_on_attacker": 0,
+   "seconds": 13.5
+  },
+  {
+   "under_defender_tower": true,
+   "winner": "defender",
+   "attacker_hp": 0,
+   "defender_hp": 621,
+   "tower_shots_on_attacker": 3,
+   "tower_damage_on_attacker": 820,
+   "seconds": 2.5
+  }
+ ],
+ "gank": [
+  {
+   "laner_at": "own outer tower",
+   "decision_interval": "1 s",
+   "laner_start_hp": 650,
+   "jungler_first_seen_s": 9.5,
+   "laner_survives": true,
+   "laner_lowest_hp": 650,
+   "jungler_survives": false,
+   "seconds": 18.5
+  },
+  {
+   "laner_at": "own outer tower",
+   "decision_interval": "2 s",
+   "laner_start_hp": 650,
+   "jungler_first_seen_s": 10.5,
+   "laner_survives": true,
+   "laner_lowest_hp": 650,
+   "jungler_survives": false,
+   "seconds": 21.0
+  },
+  {
+   "laner_at": "own outer tower",
+   "decision_interval": "5 s",
+   "laner_start_hp": 650,
+   "jungler_first_seen_s": 13.5,
+   "laner_survives": true,
+   "laner_lowest_hp": 650,
+   "jungler_survives": false,
+   "seconds": 22.5
+  },
+  {
+   "laner_at": "enemy outer tower",
+   "decision_interval": "1 s",
+   "laner_start_hp": 650,
+   "jungler_first_seen_s": 14.0,
+   "laner_survives": true,
+   "laner_lowest_hp": 9,
+   "jungler_survives": false,
+   "seconds": 26.0
+  },
+  {
+   "laner_at": "enemy outer tower",
+   "decision_interval": "2 s",
+   "laner_start_hp": 650,
+   "jungler_first_seen_s": 15.0,
+   "laner_survives": false,
+   "laner_lowest_hp": 0,
+   "jungler_survives": false,
+   "seconds": 28.0
+  },
+  {
+   "laner_at": "enemy outer tower",
+   "decision_interval": "5 s",
+   "laner_start_hp": 650,
+   "jungler_first_seen_s": 18.0,
+   "laner_survives": false,
+   "laner_lowest_hp": 0,
+   "jungler_survives": true,
+   "seconds": 31.5
+  },
+  {
+   "laner_at": "own outer tower",
+   "decision_interval": "1 s",
+   "laner_start_hp": 390,
+   "jungler_first_seen_s": 9.5,
+   "laner_survives": true,
+   "laner_lowest_hp": 390,
+   "jungler_survives": false,
+   "seconds": 18.5
+  },
+  {
+   "laner_at": "own outer tower",
+   "decision_interval": "2 s",
+   "laner_start_hp": 390,
+   "jungler_first_seen_s": 10.5,
+   "laner_survives": true,
+   "laner_lowest_hp": 390,
+   "jungler_survives": false,
+   "seconds": 21.0
+  },
+  {
+   "laner_at": "own outer tower",
+   "decision_interval": "5 s",
+   "laner_start_hp": 390,
+   "jungler_first_seen_s": 13.5,
+   "laner_survives": true,
+   "laner_lowest_hp": 390,
+   "jungler_survives": false,
+   "seconds": 22.5
+  },
+  {
+   "laner_at": "enemy outer tower",
+   "decision_interval": "1 s",
+   "laner_start_hp": 390,
+   "jungler_first_seen_s": 14.0,
+   "laner_survives": false,
+   "laner_lowest_hp": 0,
+   "jungler_survives": true,
+   "seconds": 22.5
+  },
+  {
+   "laner_at": "enemy outer tower",
+   "decision_interval": "2 s",
+   "laner_start_hp": 390,
+   "jungler_first_seen_s": 15.0,
+   "laner_survives": false,
+   "laner_lowest_hp": 0,
+   "jungler_survives": true,
+   "seconds": 24.0
+  },
+  {
+   "laner_at": "enemy outer tower",
+   "decision_interval": "5 s",
+   "laner_start_hp": 390,
+   "jungler_first_seen_s": 18.0,
+   "laner_survives": false,
+   "laner_lowest_hp": 0,
+   "jungler_survives": true,
+   "seconds": 27.5
+  }
+ ],
+ "run": {
+  "command": "python -m experiments.m8.combat",
+  "created_utc": "2026-11-12T18:54:38+00:00",
+  "git_head": "ae1ea15cef0d082930643a34b6099d25e176895d",
+  "git_dirty": true,
+  "code_id": "ddf91761b82a758c",
+  "sources": {
+   "experiments/m8/combat.py": "81928fcd61f1cb9fe51092c51b8ee8a4a0f812f7d61380cbd55c7695d242d06b",
+   "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
+   "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
+   "riftgame/champions.py": "ee779689ca862c06e7b11f3acc6f5eba1b2235726744aa2cef321dc367fb46ae",
+   "riftgame/combat.py": "cde60b87c0dc2eb1627d8b1a73499fc91e8de714da8481e2ba435ea02e9daa1d",
+   "riftgame/economy.py": "4bda5e2815579734a0803a6b3f6c191eb883bcb3f169501aa7d7d3167143e823",
+   "riftgame/harness.py": "a42a04fb589d537a0fd42fbd929b8d939bea51c102b9a576984c55a968cb6317",
+   "riftgame/jungle.py": "475f1e864239d59563c78d84b84265870f5bd2d0e16cd541bb0a775f573f70ac",
+   "riftgame/lanes.py": "e2034ada063fc2ba35f26f5efb9929712464b78357b9761ed3e682724ca9b1b2",
+   "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
+   "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
+   "riftgame/rulesets/patch_26_22_m8.toml": "c52498543d9c7b5059dd9896184b422da7e9bde0031e97f3612c5be2d3611b7c",
+   "riftgame/vision.py": "fb7ed55195a449134161dda48a1b696b2bf4f1645f389ff9d1226ba6514c86de",
+   "riftgame/world.py": "882fd8040088bb5eba6a119de37e8d4d523eaa81d8ab1e55d9e73dd13f90689f"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {},
+  "seeds": [
+   0
+  ],
+  "config": {
+   "tick_s": 0.5,
+   "retreat_below": 0.5,
+   "join_within": 1500.0
+  }
+ }
+}

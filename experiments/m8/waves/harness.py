@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import NamedTuple
 
 from riftgame.lanes import (
+    ADDED,
     MELEE_REACH,
     STAND_OFF,
     TOWER_MARGIN,
@@ -24,6 +25,7 @@ from riftgame.lanes import (
 )
 
 BLUE, RED = Team.BLUE, Team.RED
+BODY = 2 * ADDED["minions"]["pathing_radius"]
 WAVE_SPAN = 1500.0
 CRASH_GAP_S = 5.0
 
@@ -77,6 +79,41 @@ def crowd(sim: LaneSim, team: int, s: float | None, span: float = WAVE_SPAN) -> 
     return 0 if s is None else sum(abs(m.s - s) <= span for m in sim.minions[team])
 
 
+class Crowding:
+    """Where minion bodies would be in each other's way. The lane has no bodies, so this only counts.
+
+    `overlapping` counts minions that stand within one body width of an ally in the same lateral slot, a place two
+    bodies cannot share. `on_one_target` is the largest number of melee minions that attack one target at once.
+    Both are taken on ticks with the waves in contact.
+    """
+
+    def __init__(self, sim: LaneSim):
+        self.sim = sim
+        self.minion_ticks = self.overlapping = self.on_one_target = 0
+
+    def watch(self, row: "Row") -> None:
+        if not row.contact:
+            return
+        for team in Team:
+            minions = self.sim.minions[team]
+            self.minion_ticks += len(minions)
+            lines: dict = {}
+            for m in minions:
+                lines.setdefault(m.slot, []).append(m.s)
+            for spots in lines.values():
+                spots.sort()
+                near = [b - a < BODY for a, b in zip(spots, spots[1:])]
+                self.overlapping += sum(left or right for left, right in zip([False] + near, near + [False]))
+            hits: dict = {}
+            for m in minions:
+                if m.rules.kind is Kind.MELEE and m.anchored and m.target is not None:
+                    hits[id(m.target)] = hits.get(id(m.target), 0) + 1
+            self.on_one_target = max(self.on_one_target, max(hits.values(), default=0))
+
+    def report(self) -> dict:
+        return {"overlapping_share": self.overlapping / self.minion_ticks if self.minion_ticks else 0.0, "most_melee_on_one_target": self.on_one_target}
+
+
 def under_tower(geometry: LaneGeometry, tower_team: int, s: float | None) -> bool:
     return s is not None and abs(s - outer(geometry, tower_team)) <= TOWER_RANGE
 
@@ -127,7 +164,7 @@ class Crashes:
     """Each visit of one team's lead minion to the enemy outer tower's range, gaps under 5 s merged.
 
     A visit records its start, its end, the largest number of that team's minions within `zone` units of the tower's
-    range at one moment, and the spawn waves those minions came from.
+    range at one moment, when that moment was, and how many minions each spawn wave had there at that moment.
     """
 
     def __init__(self, sim: LaneSim, team: int, zone: float = 600.0):
@@ -139,15 +176,25 @@ class Crashes:
         if not under_tower(geometry, foe, row.lead_blue if self.team == BLUE else row.lead_red):
             return
         near = [m for m in self.sim.minions[self.team] if abs(m.s - outer(geometry, foe)) <= TOWER_RANGE + self.zone]
+        by_wave: dict = {}
+        for m in near:
+            by_wave[m.wave] = by_wave.get(m.wave, 0) + 1
         if self.spans and row.t - self.spans[-1]["end"] <= CRASH_GAP_S:
             span = self.spans[-1]
-            span["end"], span["peak"] = row.t, max(span["peak"], len(near))
-            span["waves"] |= {m.wave for m in near}
+            span["end"] = row.t
+            if len(near) > span["peak"]:
+                span["peak"], span["peak_t"], span["by_wave"] = len(near), row.t, by_wave
         else:
-            self.spans.append({"start": row.t, "end": row.t, "peak": len(near), "waves": {m.wave for m in near}})
+            self.spans.append({"start": row.t, "end": row.t, "peak": len(near), "peak_t": row.t, "by_wave": by_wave})
 
     def largest(self) -> dict | None:
         return max(self.spans, key=lambda span: span["peak"], default=None)
+
+
+def second_wave(span: dict | None) -> int:
+    """The size of the second-largest wave in a crash at its largest moment. 0 for a crash of one wave."""
+    sizes = sorted(span["by_wave"].values(), reverse=True) if span else []
+    return sizes[1] if len(sizes) > 1 else 0
 
 
 def waves_in_contact(sim: LaneSim, front: float, red_melee: int = 0, red_casters: int = 0) -> LaneSim:
@@ -208,7 +255,7 @@ class Laner:
         self.lowest = self.hp
 
     def act(self, sim: LaneSim, events: list, mode: Mode, hold: bool = False) -> list[ChampionInput]:
-        """`hold` takes the hold stance while hitting in `mode`. M7's freeze plans thin while they hold."""
+        """`hold` stands on the hold line while hitting in `mode`."""
         if self.dead:
             return []
         hits = sum(e.damage for e in events if type(e) is ChampionDamage and e.seat == self.team) * 100 / (100 + self.armor)
@@ -224,7 +271,7 @@ class Laner:
         elif self.hp < RETREAT_BELOW * self.max_hp:
             self.retreating = True
             self.retreats += 1
-        want, in_path = stance(sim, self.team, Mode.HOLD if hold else mode, self.attack_range)
+        want, in_path = stance(sim, self.team, mode, self.attack_range, hold=hold)
         if self.retreating:
             home = sim.front_tower(self.team)
             want, in_path = (home.s if home is not None else sim.geometry.spawn[self.team]), False

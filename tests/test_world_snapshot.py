@@ -10,19 +10,19 @@ import pytest
 from riftgame.champions import RIFT, Champion, Outcome
 from riftgame.harness import Replay, random_legal, record, rerun, run
 from riftgame.world import Config, Snapshot, World
-from worlds import BLUE_MID, RED_CARRY, StubLane, move, patient, play
+from worlds import BLUE_MID, RED_CARRY, StubLane, busy, move, patient, play
 
 REPO = Path(__file__).parents[1]
 
 
 def test_a_restored_snapshot_replays_the_same_digest_at_every_tick_for_1000_ticks():
     game = World(Config(), seed=5)
-    run(game, patient, 300)
+    run(game, busy, 300)
     snapshot = game.snapshot()
-    first, ended = play(game, patient, 1000)
-    again, _ = play(World.restore(snapshot), patient, 1000)
+    first, ended = play(game, busy, 1000)
+    again, _ = play(World.restore(snapshot), busy, 1000)
     assert first == again and len(set(first)) == 1000
-    assert {"ARRIVED", "ABSENT", "RECALLED"} <= set(ended)
+    assert {"ARRIVED", "ABSENT", "CLEARED", "RECALLED"} <= set(ended)
 
 
 def test_a_snapshot_survives_whatever_happens_to_the_world_it_came_from_and_to_its_restored_copies():
@@ -65,7 +65,8 @@ def test_restoring_into_a_different_ruleset_or_map_is_an_error(change):
 
 
 def test_a_snapshot_names_what_it_takes_to_restore_and_replay():
-    assert [f.name for f in fields(Snapshot)] == ["ruleset_id", "map_id", "config", "seed", "tick", "champions", "lanes"]
+    assert [f.name for f in fields(Snapshot)] == ["ruleset_id", "map_id", "config", "seed", "tick", "champions", "lanes", "camps",
+                                                  "sights", "memory"]
     config = Config(tick_s=0.25, decision_ticks=3, roam_cap_s=40.0)
     game = World(config, seed=9)
     run(game, patient, 30)
@@ -81,7 +82,8 @@ def test_two_worlds_built_apart_with_equal_state_have_equal_digests():
 
 CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "xp": 300.0, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
            "upgrades": 2, "intent": move("mid_river"), "intent_tick": 3, "channel": 4, "outcome": Outcome.INTERRUPTED,
-           "outcome_tick": 5, "allowance": 12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44}
+           "outcome_tick": 5, "allowance": 12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44,
+           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11}
 
 
 def test_the_test_changes_every_champion_field():
@@ -132,7 +134,7 @@ def test_a_replay_with_one_changed_action_gives_other_digests():
 
 
 PIN = {"config": Config(), "seed": 2026, "ticks": 600,
-       "digest": "e7bb8a6cdcd36657413094d5367c41004bc56cc63a982d7d3a47e75862757090"}
+       "digest": "25646bfd011e3a7c5abf78396811a2f64079592d9509d3db3b9dbdb1d8dcd6e8"}
 
 
 def test_the_pinned_replay_digest_changes_only_with_a_deliberate_update_of_the_pin():
