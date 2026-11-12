@@ -7,8 +7,13 @@
 # page stay F1.
 
 [meta]
-id = "ref-26.22-r1+m8.2"       # A
+id = "ref-26.22-r1+m8.3"       # A
 extends = "ref-26.22-r1"       # A
+
+# The map that M8 runs on, and the nodes of it that only shape a lane. A champion cannot name one as a destination.
+[map]
+id = "map_summoners_rift_m8"   # A
+lane_waypoints = ["top_corner_a", "top_corner_b", "top_corner_c", "bot_corner_a", "bot_corner_b", "bot_corner_c"]   # A
 
 [minions]
 call_for_help_range = 1000     # F1
@@ -142,6 +147,13 @@ raptors = 9.0                  # A
 krugs = 7.0                    # A
 # The Rift Scuttler does not fight back.
 scuttler = 0.0                 # M
+
+# Vision and wards (C6). The reference's ward values are in patch_26_22.toml under vision.
+[vision]
+# The reference does not say how many charges the Stealth Ward trinket holds at 0:00.
+ward_start_charges = 1         # A
+# A wave's size, as an observation reports it, counts the minions within this distance behind its lead minion.
+wave_span = 1500.0             # A
 
 # Combat between champions (C5). The reference gives no value for any of the three windows.
 [combat]

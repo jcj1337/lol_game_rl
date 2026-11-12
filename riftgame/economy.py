@@ -13,7 +13,7 @@ from math import hypot
 from typing import TYPE_CHECKING
 
 from riftgame.champions import (LANE_ORDER, LANES, MAP, RIFT, ROLES, SIEGE_LANE, TEAMS, Champion, Income, R, capability_of,
-                                level_of, pay)
+                                known_front, level_of, pay)
 from riftgame.lanes import (ADDED, CALL_RANGE, SWITCH_RANGE, TIERS, TOWERS, ChampionDamage, ChampionInput, MinionDeath, Mode,
                             TowerDestroyed, TowerPlate, TowerShot, stance, xp_share)
 from riftgame.vision import EDGE_GAP
@@ -73,10 +73,11 @@ def lane_inputs(world: "World", lane: str, calls: dict[int, tuple[int, ...]]) ->
     the lane with a `LANE` intent for it hits minions in its mode. One with a `SIEGE` intent for the lane hits the
     enemy front tower. Everyone else only stands there: a tower may shoot it, and minions answer a call for help
     against it. A champion's attack credit goes in with its input, and the lane hands it back for those that hit.
+    A champion stands at the front that its team knows, as it walked there (`champions.lane_post`).
     """
     inputs = []
     sim, reach, beside = world.lanes[lane], TOWERS_IN_REACH[lane], BESIDE[lane]
-    front = None
+    fronts = [None, None]
     for c in world.champions:
         if c.hp <= 0:
             continue
@@ -95,8 +96,9 @@ def lane_inputs(world: "World", lane: str, calls: dict[int, tuple[int, ...]]) ->
         mode, in_path, execute = Mode.PASSIVE, False, 0.0
         if mine is not None and mine[0] == lane and xy is None:
             mode = mine[1]
-            front = sim.front() if front is None else front
-            _, in_path = stance(sim, c.team, mode, can.attack_range, front, hold=mine[2])
+            if fronts[c.team] is None:
+                fronts[c.team] = known_front(world, c.team, lane)
+            _, in_path = stance(sim, c.team, mode, can.attack_range, fronts[c.team], hold=mine[2])
             if c.role == SUPPORT and c.item_charges > 0 and charge_partner(world, c) is not None:
                 execute = ITEM["execute_threshold_ranged" if can.attack_range >= RANGED_FROM else "execute_threshold_melee"]
         inputs.append(ChampionInput(c.seat, c.team, s, mode, in_path, can.hit_damage, can.attack_speed, can.attack_range,

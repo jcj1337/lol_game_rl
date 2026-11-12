@@ -7,12 +7,14 @@ holding, bouncing, and the diagnostics on them) are in `capabilities.py`, which 
   arrivals       When does each wave reach the centre and the tower edges?
   attack_timing  How many casts are cancelled and missiles lost in an untouched lane, and how often would bodies overlap?
   untouched      Where does a lane go when nobody touches it, and how large are its crashes?
+  bends          Which bend of a lane tips an untouched lane under straight-line ranges: by its place, by its angle?
   level_lead     What does the pushing advantage do to an untouched lane?
 
 Run: python -m experiments.m8.waves.investigate
 """
 
 import json
+import math
 import re
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -20,7 +22,8 @@ from pathlib import Path
 from experiments.m8.provenance import stamp
 from experiments.m8.waves import m7_tests
 from experiments.m8.waves.harness import BLUE, RED, Crashes, Crowding, make_lane, offset, outer, rounded, run, second_wave, summarize, tower_damage
-from riftgame.lanes import ACQUIRE, HOLD_MARGIN, M7_LANE, M8_LANE, RULESET_ID, TOWER_RANGE, LaneRules, MinionDeath, Team, lane_geometry
+from riftgame.lanes import ACQUIRE, HOLD_MARGIN, M7_LANE, M8_LANE, RULESET_ID, TOWER_RANGE, LaneGeometry, LaneRules, MinionDeath, Team, lane_geometry
+from riftgame.map import REFERENCE_MAP
 
 SEEDS = range(5)
 DT = 0.5
@@ -28,6 +31,7 @@ RESULTS = Path(__file__).parent / "results" / "investigation.json"
 VARIANTS = {
     "m8 lane": M8_LANE,
     "m7 rules": M7_LANE,
+    "M7's route graph": replace(M8_LANE, m7_map=True),
     "blows land at once": replace(M8_LANE, attack_timing=False),
     "ranges along the lane": replace(M8_LANE, straight_ranges=False),
     "melee cap 2": replace(M8_LANE, melee_cap=2),
@@ -116,15 +120,16 @@ def attack_timing(lane: str, rules: LaneRules, seeds=SEEDS, until: float = 300.0
     return summarize(runs)
 
 
-def untouched(lane: str, rules: LaneRules, seeds=SEEDS, until: float = 300.0, past: float = 100.0) -> dict:
+def untouched(lane: str, rules: LaneRules, seeds=SEEDS, until: float = 300.0, past: float = 100.0, geometry: LaneGeometry | None = None) -> dict:
     """A lane with no champion for five minutes: when its front first stands more than 100 units on each team's
-    half, each team's crashes at the enemy outer tower, the largest of them, and the tower damage.
+    half, which half it reaches first, each team's crashes at the enemy outer tower, the largest of them, and the
+    tower damage.
 
     A lane that goes somewhere unprompted is the baseline for every claim that a champion sent it there.
     """
     runs = []
     for seed in seeds:
-        sim = make_lane(lane, rules, seed, DT)
+        sim = make_lane(lane, rules, seed, DT, geometry=geometry)
         watch = {team: Crashes(sim, team) for team in Team}
 
         def stop(row) -> bool:
@@ -135,9 +140,13 @@ def untouched(lane: str, rules: LaneRules, seeds=SEEDS, until: float = 300.0, pa
         trace = run(sim, lambda sim, events: (), until, stop)
         fronts = [(r.t, offset(trace.geometry, r.line)) for r in trace.rows if r.contact]
         largest = {team: watch[team].largest() for team in Team}
+        on_blue, on_red = (next((t for t, o in fronts if side * o > past), None) for side in (-1, 1))
         runs.append({
-            "front_on_blue_half_s": next((t for t, o in fronts if o < -past), None),
-            "front_on_red_half_s": next((t for t, o in fronts if o > past), None),
+            "front_on_blue_half_s": on_blue,
+            "front_on_red_half_s": on_red,
+            "front_leaves_the_centre_s": min((t for t in (on_blue, on_red) if t is not None), default=None),
+            "blue_half_first": int(on_blue is not None and (on_red is None or on_blue < on_red)),
+            "red_half_first": int(on_red is not None and (on_blue is None or on_red < on_blue)),
             "blue_crashes": len(watch[BLUE].spans),
             "red_crashes": len(watch[RED].spans),
             "largest_blue_crash": largest[BLUE]["peak"] if largest[BLUE] else 0,
@@ -147,6 +156,40 @@ def untouched(lane: str, rules: LaneRules, seeds=SEEDS, until: float = 300.0, pa
             "red_tower_damage": tower_damage(trace.events, RED),
         })
     return summarize(runs)
+
+
+BEND_SEEDS = range(12)
+BEND_PLACES = (-295.0, -150.0, 0.0, 150.0, 295.0)
+BEND_ANGLES = (5.0, 10.0, 20.0, 46.0)
+# The corner is the fifth node of a side lane in M7's route graph.
+CORNER_NODE = 4
+
+
+def one_bend(base: LaneGeometry, at: float, turn_deg: float) -> LaneGeometry:
+    """The base lane's length, towers, and spawn points on a line with one bend of `turn_deg` at lane coordinate `at`."""
+    turn = math.radians(turn_deg)
+    end = (at + (base.length - at) * math.cos(turn), (base.length - at) * math.sin(turn))
+    return replace(base, bends=((0.0, 0.0, 0.0), (at, at, 0.0), (base.length, *end)))
+
+
+def bends(seeds=BEND_SEEDS, until: float = 600.0) -> dict:
+    """What tips an untouched top lane under straight-line ranges. Every row is the M8 lane rules on top lane's
+    length, towers, and spawn points, with a different shape: no bend, one bend by its place from the lane's
+    centre and by its angle, M7's route graph, and the M8 map. Mid lane is the reference for a lane that no bend
+    tips. A row counts, over the seeds, which half the front reaches first and when, the crashes of both teams,
+    and the damage to both outer towers."""
+    graph, m8 = lane_geometry("top", REFERENCE_MAP), lane_geometry("top")
+    corner = graph.bends[CORNER_NODE][0]
+    shapes = {"no bend": replace(graph, bends=())}
+    shapes |= {f"one bend of 46 degrees, {place:+.0f} from the centre": one_bend(graph, graph.centre + place, 46.0) for place in BEND_PLACES}
+    shapes |= {f"one bend of {angle:.0f} degrees, {corner - graph.centre:+.0f} from the centre": one_bend(graph, corner, angle) for angle in BEND_ANGLES}
+    shapes |= {"M7's route graph": graph, "the M8 map": m8}
+    rows = {f"top, {name}": untouched("top", M8_LANE, seeds, until, geometry=shape) for name, shape in shapes.items()}
+    rows |= {f"{lane}, the M8 map": untouched(lane, M8_LANE, seeds, until) for lane in ("mid", "bot")}
+    rows["bot, M7's route graph"] = untouched("bot", M8_LANE, seeds, until, geometry=lane_geometry("bot", REFERENCE_MAP))
+    rows["top, the M8 map, ranges along the lane"] = untouched("top", replace(M8_LANE, straight_ranges=False), seeds, until)
+    return {"corner_of_m7s_graph_from_the_centre": corner - graph.centre,
+            "bends_of_the_m8_map_from_the_centre": [s - m8.centre for s, _, _ in m8.bends if abs(s - m8.centre) < 2000.0], "rows": rows}
 
 
 def level_lead(rules: LaneRules, seeds=SEEDS, leads=(0.0, 0.5, 1.0, 2.0), until: float = 600.0) -> dict:
@@ -188,7 +231,9 @@ def main() -> None:
         "natural_fight": {lane: {name: natural_fight(lane, rules) for name, rules in VARIANTS.items()} for lane in ("mid", "top")},
         "arrivals": {lane: {name: arrivals(lane, VARIANTS[name]) for name in ("m8 lane", "m7 rules")} for lane in ("top", "mid")},
         "attack_timing": {lane: attack_timing(lane, M8_LANE) for lane in ("mid", "top")},
-        "untouched": {lane: {name: untouched(lane, VARIANTS[name]) for name in ("m8 lane", "ranges along the lane", "blows land at once")} for lane in ("top", "mid", "bot")},
+        "untouched": {lane: {name: untouched(lane, VARIANTS[name]) for name in ("m8 lane", "M7's route graph", "ranges along the lane", "blows land at once")}
+                      for lane in ("top", "mid", "bot")},
+        "bends": bends(),
         "level_lead": level_lead(M8_LANE),
     }
     results["run"] = stamp(SEEDS, {"dt": DT})
@@ -206,6 +251,10 @@ def main() -> None:
     for lane, by in results["untouched"].items():
         for name, row in by.items():
             print(f"untouched {lane} {name}:", {key: (value["median"], value["n"]) for key, value in row.items()})
+    for name, row in results["bends"]["rows"].items():
+        print(f"bends {name}: blue half first in {row['blue_half_first']['mean'] * row['blue_half_first']['n']:.0f}, red half first in {row['red_half_first']['mean'] * row['red_half_first']['n']:.0f} "
+              f"of {row['blue_half_first']['n']}, leaves the centre at {row['front_leaves_the_centre_s']['median']} s, crashes blue {row['blue_crashes']['mean'] * row['blue_crashes']['n']:.0f} "
+              f"red {row['red_crashes']['mean'] * row['red_crashes']['n']:.0f}, tower damage blue {row['blue_tower_damage']['mean']:.0f} red {row['red_tower_damage']['mean']:.0f}")
     for name, row in results["level_lead"].items():
         print(f"level lead {name}: crashes blue {row['blue_crashes']['mean']} red {row['red_crashes']['mean']}, largest blue {row['largest_blue_crash']['max']} red {row['largest_red_crash']['max']}")
     print(f"wrote {RESULTS}")

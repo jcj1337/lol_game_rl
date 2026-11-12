@@ -2,34 +2,58 @@ from dataclasses import fields, is_dataclass
 
 import pytest
 
-from riftgame.champions import ACTIONS, HOLD, KEEP, RECALL, RIFT, SEATS, Champion, Kind, Outcome
+from riftgame.champions import ACTIONS, HOLD, KEEP, RECALL, RIFT, SEATS, Champion, Kind, Outcome, level_of
 from riftgame.harness import run
 from riftgame.jungle import SITES
-from riftgame.vision import CampView, EnemyView, Observation, Place, Sight, legal_mask, observe, sees
+from riftgame.vision import CampView, EnemyView, Observation, Place, Sight, encode, legal_mask, observe, sees
 from riftgame.world import Config, World
 from worlds import EVERY_TICK, act, busy, lane_place, move, patient, staged
 
-CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "xp": 3300.0, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
+CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
            "upgrades": 2, "intent": move("mid_river"), "intent_tick": 3, "channel": 4, "outcome": Outcome.INTERRUPTED,
-           "outcome_tick": 5, "allowance": -12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44,
-           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11}
+           "outcome_tick": 5, "allowance": -12.0, "attack_credit": 0.25, "item_charges": 1,
+           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11,
+           "ward_charges": 2, "ward_tick": 12345}
+# A champion's level and its death timer are public. What is hidden of these two fields is the XP inside the level
+# and nothing of the respawn tick.
+PARTLY_PUBLIC = {"xp", "respawn_tick"}
+
+
+def hidden_changes(enemy: Champion) -> dict:
+    """A new value for every field of an enemy champion, with its level and its death timer left as they are.
+
+    The XP moves inside its level. The respawn tick of a living champion goes to another tick in the past. That
+    of a dead one stays, because the time until it respawns is public.
+    """
+    xp = enemy.xp + 1.0 if level_of(enemy.xp + 1.0) == level_of(enemy.xp) else enemy.xp - 1.0
+    assert level_of(xp) == level_of(enemy.xp)
+    changes = CHANGED | {"xp": xp}
+    if enemy.respawn_tick < 0:
+        changes["respawn_tick"] = -2
+    return changes
 
 
 def team_knowledge(world: World, team: int) -> list:
-    return [(o, legal_mask(o)) for o in (observe(world, seat) for seat in range(team * 5, team * 5 + 5))]
+    """Everything a team's policies read: each champion's observation, its mask, and its encoded observation."""
+    return [(o, legal_mask(o), encode(o)) for o in (observe(world, seat) for seat in range(team * 5, team * 5 + 5))]
 
 
 @pytest.mark.parametrize("team", [0, 1])
-def test_changing_every_field_of_every_enemy_champion_changes_no_observation_and_no_mask(team):
-    assert set(CHANGED) == {f.name for f in fields(Champion)} - {"seat"}
+def test_changing_every_hidden_field_of_every_enemy_champion_changes_no_observation_and_no_mask(team):
+    assert set(CHANGED) | PARTLY_PUBLIC == {f.name for f in fields(Champion)} - {"seat"}
     world = World(Config(), seed=8)
     run(world, patient, 240)
     before = team_knowledge(world, team)
     enemy_before = team_knowledge(world, 1 - team)
-    for enemy in world.champions[(1 - team) * 5:(1 - team) * 5 + 5]:
-        for name, value in CHANGED.items():
+    enemies = world.champions[(1 - team) * 5:(1 - team) * 5 + 5]
+    public = [(level_of(enemy.xp), max(0, enemy.respawn_tick + 1 - world.tick)) for enemy in enemies]
+    for enemy in enemies:
+        changes = hidden_changes(enemy)
+        assert set(changes) >= set(CHANGED) | {"xp"} | ({"respawn_tick"} if enemy.hp > 0 else set())
+        for name, value in changes.items():
             assert getattr(enemy, name) != value
             setattr(enemy, name, value)
+    assert [(level_of(enemy.xp), max(0, enemy.respawn_tick + 1 - world.tick)) for enemy in enemies] == public
     assert team_knowledge(world, team) == before
     assert all(now != was for now, was in zip(team_knowledge(world, 1 - team), enemy_before)), "the test must be able to see a change"
 
@@ -69,7 +93,8 @@ def test_an_observation_holds_the_champion_its_four_teammates_the_camps_and_the_
     run(world, patient, 30)
     for seat in SEATS:
         o = observe(world, seat)
-        assert [f.name for f in fields(Observation)] == ["time_s", "me", "mates", "camps", "enemies"]
+        assert [f.name for f in fields(Observation)] == ["time_s", "me", "mates", "camps", "enemies", "remembered", "rivals", "lanes",
+                                                         "wards"]
         assert EnemyView._fields == ("place", "hp", "level") and len(o.enemies) == 5
         assert CampView._fields == ("hp", "level", "seen_age_s", "spawn_s", "walk")
         assert o.time_s == 15.0 and o.me.role == seat % 5
@@ -145,19 +170,20 @@ def test_a_mirrored_action_sequence_gives_the_red_team_the_observations_blue_got
     as_blue, as_red = scripted_game(0), scripted_game(1)
     for t, (blue_game, red_game) in enumerate(zip(as_blue, as_red, strict=True)):
         for mine, theirs in zip(blue_game, red_game, strict=True):
-            for (o, mask), (mirrored, mirrored_mask) in zip(mine, theirs, strict=True):
+            # The encoded observation holds the walk to each camp, which the map does not mirror.
+            for (o, mask, _), (mirrored, mirrored_mask, _) in zip(mine, theirs, strict=True):
                 assert same(o, mirrored) and mask == mirrored_mask, f"tick {t}, role {o.me.role}"
 
 
 def test_the_mirrored_game_exercises_what_it_claims():
     seen = scripted_game(1)
-    outcomes = {o.me.outcome for tick in seen for side in tick for o, _ in side}
+    outcomes = {o.me.outcome for tick in seen for side in tick for o, _, _ in side}
     assert {Outcome.ARRIVED, Outcome.RECALLED, Outcome.INTERRUPTED, Outcome.DIED} <= outcomes
-    duties = {o.me.duty for tick in seen for side in tick for o, _ in side}
+    duties = {o.me.duty for tick in seen for side in tick for o, _, _ in side}
     assert len(duties) == 4, "on lane, returning, roaming, and the jungler's none"
-    assert any(o.me.dead_s > 0 for tick in seen for o, _ in tick[0]) and seen[-1][0][0][0].me.hp > 0
-    assert len({o.me.place for tick in seen for side in tick for o, _ in side}) > 100
-    assert len({mask for tick in seen for side in tick for _, mask in side}) > 5
+    assert any(o.me.dead_s > 0 for tick in seen for o, _, _ in tick[0]) and seen[-1][0][0][0].me.hp > 0
+    assert len({o.me.place for tick in seen for side in tick for o, _, _ in side}) > 100
+    assert len({mask for tick in seen for side in tick for _, mask, _ in side}) > 5
 
 
 def test_the_mask_comes_from_the_observation_alone_and_is_never_empty():

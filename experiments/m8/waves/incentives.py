@@ -53,8 +53,9 @@ def earn(args) -> dict:
             return ("push", "wave") if start == "own tower" else ("last_hit", "wave") if OPPONENTS[opponent] else "leave"
         return (OPPONENTS[opponent], "wave") if OPPONENTS[opponent] else "leave"
 
-    me = Laner(seat_of(BLUE, lane), blue)
-    foe = Laner(seat_of(RED, lane), red)
+    me = Laner(world, seat_of(BLUE, lane), blue)
+    # An opponent that never comes to the lane stays on its fountain.
+    foes = [Laner(world, seat_of(RED, lane), red)] if OPPONENTS[opponent] or start == "own tower" else []
     champion = world.champions[me.seat]
     before = []
 
@@ -63,7 +64,7 @@ def earn(args) -> dict:
             before.append((champion.earned[Income.MINION], champion.xp))
         return bool(began) and row.t >= began[0] + WINDOW_S
 
-    trace = agents.play(world, lane, [me, foe], 900.0, stop)
+    trace = agents.play(world, lane, [me, *foes], 900.0, stop)
     gold, xp = champion.earned[Income.MINION] - before[0][0], champion.xp - before[0][1]
     return {"gold": gold, "xp": xp, "gold_plus_xp": gold + xp, "own_tower_damage": tower_damage(trace.events, BLUE, began[0]),
             "enemy_tower_damage": tower_damage(trace.events, RED, began[0]), "lowest_health": me.lowest, "retreats": me.retreats, "deaths": me.deaths}

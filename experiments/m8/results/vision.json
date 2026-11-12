@@ -1,0 +1,335 @@
+{
+ "ruleset": "ref-26.22-r1+m8.3",
+ "hidden_state": {
+  "worlds": 32,
+  "worlds_with_every_observation_encoding_and_mask_unchanged": 32,
+  "hidden_things_changed": {
+   "champions": 89,
+   "dead": 15,
+   "minions": 305,
+   "camps": 215,
+   "wards": 352
+  }
+ },
+ "behaviour": {
+  "comparisons": 32,
+  "ticks_compared": 515,
+  "ticks_compared_by_comparison": [
+   4,
+   5,
+   5,
+   7,
+   7,
+   8,
+   8,
+   8,
+   9,
+   11,
+   11,
+   11,
+   12,
+   12,
+   13,
+   14,
+   14,
+   15,
+   15,
+   17,
+   17,
+   17,
+   18,
+   18,
+   19,
+   21,
+   24,
+   24,
+   29,
+   30,
+   32,
+   60
+  ],
+  "comparisons_that_reached_a_reveal": 31,
+  "intent_kinds_covered": [
+   "CAMP",
+   "FIGHT",
+   "FOLLOW",
+   "HOLD",
+   "LANE",
+   "WARD"
+  ],
+  "champion_ticks_in_a_fight_with_the_target_out_of_view": 53
+ },
+ "seen": {
+  "scripted farming and jungling": {
+   "team 0 sees enemy top": {
+    "median": 0.9016666666666666,
+    "min": 0.8966666666666666,
+    "max": 0.9016666666666666
+   },
+   "team 0 sees enemy jungle": {
+    "median": 0.025985663082437275,
+    "min": 0.01971326164874552,
+    "max": 0.09767025089605735
+   },
+   "team 0 sees enemy mid": {
+    "median": 0.9033333333333333,
+    "min": 0.8891666666666667,
+    "max": 0.9166666666666666
+   },
+   "team 0 sees enemy carry": {
+    "median": 0.8683333333333333,
+    "min": 0.8458333333333333,
+    "max": 0.8975
+   },
+   "team 0 sees enemy support": {
+    "median": 0.8683333333333333,
+    "min": 0.8458333333333333,
+    "max": 0.8975
+   },
+   "team 0 sees the enemy wave in top": {
+    "median": 0.9105263157894737,
+    "min": 0.9035087719298246,
+    "max": 0.9333333333333333
+   },
+   "team 0 sees the enemy wave in mid": {
+    "median": 0.9263157894736842,
+    "min": 0.9219298245614035,
+    "max": 0.9385964912280702
+   },
+   "team 0 sees the enemy wave in bot": {
+    "median": 0.8921052631578947,
+    "min": 0.8763157894736842,
+    "max": 0.9184210526315789
+   },
+   "team 0 wards on the map": {
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   },
+   "team 0 sight sources at the end, without minions": {
+    "median": 15,
+    "min": 14,
+    "max": 15
+   },
+   "team 1 sees enemy top": {
+    "median": 0.9016666666666666,
+    "min": 0.8966666666666666,
+    "max": 0.9016666666666666
+   },
+   "team 1 sees enemy jungle": {
+    "median": 0.009927797833935019,
+    "min": 0.0078397212543554,
+    "max": 0.10629251700680271
+   },
+   "team 1 sees enemy mid": {
+    "median": 0.9033333333333333,
+    "min": 0.8891666666666667,
+    "max": 0.9166666666666666
+   },
+   "team 1 sees enemy carry": {
+    "median": 0.8683333333333333,
+    "min": 0.8458333333333333,
+    "max": 0.8975
+   },
+   "team 1 sees enemy support": {
+    "median": 0.8683333333333333,
+    "min": 0.8458333333333333,
+    "max": 0.8975
+   },
+   "team 1 sees the enemy wave in top": {
+    "median": 0.9140350877192982,
+    "min": 0.9114035087719298,
+    "max": 0.9333333333333333
+   },
+   "team 1 sees the enemy wave in mid": {
+    "median": 0.9228070175438596,
+    "min": 0.9149122807017543,
+    "max": 0.9377192982456141
+   },
+   "team 1 sees the enemy wave in bot": {
+    "median": 0.8833333333333333,
+    "min": 0.874561403508772,
+    "max": 0.9184210526315789
+   },
+   "team 1 wards on the map": {
+    "median": 0.0,
+    "min": 0.0,
+    "max": 0.0
+   },
+   "team 1 sight sources at the end, without minions": {
+    "median": 14,
+    "min": 14,
+    "max": 14
+   }
+  },
+  "random legal actions": {
+   "team 0 sees enemy top": {
+    "median": 0.5059322033898305,
+    "min": 0.21263345195729538,
+    "max": 0.5644599303135889
+   },
+   "team 0 sees enemy jungle": {
+    "median": 0.4134948096885813,
+    "min": 0.3333333333333333,
+    "max": 0.47664359861591693
+   },
+   "team 0 sees enemy mid": {
+    "median": 0.4601063829787234,
+    "min": 0.3401969561324978,
+    "max": 0.5164359861591695
+   },
+   "team 0 sees enemy carry": {
+    "median": 0.22535211267605634,
+    "min": 0.13421052631578947,
+    "max": 0.2960069444444444
+   },
+   "team 0 sees enemy support": {
+    "median": 0.25616197183098594,
+    "min": 0.1706896551724138,
+    "max": 0.3984641638225256
+   },
+   "team 0 sees the enemy wave in top": {
+    "median": 0.9114035087719298,
+    "min": 0.9043859649122807,
+    "max": 0.9271929824561403
+   },
+   "team 0 sees the enemy wave in mid": {
+    "median": 0.9131578947368421,
+    "min": 0.906140350877193,
+    "max": 0.9324561403508772
+   },
+   "team 0 sees the enemy wave in bot": {
+    "median": 0.9210526315789473,
+    "min": 0.8885964912280702,
+    "max": 0.9289473684210526
+   },
+   "team 0 wards on the map": {
+    "median": 0.30083333333333334,
+    "min": 0.0,
+    "max": 0.465
+   },
+   "team 0 sight sources at the end, without minions": {
+    "median": 14,
+    "min": 13,
+    "max": 14
+   },
+   "team 1 sees enemy top": {
+    "median": 0.40034965034965037,
+    "min": 0.17077464788732394,
+    "max": 0.5390625
+   },
+   "team 1 sees enemy jungle": {
+    "median": 0.36551724137931035,
+    "min": 0.1310344827586207,
+    "max": 0.685374149659864
+   },
+   "team 1 sees enemy mid": {
+    "median": 0.42819148936170215,
+    "min": 0.36721611721611724,
+    "max": 0.4886672710788758
+   },
+   "team 1 sees enemy carry": {
+    "median": 0.2828719723183391,
+    "min": 0.1784452296819788,
+    "max": 0.44083333333333335
+   },
+   "team 1 sees enemy support": {
+    "median": 0.328719723183391,
+    "min": 0.18252595155709342,
+    "max": 0.5460069444444444
+   },
+   "team 1 sees the enemy wave in top": {
+    "median": 0.9131578947368421,
+    "min": 0.906140350877193,
+    "max": 0.9307017543859649
+   },
+   "team 1 sees the enemy wave in mid": {
+    "median": 0.9228070175438596,
+    "min": 0.9192982456140351,
+    "max": 0.9324561403508772
+   },
+   "team 1 sees the enemy wave in bot": {
+    "median": 0.9140350877192982,
+    "min": 0.9017543859649123,
+    "max": 0.9263157894736842
+   },
+   "team 1 wards on the map": {
+    "median": 0.2733333333333333,
+    "min": 0.0,
+    "max": 0.4275
+   },
+   "team 1 sight sources at the end, without minions": {
+    "median": 14,
+    "min": 14,
+    "max": 15
+   }
+  }
+ },
+ "run": {
+  "command": "python -m experiments.m8.vision",
+  "created_utc": "2026-11-12T21:53:25+00:00",
+  "git_head": "1380d0cc3471b3bd4cbdb289c4df0d1f05e9a6e1",
+  "git_dirty": true,
+  "code_id": "fd50c21cee4cc19c",
+  "sources": {
+   "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
+   "experiments/m8/vision.py": "c50f0112c5d49b48fb2b4720ae9d50f43786250141596534d1fd60997d6c2a5c",
+   "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
+   "riftgame/champions.py": "84022bab0f503247b53a49925ad0792f1b383787a3cbc735b0e9deb05fbff609",
+   "riftgame/combat.py": "f442f3b9af29eb3abb1d44198e0497d9c11c93a1c489ea9cbe9a36ef4150e396",
+   "riftgame/economy.py": "485d60986dac87b936be416644fc5014b0fc8e3d0cefb77f95a316f42bfb1a4b",
+   "riftgame/harness.py": "1ed413a5da315a0df78febf3acb33dea0e9c3659168f5b805f4fc862261769f6",
+   "riftgame/jungle.py": "3d354420825b31672ce3371bd5ef08ffee95b510b2a144223ccac962df6c3d2a",
+   "riftgame/lanes.py": "953c27b6382b74f062f87e6c72579b9f2bb13157e42a2704959477f3e6f9e586",
+   "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
+   "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
+   "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
+   "riftgame/rulesets/map_summoners_rift_m8.toml": "f4acea380d416e62639c29c3910d3d4d97690b86cb77853bb74ad9d75a6347a0",
+   "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
+   "riftgame/rulesets/patch_26_22_m8.toml": "425b77b059ef2b9213b8ed527be62e925cbc7d4cbe4f63db8e8da8bdbfbe74f6",
+   "riftgame/vision.py": "9516d436820dfd1874369acedec5667f6a1700bbf6411538c5436f550f1f2a71",
+   "riftgame/world.py": "09f9b49432234f1a6e45260c091355c57bd4cb8aefdd344f5c5a4e1c37eec77d",
+   "tests/test_vision.py": "af86ee1b386a01ab7cd26241cba17cef879497d0cefc4a9090f513a73b0e4286",
+   "tests/worlds.py": "47b2cd493fb107f4ba9bbe9a071d41d113464e43979e532b05cc774ea93bc6e6"
+  },
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",
+  "packages": {},
+  "seeds": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "config": {
+   "play_s": 600.0,
+   "games": [
+    [
+     3,
+     "busy"
+    ],
+    [
+     5,
+     "scripted"
+    ],
+    [
+     8,
+     "varied"
+    ],
+    [
+     11,
+     "busy"
+    ]
+   ],
+   "snapshots": [
+    600,
+    800,
+    1200,
+    1400
+   ]
+  }
+ }
+}

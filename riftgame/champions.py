@@ -20,7 +20,7 @@ from itertools import accumulate
 from typing import TYPE_CHECKING, NamedTuple
 
 from riftgame import ruleset
-from riftgame.lanes import Mode, stance
+from riftgame.lanes import Front, Mode, stance
 from riftgame.map import Pos, load_map
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 R = ruleset.load()
 ADDED = ruleset.load("patch_26_22_m8")
-MAP = load_map()
+MAP = load_map(ADDED["map"]["id"])
 RIFT = MAP.rift
 
 TEAMS = ("blue", "red")
@@ -43,6 +43,8 @@ FOUNTAIN = tuple(RIFT.at(f"{team}_fountain") for team in TEAMS)
 OUTER_TOWER = tuple({t.lane: RIFT.lane_pos(t.lane, t.s) for t in MAP.towers if t.team == team and t.tier == "outer"}
                     for team in TEAMS)
 RECALL_S = R["recall"]["cast_s"] + R["recall"]["channel_s"]
+WARD = R["vision"]
+WARD_START = ADDED["vision"]["ward_start_charges"]
 FOUNTAIN_REGEN = R["fountain"]
 HOMEGUARD = R["homeguard"]
 NO_HOMEGUARD = -1
@@ -217,10 +219,11 @@ def frame_name(team: int, node: str) -> str:
     return ("own_" if side == TEAMS[team] else "enemy_") + rest
 
 
-NODES = tuple(frame_name(0, node) for node in RIFT.node_names)
+# A lane waypoint shapes a lane and is no destination, so no `MOVE` names it.
+NODES = tuple(frame_name(0, node) for node in RIFT.node_names if node not in ADDED["map"]["lane_waypoints"])
 CAMP_NODES = tuple(frame_name(0, node) for node in (*MAP.camps, *MAP.scuttlers.values()))
 
-# WARD comes last so that C6 can settle the ward spots without moving another index.
+# A ward spot is a camp or a Scuttler's river node (Assumed: the places a jungler passes).
 ACTIONS = (
     Action(Kind.KEEP), Action(Kind.HOLD), Action(Kind.RECALL),
     *(Action(Kind.MOVE, node) for node in NODES),
@@ -238,8 +241,9 @@ LANE_ORDER = tuple((a.target[0], Mode(MODES.index(a.target[1])), a.target[2] == 
                    for a in ACTIONS)
 
 NODE_POS = tuple({frame_name(team, node): RIFT.at(node) for node in RIFT.node_names} for team in range(2))
-DEST = tuple(tuple(NODE_POS[team][a.target] if a.kind in (Kind.MOVE, Kind.CAMP) else None for a in ACTIONS)
+DEST = tuple(tuple(NODE_POS[team][a.target] if a.kind in (Kind.MOVE, Kind.CAMP, Kind.WARD) else None for a in ACTIONS)
              for team in range(2))
+WARDS = tuple(i for i, a in enumerate(ACTIONS) if a.kind is Kind.WARD)
 # The world keeps its camps in the order of `CAMP_SITES`, which are map nodes. By team and action: the index of the
 # camp that a `CAMP` action names, and -1 for every other action.
 CAMP_SITES = (*MAP.camps, *MAP.scuttlers.values())
@@ -260,9 +264,12 @@ class Champion:
     `homeguard_block` is the first tick on which it may have Homeguard again after combat.
 
     `attack_credit` is the share of an attack that is ready, at most 1.0. It is the one budget for every target
-    class. `hurt_tick` holds, by enemy role, the last tick on which that enemy damaged this champion, or `NEVER`, a
+    class (`attack_worth`). `hurt_tick` holds, by enemy role, the last tick on which that enemy damaged this champion, or `NEVER`, a
     tick long before the game. Every window that reads it is shorter than the shortest death. A lockdown removes the share `slow` of its move speed on every tick before
-    `slow_until`. Its own lockdown is ready again from `lockdown_tick` on."""
+    `slow_until`. Its own lockdown is ready again from `lockdown_tick` on.
+
+    `ward_charges` are the Stealth Wards it can place. `ward_tick` is the tick on which it gets the next one, or -1
+    while it holds them all."""
 
     seat: int
     pos: Pos
@@ -287,6 +294,8 @@ class Champion:
     slow: float
     slow_until: int
     lockdown_tick: int
+    ward_charges: int
+    ward_tick: int
 
     @property
     def team(self) -> int:
@@ -319,7 +328,7 @@ def shop(c: Champion) -> None:
         c.upgrades += 1
 
 
-def spawn(seat: int, allowance: float) -> Champion:
+def spawn(seat: int, allowance: float, ward_tick: int) -> Champion:
     """A champion at the start of a game: on its fountain, at full health, holding, its starting gold spent on
     what its progression offers for it."""
     full = capability(ROLES[seat % 5], 1, 0)
@@ -327,7 +336,7 @@ def spawn(seat: int, allowance: float) -> Champion:
                  earned=[0.0] * len(Income), upgrades=0, intent=HOLD, intent_tick=0, channel=0, outcome=Outcome.NONE,
                  outcome_tick=-1, allowance=allowance, attack_credit=0.0, item_charges=0, respawn_tick=-1,
                  homeguard_tick=NO_HOMEGUARD, homeguard_block=0, hurt_tick=[NEVER] * len(ROLES), slow=0.0, slow_until=0,
-                 lockdown_tick=0)
+                 lockdown_tick=0, ward_charges=WARD_START, ward_tick=ward_tick if WARD_START < WARD["ward_charges"] else -1)
     pay(c, Income.STARTING, _E["starting_gold"])
     shop(c)
     return c
@@ -419,14 +428,19 @@ def settle_fountain(world: "World", c: Champion) -> None:
     shop(c)
 
 
-def lane_post(world: "World", seat: int, lane: str) -> Pos:
-    """Where a champion with a `LANE` intent for `lane` walks to: the stance of its wave mode and its stand.
+def known_front(world: "World", team: int, lane: str) -> Front:
+    """A lane's front as a team knows it: its own lead minion, and the enemy lead minion if it sees one now
+    (M7 section 6.3). Everything that places a champion at a wave reads this and never the lane's true front."""
+    wave = world.memory[team].waves[LANES.index(lane)]
+    return world.lanes[lane].known_front(team, wave.lead if wave.seen_tick == world.tick else None)
 
-    The stance reads the lane's true front. C6 has to pass the front that the champion's team sees.
-    """
+
+def lane_post(world: "World", seat: int, lane: str) -> Pos:
+    """Where a champion with a `LANE` intent for `lane` walks to: the stance of its wave mode and its stand,
+    at the front that its team knows."""
     c = world.champions[seat]
     _, mode, hold = LANE_ORDER[c.intent]
-    s, _ = stance(world.lanes[lane], seat // 5, mode, capability_of(c).attack_range, hold=hold)
+    s, _ = stance(world.lanes[lane], seat // 5, mode, capability_of(c).attack_range, known_front(world, seat // 5, lane), hold=hold)
     return RIFT.lane_pos(lane, s)
 
 
@@ -478,14 +492,13 @@ class Rule(NamedTuple):
     `walk` gives the position the champion heads for in the move step, or None to stand. `settle` runs after
     damage: it advances the intent and returns its outcome once it is over. A pursuer moves after everyone else,
     against the positions held before the move step. `attacks` is the one class of target that the champion's
-    attack goes to under this intent. A kind with an `enabled_by` note is masked off until then.
+    attack goes to under this intent.
     """
 
     walk: Callable[["World", Champion, Sequence[Pos]], Pos | None] | None = None
     settle: Callable[["World", Champion], Outcome] | None = None
     pursues: bool = False
     attacks: Target = Target.NONE
-    enabled_by: str = ""
 
 
 def _to_node(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos:
@@ -501,13 +514,16 @@ def _to_ally(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
     return stood[ally] if world.champions[ally].hp > 0 else None
 
 
-def _short_of(c: Champion, target: Pos) -> Pos | None:
-    """Where a champion walks to bring `target` into its attack range: the place on its route that is one attack
-    range short of the target. None once the target is in range by the straight line."""
-    reach = capability_of(c).attack_range
-    if RIFT.separation(c.pos, target) <= reach + IN_RANGE:
+def _within(pos: Pos, target: Pos, reach: float) -> Pos | None:
+    """Where to walk from `pos` to bring `target` within `reach`: the place on the route that is `reach` short of
+    the target. None once the target is in reach by the straight line."""
+    if RIFT.separation(pos, target) <= reach + IN_RANGE:
         return None
-    return RIFT.advance(target, c.pos, reach)
+    return RIFT.advance(target, pos, reach)
+
+
+def _short_of(c: Champion, target: Pos) -> Pos | None:
+    return _within(c.pos, target, capability_of(c).attack_range)
 
 
 def _to_enemy(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
@@ -515,15 +531,24 @@ def _to_enemy(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
     the team last saw it (M7 section 7.1). It never reads the place of a target that its team does not see.
 
     Pursuers move last. A target that does not pursue has moved by then, and the fighter heads for where it
-    stands now. Otherwise a fighter could never keep a target that walks away in its range, however fast it is.
-    A target that pursues too is taken where it stood before the move step, so the seat order changes nothing.
+    stands now, if its team sees that place. Otherwise a fighter could never keep a target that walks away in
+    its range, however fast it is. A target that stepped out of the team's view on this tick is pursued to
+    where the team saw it last. A target that pursues too is taken where it stood before the move step, so the
+    seat order changes nothing.
     """
+    team = c.seat // 5
     foe = FOE[c.intent]
-    record = world.memory[c.seat // 5].enemies[foe]
+    record = world.memory[team].enemies[foe]
     if record.seen_tick != world.tick:
         return _short_of(c, record.pos)
-    target = world.champions[(1 - c.seat // 5) * 5 + foe]
-    return _short_of(c, stood[target.seat] if RULE[target.intent].pursues else target.pos)
+    target = world.champions[(1 - team) * 5 + foe]
+    if RULE[target.intent].pursues or not world.watches(team, target.pos, stood):
+        return _short_of(c, record.pos)
+    return _short_of(c, target.pos)
+
+
+def _to_ward_spot(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
+    return _within(c.pos, DEST[c.seat // 5][c.intent], WARD["ward_place_range"])
 
 
 def _to_tower(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
@@ -567,6 +592,36 @@ def _lose_track(world: "World", c: Champion) -> Outcome:
     return Outcome.LOST if c.channel > 1 else Outcome.NONE
 
 
+def _by_average_level(world: "World", ends: Sequence[float]) -> float:
+    """A value that the reference gives at average champion level 1 and at the level cap. The straight line
+    between the two is Assumed."""
+    average = sum(level_of(c.xp) for c in world.champions) / len(world.champions)
+    return ends[0] + (ends[1] - ends[0]) * (average - 1) / (_E["level_cap"] - 1)
+
+
+def _place_ward(world: "World", c: Champion) -> Outcome:
+    """A champion within placement range of its ward spot places a Stealth Ward there and spends a charge. The
+    ward gives its team sight for a time that grows with the average champion level. With no charge the champion
+    waits in range for one."""
+    spot = DEST[c.seat // 5][c.intent]
+    if c.ward_charges <= 0 or RIFT.separation(c.pos, spot) > WARD["ward_place_range"] + IN_RANGE:
+        return Outcome.NONE
+    c.ward_charges -= 1
+    if c.ward_tick < 0:
+        c.ward_tick = world.tick + world.config.ticks(_by_average_level(world, WARD["ward_recharge_s"]))
+    world.ward(c.seat, spot, WARD["ward_sight_range"], _by_average_level(world, WARD["ward_duration_s"]), WARD["ward_max_placed"])
+    return Outcome.PLACED
+
+
+def recharge_ward(world: "World", c: Champion) -> None:
+    """A champion short of a ward charge gets one when its recharge time has run, and then starts the next. The
+    recharge shortens with the average champion level."""
+    if 0 <= c.ward_tick <= world.tick:
+        c.ward_charges += 1
+        full = c.ward_charges >= WARD["ward_charges"]
+        c.ward_tick = -1 if full else world.tick + world.config.ticks(_by_average_level(world, WARD["ward_recharge_s"]))
+
+
 def _find_no_tower(world: "World", c: Champion) -> Outcome:
     """A siege of a lane with no enemy tower left to damage was a walk for nothing. The fall of the lane's last
     tower under a siege ends it with `CLEARED` in the damage step, before this runs."""
@@ -584,10 +639,22 @@ RULES = {
     Kind.FOLLOW: Rule(walk=_to_ally, pursues=True, attacks=Target.CHAMPION),
     Kind.FIGHT: Rule(walk=_to_enemy, settle=_lose_track, pursues=True, attacks=Target.CHAMPION),
     Kind.SIEGE: Rule(walk=_to_tower, settle=_find_no_tower, attacks=Target.TOWER),
-    Kind.WARD: Rule(enabled_by="C6 adds wards"),
+    Kind.WARD: Rule(walk=_to_ward_spot, settle=_place_ward),
 }
 RULE = tuple(RULES[a.kind] for a in ACTIONS)
-ENABLED = tuple(not rule.enabled_by for rule in RULE)
+
+
+def attack_worth(world: "World", c: Champion, rate: float) -> float:
+    """What a champion's attack deals on this tick to a target that takes damage as a rate: a champion or a camp.
+
+    The attack credit is one budget for every class of target (M7 section 7.4). A whole attack is one hit on a
+    minion or a tower, and `rate / attack_speed` on a champion or a camp, which is the rate's damage over one
+    attack period. On a tick against such a target the champion spends all the credit it has: what it brought
+    into the tick and what the tick earns. So a ready attack lands at once on any class, as it does on a minion,
+    and a champion that has just spent its attack elsewhere deals only what it has earned since.
+    """
+    speed = capability_of(c).attack_speed
+    return rate / speed * (c.attack_credit + speed * world.config.tick_s)
 
 
 def attacks(c: Champion) -> Target:

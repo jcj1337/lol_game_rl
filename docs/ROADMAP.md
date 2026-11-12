@@ -1,6 +1,6 @@
 # Strategic League Simulator master roadmap
 
-**Status.** Draft v0.3.1, planning document. M7 is closed and M8 has started. §10 summarizes the changes from earlier versions.
+**Status.** Draft v0.3.2, planning document. M7 is closed and M8 has started. §10 summarizes the changes from earlier versions.
 
 **Predecessor.** [Laning as a Two-Player Game](https://github.com/jcj1337/lol_laning_gt_rl)
 
@@ -152,7 +152,7 @@ These are minimal versions, not the final implementations of later subsystems. C
 
 **Open.** Exact map representation, calibration data, and how best to port existing wave rules.
 
-**Progress.** M8 runs as campaigns over M7's checkpoints. [`docs/design/M8_foundation.md`](design/M8_foundation.md) holds the phases, the acceptance criteria, and the technical detail of each campaign. The first campaign covers C1 (kernel base) and C2 (lanes and economy). The second campaign corrected C2 and built C3 (recall and purchases), C4 (jungle), and C5 (combat and death). C1, C3, C4, and C5 pass M7's criteria. C2 is built and is not complete. C6 to C8 have not started.
+**Progress.** M8 runs as campaigns over M7's checkpoints. [`docs/design/M8_foundation.md`](design/M8_foundation.md) holds the phases, the acceptance criteria, and the technical detail of each campaign. The first campaign covers C1 (kernel base) and C2 (lanes and economy). The second campaign corrected C2 and built C3 (recall and purchases), C4 (jungle), and C5 (combat and death). The third campaign corrected five review findings and built C6 (vision, memory, and wards). C1 and C3 to C6 pass M7's criteria. C2 is built and is not complete. C7 and C8 have not started.
 
 **Decisions that bind M8.** The owner settled these on 2026-11-11.
 
@@ -301,19 +301,27 @@ The purpose of validation is not to script desired strategic conclusions. It is 
 8. **Compute and scope.** What simulator throughput, training budget, and quality threshold are realistically achievable? The pilot informs the budget.
 9. **Policy and product constraints.** Review Riot's current developer and third-party tool policies before releasing a public simulator-derived coaching application or using game assets.
 10. **Reuse.** Which laning mechanics and tests carry over, and which embed two-player, one-lane, or perfect-information assumptions?
-11. **Wave fidelity.** The simulator's wave behaviour is not settled. When agents act through the action table, reinforcement accumulation, a sustained hold, and a bounce each appear in a minority of settings, and they depend on two unsourced details of minion attack timing and on the tick length. With straight-line ranges an untouched top lane drifts to one side, because the route graph has one sharp corner node. Whether a real lane on the reference patch behaves the same is unknown, and nothing in the lane is validated against the game. Conclusions about recall timing, denial, and gank opportunities stay provisional until then. [`docs/design/M8_foundation.md`](design/M8_foundation.md) states the finding and the real-game measurements that bear on it.
+11. **Wave fidelity.** The simulator's wave behaviour is not settled. When agents act through the action table, reinforcement accumulation and a sustained hold each appear in a minority of settings. A lane near balance amplifies small differences: single results flip with the tick length and with two unsourced details of minion attack timing. Averaged over many settings, the size of a crash and the time of a bounce are stable from a tick of 0.5 s down, and crash times and hold lengths are not. An untouched side lane no longer drifts early since M8 traces its corners with the game's own waypoints, but its later drift still goes the same way in every seed. Whether a real lane on the reference patch behaves the same is unknown, and nothing in the lane is validated against the game. Conclusions about recall timing, denial, and gank opportunities stay provisional until then. [`docs/design/M8_foundation.md`](design/M8_foundation.md) states the finding and the real-game measurements that bear on it.
 
 ## 9. Immediate next actions
 
-1. Review the handoff of M8's second campaign and the M8 document, and record any disagreements.
+1. Review the handoff of M8's third campaign and the M8 document, and record any disagreements.
 2. Decide whether someone takes the real-game wave measurements that the M8 document names.
-3. Decide how C2's open wave questions are carried: into C7's tick sweep, or into a further correction.
-4. Plan the next M8 campaign from the remaining checkpoints, C6 to C8.
+3. Decide how C2's open wave questions are carried: into C7's tick sweep as distributions, or into a further correction.
+4. Plan the next M8 campaign from the remaining checkpoints, C7 and C8.
 5. Keep the training pilot behind checkpoint C7, as M7 placed it.
 
 This roadmap is intentionally revisable. Write a milestone's detailed plan when that milestone begins, not months in advance.
 
 ## 10. Revision summary
+
+### v0.3.2 (2026-11-12)
+
+This version records the state after M8's third campaign. It changes no milestone's scope and no decision.
+
+- The M8 progress note adds C6 and says that C2 is still not complete.
+- Risk 11 states the wave finding after the corrections.
+- §9 lists the actions that follow M8's third campaign.
 
 ### v0.3.1 (2026-11-12)
 

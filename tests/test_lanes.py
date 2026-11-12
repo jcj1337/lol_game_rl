@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 
+from riftgame import champions
 from riftgame.lanes import (
     ACQUIRE,
     ADDED,
@@ -22,6 +23,7 @@ from riftgame.lanes import (
     ChampionInput,
     Kind,
     LaneSim,
+    Minion,
     MinionDeath,
     MinionRemoved,
     Mode,
@@ -33,8 +35,13 @@ from riftgame.lanes import (
     unit_stats,
     xp_share,
 )
+from riftgame.map import REFERENCE_MAP, load_map
 
 BLUE, RED = Team.BLUE, Team.RED
+# Reference rows A4b and A4c: the game's minion path through each side-lane corner, from one outer tower's node to
+# the other's, with the four waypoints between them.
+TOP_CORNER = ((1285, 10423), (1508, 11601), (1968, 12459), (2720, 13100), (3486, 13473), (4359, 13597))
+BOT_CORNER = ((10506, 1301), (11432, 1472), (12294, 1913), (13001, 2628), (13529, 3694), (13751, 4790))
 MINIONS_M8 = ADDED["minions"]
 DT = 0.5
 LATE = 300.0
@@ -411,15 +418,31 @@ def test_a_champion_that_comes_back_to_a_lane_has_its_attack_ready():
 
 def test_the_m7_rule_set_is_the_m8_lane_without_the_rules_m7_left_out_and_with_m7s_resolution():
     assert replace(M8_LANE, side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
-                   first_wave_call=False, attack_timing=False, m7_resolution=True) == M7_LANE
+                   first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True) == M7_LANE
     assert (M8_LANE.melee_cap, M8_LANE.minion_damage_scale, M8_LANE.current_hp_damage) == (0, 1.0, True)
 
 
+def bend(geometry, xy):
+    """The lane coordinate of the lane node at map coordinates `xy`."""
+    return next(s for s, x, y in geometry.bends if (x, y) == xy)
+
+
+def toward(start, end, units):
+    """The map point `units` from `start` on the straight line to `end`."""
+    share = units / math.dist(start, end)
+    return start[0] + (end[0] - start[0]) * share, start[1] + (end[1] - start[1]) * share
+
+
 def test_a_range_inside_the_lane_is_the_straight_line_on_the_map_and_marching_stays_on_the_lane():
+    """The span runs from 200 units before the first waypoint of top lane's corner to 200 units after the third.
+    It crosses three bends, which the straight line cuts short by 77 units."""
     top = lane_geometry("top")
-    corner = next(s for s, x, y in top.bends if (x, y) == (1968, 12459))
-    before, after = corner - 290.0, corner + 290.0
-    assert top.gap(before, after) == pytest.approx(534.0, abs=1.0) and after - before == 580.0
+    tower, first, second, third, fourth = TOP_CORNER[:5]
+    before, after = bend(top, first) - 200.0, bend(top, third) + 200.0
+    walk = 200.0 + math.dist(first, second) + math.dist(second, third) + 200.0
+    straight = math.dist(toward(first, tower, 200.0), toward(third, fourth, 200.0))
+    assert after - before == pytest.approx(walk) and top.gap(before, after) == pytest.approx(straight)
+    assert walk - straight == pytest.approx(76.7, abs=0.1)
     assert top.gap(before - 400.0, before) == pytest.approx(400.0)
     mid = lane_geometry("mid")
     assert mid.gap(mid.centre - 300.0, mid.centre) == pytest.approx(300.0)
@@ -436,20 +459,24 @@ def test_a_range_inside_the_lane_is_the_straight_line_on_the_map_and_marching_st
         assert sim.minions[RED] == [] or sim.minions[RED][0].s == pytest.approx(marched)
 
 
-def test_minions_on_two_sides_of_a_corner_acquire_each_other_by_the_straight_line():
+def test_minions_on_two_sides_of_a_bend_acquire_each_other_by_the_straight_line():
+    """The sharpest bend of top lane turns 21 degrees. Two minions 253 units on each side of it are 506 units
+    apart along the lane and 497 in a straight line."""
     top = lane_geometry("top")
-    corner = next(s for s, x, y in top.bends if (x, y) == (1968, 12459))
-    gap = top.gap(corner - 270.0, corner + 270.0)
-    assert gap < ACQUIRE < 540.0
+    _, first, second, third = TOP_CORNER[:4]
+    corner, half = bend(top, second), 253.0
+    gap = top.gap(corner - half, corner + half)
+    assert gap == pytest.approx(math.dist(toward(second, first, half), toward(second, third, half)))
+    assert gap + 2.0 < ACQUIRE < 2 * half - 2.0
     for rules, engaged in ((M8_LANE, True), (replace(M8_LANE, straight_ranges=False), False)):
         sim = quiet_lane("top", rules)
-        sim.add_minion(BLUE, Kind.CASTER, corner - 270.0)
-        sim.add_minion(RED, Kind.CASTER, corner + 270.0)
+        sim.add_minion(BLUE, Kind.CASTER, corner - half)
+        sim.add_minion(RED, Kind.CASTER, corner + half)
         sim.step(sim.tick)
         blue, red = sim.minions[BLUE][0], sim.minions[RED][0]
         assert (blue.target is red) is engaged
-        closed = 0.0 if engaged else (540.0 - ACQUIRE) / 2
-        assert (blue.s, red.s) == (pytest.approx(corner - 270.0 + closed), pytest.approx(corner + 270.0 - closed)), "minions in reach stand still"
+        closed = 0.0 if engaged else (2 * half - ACQUIRE) / 2
+        assert (blue.s, red.s) == (pytest.approx(corner - half + closed), pytest.approx(corner + half - closed)), "minions in reach stand still"
 
 
 def tanked(rules, from_tower, harassing=False, wave=0, fallen=False):
@@ -597,3 +624,117 @@ def test_two_equal_minions_still_kill_each_other_in_the_same_instant():
     sim.add_minion(RED, Kind.MELEE, centre + 50.0)
     events = of(run(sim, LATE + 120.0), MinionDeath)
     assert len(events) == 2 and events[0].t == events[1].t
+
+
+def dead_targets(sim):
+    """The dead minions that a cast or a missile in flight still points at."""
+    casts = [m.swing_at for team in Team for m in sim.minions[team] if type(m.swing_at) is Minion and m.swing_at.hp <= 0]
+    flights = [missile[-1] for missile in sim._missiles if type(missile[-1]) is Minion and missile[-1].hp <= 0]
+    return casts, flights
+
+
+def health(sim):
+    return [(m.uid, m.hp) for team in Team for m in sim.minions[team]]
+
+
+def test_the_lanes_values_hold_when_the_dead_target_of_a_pending_cast_died_and_that_time_changes_what_follows():
+    """A minion that dies leaves the lane's lists at the end of its tick. A cast that still points at it is
+    cancelled on a later tick, and the cast that replaces it starts from the moment the target died."""
+    sim = LaneSim("mid", 0, DT)
+    cast_states, flight_states, diverged = 0, 0, 0
+    while sim.time < 130.0:
+        sim.step(sim.tick)
+        casts, flights = dead_targets(sim)
+        cast_states += bool(casts)
+        flight_states += bool(flights)
+        for kind in range(2):
+            if not dead_targets(sim)[kind]:
+                continue
+            twin = copy.deepcopy(sim)
+            assert twin.values() == sim.values()
+            target = dead_targets(twin)[kind][0]
+            assert all(m is not target for team in Team for m in twin.minions[team]), "the dead minion is in no list of the lane"
+            target.died_at -= 0.1
+            assert twin.values() != sim.values(), f"tick {sim.tick}"
+            if kind == 0:
+                ahead = copy.deepcopy(sim)
+                for _ in range(6):
+                    ahead.step(ahead.tick)
+                    twin.step(twin.tick)
+                    if health(ahead) != health(twin):
+                        diverged += 1
+                        break
+    assert cast_states >= 1 and flight_states >= 1, "the run must reach a cast and a missile that point at a dead minion"
+    assert diverged >= 1, "the time of death decides when the next blow lands, so the lane's values must hold it"
+
+
+def test_the_lanes_values_hold_how_long_a_placed_minion_still_waits():
+    one, other = quiet_lane(), quiet_lane()
+    one.add_minion(RED, Kind.MELEE, one.geometry.centre, delay=0.2)
+    other.add_minion(RED, Kind.MELEE, other.geometry.centre, delay=0.3)
+    assert one.values() != other.values()
+
+
+def turns(geometry) -> list[float]:
+    """The angle in degrees by which the lane turns at each of its nodes from one outer tower to the other. An
+    outer tower stands up to 256 units from the lane node that is named after it."""
+    low, high = geometry.towers[BLUE][0] - 300.0, geometry.towers[RED][0] + 300.0
+    angles = []
+    for (_, x0, y0), (s, x1, y1), (_, x2, y2) in zip(geometry.bends, geometry.bends[1:], geometry.bends[2:]):
+        if low <= s <= high:
+            turn = math.atan2(y2 - y1, x2 - x1) - math.atan2(y1 - y0, x1 - x0)
+            angles.append(abs(math.degrees((turn + math.pi) % (2 * math.pi) - math.pi)))
+    return angles
+
+
+def path(points) -> float:
+    return sum(math.dist(a, b) for a, b in zip(points, points[1:]))
+
+
+@pytest.mark.parametrize("name, corner, cut", [("top", TOP_CORNER, 98.0), ("bot", BOT_CORNER, 109.0)])
+def test_the_m8_map_traces_a_side_lane_corner_with_the_games_four_waypoints_and_m7s_map_with_one_of_them(name, corner, cut):
+    m8, m7 = lane_geometry(name), lane_geometry(name, REFERENCE_MAP)
+    assert m8 == lane_geometry(name, "map_summoners_rift_m8")
+    nodes = [(x, y) for _, x, y in m8.bends]
+    first = nodes.index(corner[0])
+    assert tuple(nodes[first:first + 6]) == corner
+    old = [(x, y) for _, x, y in m7.bends]
+    first = old.index(corner[0])
+    assert tuple(old[first:first + 3]) == (corner[0], corner[2], corner[5]), "M7's map keeps the second waypoint alone"
+    assert path(corner) - path((corner[0], corner[2], corner[5])) == pytest.approx(cut, abs=1.0)
+    assert m8.length - m7.length == pytest.approx(path(corner) - path((corner[0], corner[2], corner[5])))
+    assert len(m8.bends) == len(m7.bends) + 3 and m8.bends[:first + 1] == m7.bends[:first + 1], "nothing before the corner moved"
+
+
+def test_no_bend_between_the_outer_towers_of_an_m8_lane_turns_more_than_25_degrees():
+    for name in LANE_NAMES:
+        angles = turns(lane_geometry(name))
+        assert angles and max(angles) <= 25.0, name
+    assert len(turns(lane_geometry("top"))) == len(turns(lane_geometry("bot"))) == 6, "two tower nodes and four waypoints"
+    for name in ("top", "bot"):
+        assert max(turns(lane_geometry(name, REFERENCE_MAP))) > 40.0, "M7's single corner node turns more, so the measure can tell"
+
+
+M7_LENGTH = {"top": 22483.0, "mid": 16502.0, "bot": 22581.0}
+M8_LENGTH = {"top": 22581.0, "mid": 16502.0, "bot": 22690.0}
+
+
+@pytest.mark.parametrize("name", LANE_NAMES)
+def test_the_m7_lane_runs_on_m7s_lane_and_the_m8_lane_on_the_m8_maps(name):
+    m7, m8 = LaneSim(name, 0, DT, M7_LANE), LaneSim(name, 0, DT, M8_LANE)
+    assert m7.length == pytest.approx(M7_LENGTH[name], abs=1.0) and m8.length == pytest.approx(M8_LENGTH[name], abs=1.0)
+    assert m7.geometry == lane_geometry(name, REFERENCE_MAP) and m8.geometry == lane_geometry(name)
+    assert m7.length == pytest.approx(load_map().rift.lanes[name].length), "the M7 map file's lane"
+    assert m8.length == pytest.approx(champions.RIFT.lanes[name].length), "the lane of the map that the M8 world runs on"
+    assert LaneSim(name, 0, DT).rules == M8_LANE and not M8_LANE.m7_map and M7_LANE.m7_map
+
+
+@pytest.mark.parametrize("name, reference_units", [("top", 10184), ("mid", 8095), ("bot", 10333)])
+def test_the_walk_from_the_fountain_to_the_outer_tower_on_the_m8_map_matches_the_reference_as_on_m7s_map(name, reference_units):
+    """The reference walks are those of tests/test_map.py. The outer towers stand before the corners, so the added
+    waypoints change none of them."""
+    for data in (champions.MAP, load_map()):
+        site = next(t for t in data.towers if t.name == f"blue_{name}_outer")
+        walk = data.rift.distance(data.rift.at("blue_fountain"), data.rift.lane_pos(name, site.s))
+        assert walk == pytest.approx(reference_units, rel=0.04)
+    assert champions.MAP.rift is champions.RIFT and champions.MAP is not load_map()

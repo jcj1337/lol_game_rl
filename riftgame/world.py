@@ -15,14 +15,13 @@ from dataclasses import dataclass, fields, is_dataclass
 from typing import NamedTuple
 
 from riftgame import combat, economy, jungle
-from riftgame.champions import (ACTIONS, ENABLED, FOE, FOUNTAIN, HOLD, KEEP, LANES, RIFT, RULE, SEATS, SIEGE_LANE,
-                                Champion, Kind, Outcome, capability_of, damage, death_timer_s, duty, enter_combat, finish,
-                                level_of, settle_fountain, spawn, speed_of, spent)
-from riftgame.lanes import RULESET_ID, AttackCredit, LaneSim, TowerDestroyed
-from riftgame.map import REFERENCE_MAP, Pos
-from riftgame.vision import Memory, Sight, legal_mask, new_memory, observe, remember
+from riftgame.champions import (ACTIONS, FOE, FOUNTAIN, HOLD, KEEP, LANES, RIFT, RULE, SEATS, SIEGE_LANE, WARD, Champion, Kind,
+                                Outcome, capability_of, damage, death_timer_s, duty, enter_combat, finish, level_of,
+                                recharge_ward, settle_fountain, spawn, speed_of, spent)
+from riftgame.lanes import MAP_ID, RULESET_ID, AttackCredit, LaneSim, TowerDestroyed
+from riftgame.map import Pos
+from riftgame.vision import Memory, Sight, legal_mask, new_memory, observe_team, remember, watches
 
-MAP_ID = REFERENCE_MAP
 # Gold and its ledger add the same amounts in different orders, so they agree only up to rounding.
 GOLD_TOLERANCE = 1e-6
 
@@ -102,7 +101,7 @@ class World:
 
     def __init__(self, config: Config = Config(), seed: int = 0):
         self.config, self.seed, self.tick = config, seed, 0
-        self.champions = [spawn(seat, config.roam_cap_s) for seat in SEATS]
+        self.champions = [spawn(seat, config.roam_cap_s, config.ticks(WARD["ward_recharge_s"][0])) for seat in SEATS]
         self.lanes = {name: LaneSim(name, seed, config.tick_s) for name in LANES}
         self.camps = jungle.new_camps(config)
         self.sights: list[Sight] = []
@@ -158,8 +157,6 @@ class World:
                 continue
             if c.hp <= 0:
                 raise InvariantError(f"seat {c.seat} is dead and was given {ACTIONS[action]}")
-            if not ENABLED[action]:
-                raise ValueError(f"{ACTIONS[action].kind.name} is not enabled yet: {RULE[action].enabled_by}")
             if action != c.intent:
                 c.intent, c.intent_tick, c.channel = action, self.tick, 0
 
@@ -252,18 +249,31 @@ class World:
                 if outcome:
                     finish(c, outcome, self.tick)
             settle_fountain(self, c)
+            recharge_ward(self, c)
             state = duty(self, c)
             if state is not None:
                 # No floor. A laner that overstays until its next decision goes into debt and repays it on its lane.
                 c.allowance = min(config.roam_cap_s, c.allowance + rates[state])
 
     def _see(self) -> None:
-        """Team memory, of the camps and the enemy champions. C6 adds the enemy waves."""
+        """Team memory, of the camps, the enemy champions, and the enemy waves."""
         remember(self)
 
-    def light(self, team: int, pos: Pos, radius: float, seconds: float) -> None:
-        """Give a team a sight source that stays at `pos` for `seconds`: a Speed Shrine, and a ward with C6."""
-        self.sights.append(Sight(team, pos, radius, self.tick + self.config.ticks(seconds)))
+    def light(self, team: int, pos: Pos, radius: float, seconds: float, owner: int = -1) -> None:
+        """Give a team a sight source that stays at `pos` for `seconds`: a Speed Shrine, or the ward of `owner`."""
+        self.sights.append(Sight(team, pos, radius, self.tick + self.config.ticks(seconds), owner))
+
+    def ward(self, seat: int, pos: Pos, radius: float, seconds: float, most: int) -> None:
+        """Place a ward of `seat` at `pos`. A champion has at most `most` wards on the map, and one more removes
+        its oldest."""
+        mine = [s for s in self.sights if s.owner == seat]
+        if len(mine) >= most:
+            self.sights.remove(mine[0])
+        self.light(seat // 5, pos, radius, seconds, seat)
+
+    def watches(self, team: int, pos: Pos, stood: Sequence[Pos]) -> bool:
+        """Whether a team sees a position inside the move step (`vision.watches`)."""
+        return watches(self, team, pos, stood)
 
     def damage_champion(self, seat: int, raw: float) -> None:
         """The one place a champion loses health. Damage ends a recall and Homeguard. Death is resolved in the tick's
@@ -297,9 +307,13 @@ def check_invariants(world: World, previous_tick: int | None = None) -> None:
             raise InvariantError(f"seat {c.seat} is dead and holds {ACTIONS[c.intent]}")
         if not 0.0 <= c.attack_credit <= 1.0:
             raise InvariantError(f"seat {c.seat} has an attack credit of {c.attack_credit}")
+        if not 0 <= c.ward_charges <= WARD["ward_charges"] or (c.ward_tick < 0) != (c.ward_charges == WARD["ward_charges"]):
+            raise InvariantError(f"seat {c.seat} has {c.ward_charges} ward charges and its next one at tick {c.ward_tick}")
+        if sum(s.owner == c.seat for s in world.sights) > WARD["ward_max_placed"]:
+            raise InvariantError(f"seat {c.seat} has more than {WARD['ward_max_placed']} wards on the map")
     for fault in jungle.faults(world):
         raise InvariantError(fault)
     # An observation covers a whole team, so it is taken only once every champion's own state has passed.
-    for c in world.champions:
-        if not any(legal_mask(observe(world, c.seat))):
-            raise InvariantError(f"seat {c.seat} has no legal action")
+    for seat, o in enumerate((*observe_team(world, 0), *observe_team(world, 1))):
+        if not any(legal_mask(o)):
+            raise InvariantError(f"seat {seat} has no legal action")

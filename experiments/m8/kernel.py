@@ -73,7 +73,7 @@ def profile() -> dict:
     profiler.runcall(lambda: [tick(world, farmer) for _ in range(1200)])
     stats = pstats.Stats(profiler)
     watched = {("lanes.py", "step"): "lanes", ("economy.py", "lane_inputs"): "lane inputs", ("economy.py", "settle_lane"): "gold and XP",
-               ("vision.py", "observe"): "observe", ("vision.py", "legal_mask"): "legal mask", ("world.py", "_move"): "movement", ("world.py", "_settle"): "settle",
+               ("vision.py", "observe_team"): "observe", ("vision.py", "legal_mask"): "legal mask", ("world.py", "_move"): "movement", ("world.py", "_settle"): "settle",
                ("vision.py", "remember"): "team memory", ("jungle.py", "collect"): "camp attacks", ("combat.py", "collect"): "champion attacks",
                ("combat.py", "land"): "damage", ("combat.py", "harassed"): "calls for help"}
     shares = {}

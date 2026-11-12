@@ -3,8 +3,8 @@ from collections import Counter
 
 import pytest
 
-from riftgame.champions import (ACTIONS, CAMP_NODES, FOUNTAIN, HOLD, KEEP, LANES, MAP, MODES, NODES, RECALL, RIFT, SEATS, STANDS,
-                                TEAMS, Kind, Outcome, capability_of, level_of)
+from riftgame.champions import (ACTIONS, ADDED, CAMP_NODES, FOUNTAIN, HOLD, KEEP, LANES, MAP, MODES, NODES, RECALL, RIFT, SEATS,
+                                STANDS, TEAMS, Kind, Outcome, capability_of, level_of)
 from riftgame.lanes import HOLD_MARGIN, MELEE_REACH, TOWER_RANGE
 from riftgame.vision import legal_mask, observe
 from riftgame.world import Config, InvariantError, World
@@ -23,7 +23,8 @@ def test_the_action_table_keeps_its_layout():
 
 def test_the_action_table_is_built_from_the_map_and_the_seats():
     count = Counter(a.kind for a in ACTIONS)
-    assert count[Kind.MOVE] == len(RIFT.node_names) == 39
+    waypoints = ADDED["map"]["lane_waypoints"]
+    assert count[Kind.MOVE] == len(RIFT.node_names) - len(waypoints) == 39
     assert count[Kind.LANE] == len(LANES) * len(MODES) * len(STANDS) == 24
     assert {a.target for a in ACTIONS if a.kind is Kind.LANE} == {(lane, mode, stand) for lane in LANES for mode in MODES for stand in STANDS}
     assert (MODES, STANDS) == (("passive", "last_hit", "thin", "push"), ("wave", "hold"))
@@ -202,12 +203,25 @@ def test_damage_to_a_dead_champion_changes_nothing():
     assert world.digest() == before
 
 
-def test_ward_is_in_the_table_and_cannot_be_chosen_yet():
+def test_a_lane_waypoint_is_a_node_of_the_map_and_no_move_names_it():
+    """The six waypoints that trace the side-lane corners shape a lane. A champion walks over them and cannot
+    name one as a destination."""
+    waypoints = ADDED["map"]["lane_waypoints"]
+    assert sorted(waypoints) == ["bot_corner_a", "bot_corner_b", "bot_corner_c", "top_corner_a", "top_corner_b", "top_corner_c"]
+    assert all(node in RIFT.node_names for node in waypoints)
+    targets = {a.target for a in ACTIONS if a.kind is Kind.MOVE}
+    assert not targets & set(waypoints) and {"top_corner", "bot_corner", "mid_river"} <= targets
+    assert all(RIFT.lane_s(node[:3], RIFT.at(node)) is not None for node in waypoints), "each lies on its lane"
+
+
+def test_ward_is_offered_to_a_champion_with_a_charge_and_to_no_other_and_the_world_accepts_it():
     world = staged({seat: lane_place(seat // 5, "mid", 7000.0) for seat in SEATS})
     indices = [i for i, a in enumerate(ACTIONS) if a.kind is Kind.WARD]
-    assert indices
+    assert indices and {ACTIONS[i].target for i in indices} == set(CAMP_NODES)
+    world.champions[RED_TOP].ward_charges = 0
     for seat in SEATS:
         mask = legal_mask(observe(world, seat))
-        assert not any(mask[i] for i in indices)
-    with pytest.raises(ValueError):
-        submit(world, {BLUE_TOP: indices[0]})
+        assert observe(world, seat).me.ward_charges == (0 if seat == RED_TOP else 1)
+        assert [mask[i] for i in indices] == [seat != RED_TOP] * len(indices)
+    submit(world, {BLUE_TOP: indices[0]})
+    assert world.champions[BLUE_TOP].intent == indices[0]

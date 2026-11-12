@@ -1,5 +1,6 @@
 """Shared staging for the kernel tests: worlds with champions on their marks, action lookups, and test policies."""
 
+import math
 from collections import Counter
 
 from riftgame.champions import ACTIONS, HOLD, HOME, KEEP, RIFT, SEATS, Action, Kind
@@ -97,21 +98,18 @@ def raze(world: World) -> World:
     return world
 
 
+def no_waves(world: World) -> World:
+    """Stop every lane from spawning, so that the lanes hold only the minions a test puts there."""
+    for sim in world.lanes.values():
+        sim.clock.next_wave = math.inf
+    return world
+
+
 class StubLane:
-    """A lane behind the five members the world codes against. One team's outer tower may have fallen. It has no
-    tower that can take damage."""
+    """A lane that only reports values, for the tests of what the world digest reads from a lane."""
 
-    def __init__(self, fallen_team: int | None = None, values: tuple = ()):
-        self.fallen_team, self.state = fallen_team, values
-
-    def step(self, tick, inputs=(), level_lead=0.0):
-        return []
-
-    def tower_alive(self, team, tier):
-        return not (tier == "outer" and team == self.fallen_team)
-
-    def front_tower(self, team):
-        return None
+    def __init__(self, values: tuple = ()):
+        self.state = values
 
     def values(self):
         return self.state

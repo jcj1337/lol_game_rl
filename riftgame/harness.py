@@ -11,7 +11,7 @@ from riftgame.champions import ACTIONS, CAMP_OF, HOLD, HOME, KEEP, RECALL, RETUR
 from riftgame.economy import JUNGLE_ITEM
 from riftgame.jungle import SITES
 from riftgame.rng import Stream, keyed_uniform
-from riftgame.vision import Observation, Place, legal_mask, observe
+from riftgame.vision import Observation, Place, legal_mask, observe_team
 from riftgame.world import Config, InvariantError, World, check_invariants
 
 Policy = Callable[[Observation, float], int]
@@ -149,7 +149,7 @@ def tick(world: World, policy: Policy, check: bool = False) -> tuple[int, ...] |
     """
     actions = None
     if world.tick % world.config.decision_ticks == 0:
-        observations = [observe(world, seat) for seat in SEATS]
+        observations = [*observe_team(world, 0), *observe_team(world, 1)]
         actions = tuple(policy(o, keyed_uniform(world.seed, Stream.POLICY, seat, world.tick))
                         for seat, o in enumerate(observations))
         if check:

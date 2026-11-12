@@ -9,15 +9,15 @@ from pathlib import Path
 
 import pytest
 
-from riftgame.champions import (ACTIONS, CAMP_NODES, CAMP_SITES, FOUNTAIN, HOLD, KEEP, LANES, MAP, RECALL, RIFT, ROLES, SEATS,
+from riftgame.champions import (ACTIONS, CAMP_NODES, CAMP_SITES, FOUNTAIN, HOLD, KEEP, MAP, RECALL, RIFT, ROLES, SEATS,
                                 TEAMS, Income, Kind, Outcome, R, capability, capability_of, frame_name, level_of, spent)
 from riftgame.harness import jungler, run, scripted, tick
 from riftgame.jungle import SCUTTLERS, SITES, Camp, CampDeath, CampSpawn
 from riftgame.ruleset import load
 from riftgame.vision import EDGE_GAP, CampMemory, Sight, observe, sees
 from riftgame.world import Config, InvariantError, World, check_invariants
-from worlds import (BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_JUNGLE, RED_MID, RED_TOP, StubLane, act, busy,
-                    ended_now, lane_place, move, play, staged, submit, until)
+from worlds import (BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_JUNGLE, RED_MID, RED_TOP, act, busy, ended_now,
+                    lane_place, move, no_waves, play, staged, submit, until)
 
 REPO = Path(__file__).parents[1]
 TICK_S = EVERY_TICK.tick_s
@@ -67,8 +67,7 @@ def now(world: World) -> float:
 
 def quiet(places: dict | None = None, until_s: float = 0.0, config: Config = EVERY_TICK, seed: int = 0) -> World:
     """A world without minions, with the given seats on their marks, run to a game time with everyone holding."""
-    world = staged(places or {}, config, seed)
-    world.lanes = {name: StubLane() for name in LANES}
+    world = no_waves(staged(places or {}, config, seed))
     while now(world) < until_s:
         world.step()
     return world
@@ -101,6 +100,12 @@ def next_spawn(world: World, camp: int, limit: int = 700) -> CampSpawn:
         if spawns(world, camp):
             return spawns(world, camp)[0]
     raise AssertionError(f"the camp did not spawn within {limit} ticks")
+
+
+def whole_attack(can) -> float:
+    """What one whole attack is worth on a camp: the rate's damage over one attack period. A champion that comes
+    to a camp with its attack ready deals this on its first tick, on top of the tick's share."""
+    return can.camp_dps / can.attack_speed
 
 
 def river_alive(world: World) -> list[int]:
@@ -233,12 +238,15 @@ def test_the_river_node_of_the_next_scuttler_is_a_draw_keyed_on_the_seed():
 
 
 @pytest.mark.parametrize("seat", range(5), ids=ROLES)
-def test_a_clear_takes_the_camps_health_over_the_champions_camp_damage_rate_within_one_tick(seat):
+def test_a_clear_takes_the_camps_health_less_the_ready_attack_over_the_champions_camp_damage_rate_within_one_tick(seat):
     world = quiet({seat: at("blue_blue")}, until_s=60.0)
+    can = capability(ROLES[seat], 1, 0)
+    assert world.champions[seat].attack_credit == 1.0, "it waited at the camp, so its attack is ready"
     began = now(world)
     death = clear(world, {seat: "blue_blue"})
     took = death.t + TICK_S - began
-    assert abs(took - 2300.0 / capability(ROLES[seat], 1, 0).camp_dps) <= TICK_S
+    assert abs(took - (2300.0 - whole_attack(can)) / can.camp_dps) <= TICK_S
+    assert whole_attack(can) > 2 * can.camp_dps * TICK_S, "the ready attack is worth more than the tolerance"
     assert capability(ROLES[seat], 3, 0).camp_dps > capability(ROLES[seat], 1, 0).camp_dps, "the rate grows with level"
     assert all(capability("jungle", 1, 0).camp_dps > capability(role, 1, 0).camp_dps for role in ROLES if role != "jungle")
 
@@ -248,8 +256,9 @@ def test_champions_on_one_camp_add_their_damage_rates(seats):
     world = quiet({seat: at("blue_raptors") for seat in seats}, until_s=60.0)
     began = now(world)
     death = clear(world, {seat: "blue_raptors" for seat in seats})
-    rate = sum(capability(ROLES[seat % 5], 1, 0).camp_dps for seat in seats)
-    assert abs(death.t + TICK_S - began - 3700.0 / rate) <= TICK_S
+    cans = [capability(ROLES[seat % 5], 1, 0) for seat in seats]
+    rate, ready = sum(can.camp_dps for can in cans), sum(whole_attack(can) for can in cans)
+    assert abs(death.t + TICK_S - began - (3700.0 - ready) / rate) <= TICK_S
     assert all(world.champions[seat].outcome is Outcome.CLEARED for seat in seats)
 
 
@@ -264,9 +273,9 @@ def test_travel_between_camps_takes_route_length_over_speed_and_the_first_blow_l
         assert gromp.hp == gromp.max_hp, "no blow lands before the champion stands at the camp"
         world.step()
     assert abs(now(world) - began - walk / can.move_speed) <= TICK_S
-    assert gromp.hp == gromp.max_hp - can.camp_dps * TICK_S
+    assert gromp.max_hp - gromp.hp == pytest.approx(whole_attack(can) + can.camp_dps * TICK_S), "the attack it earned on the walk, and the tick"
     death = clear(world, {BLUE_JUNGLE: "blue_gromp"})
-    assert abs(death.t + TICK_S - began - walk / can.move_speed - 2050.0 / can.camp_dps) <= 2 * TICK_S
+    assert abs(death.t + TICK_S - began - walk / can.move_speed - (2050.0 - whole_attack(can)) / can.camp_dps) <= 2 * TICK_S
 
 
 def test_a_camp_hits_the_champion_that_engaged_it_first_at_its_damage_rate_and_nobody_else():
@@ -312,7 +321,7 @@ def test_a_camp_keeps_hitting_a_champion_that_walks_away_inside_its_leash_and_re
     for _ in range(9):
         world.step()
     hurt = raptors.hp
-    assert hurt == 3700.0 - 10 * capability_of(me).camp_dps * TICK_S
+    assert hurt == pytest.approx(3700.0 - whole_attack(capability_of(me)) - 10 * capability_of(me).camp_dps * TICK_S)
     hit_while_leaving = 0
     for step in range(12):
         before = me.hp
@@ -345,7 +354,8 @@ def test_a_camp_returns_to_full_health_when_the_champion_it_fights_dies():
     raptors = world.camps[site("blue_raptors")]
     submit(world, {BLUE_TOP: camp_action(BLUE_TOP, "blue_raptors")})
     world.step()
-    assert raptors.engaged == BLUE_TOP and raptors.hp == 3700.0 - 2 * capability("top", 1, 0).camp_dps * TICK_S
+    top = capability("top", 1, 0)
+    assert raptors.engaged == BLUE_TOP and raptors.hp == pytest.approx(3700.0 - whole_attack(top) - 2 * top.camp_dps * TICK_S)
     world.damage_champion(BLUE_TOP, 10_000.0)
     world.step()
     assert world.champions[BLUE_TOP].outcome is Outcome.DIED and (raptors.hp, raptors.engaged) == (3700.0, -1)
@@ -684,7 +694,7 @@ def mid_game(seed: int = 7) -> World:
 
 CAMP_CHANGED = {"hp": 1.5, "max_hp": 9000.0, "level": 7, "spawn_tick": 12345, "engaged": 3}
 MEMORY_CHANGED = {"hp": 1.5, "level": 7, "seen_tick": 3, "spawn_tick": 12345}
-SIGHT_CHANGED = {"team": 0, "pos": RIFT.at("mid_river"), "radius": 1.5, "expires": 12345}
+SIGHT_CHANGED = {"team": 0, "pos": RIFT.at("mid_river"), "radius": 1.5, "expires": 12345, "owner": 3}
 
 
 def test_the_digest_changes_with_every_field_of_a_camp_of_a_memory_and_of_a_sight_source():

@@ -18,7 +18,8 @@ from math import fsum
 from typing import TYPE_CHECKING
 
 from riftgame import ruleset
-from riftgame.champions import FOE, IN_RANGE, RIFT, Champion, Income, R, Target, attacks, capability_of, enter_combat, level_of, pay
+from riftgame.champions import (FOE, IN_RANGE, RIFT, Champion, Income, R, Target, attack_worth, attacks, capability_of, enter_combat,
+                                level_of, pay)
 from riftgame.rng import Stream, keyed_uniform
 from riftgame.vision import sees
 
@@ -86,10 +87,11 @@ def _reaches(c: Champion, foe: Champion) -> bool:
 
 
 def _hit(world: "World", c: Champion, foe: Champion) -> Hit:
-    """A tick of a champion's damage rate. Its lockdown goes with it when it is ready and the mana covers it."""
+    """What a champion's attack credit is worth against a champion on this tick. Its lockdown goes with it when
+    it is ready and the mana covers it."""
     can = capability_of(c)
     locks = can.lockdown_slow > 0 and world.tick >= c.lockdown_tick and c.mana >= can.lockdown_mana
-    return Hit(c.seat, foe.seat, can.champion_dps * world.config.tick_s, can.lockdown_slow if locks else 0.0)
+    return Hit(c.seat, foe.seat, attack_worth(world, c, can.champion_dps), can.lockdown_slow if locks else 0.0)
 
 
 def collect(world: "World") -> list[Hit]:
@@ -142,8 +144,9 @@ def spend(world: "World", hits: list[Hit], camp_blows: list[tuple[int, int, floa
     """What this tick leaves of each living champion's attack credit, the one budget for every target class (M7
     section 7.4).
 
-    A tick that damaged a champion or a camp used the attack up. A champion that hit in a lane has what the lane
-    handed back. Every other champion earned its attack speed times the tick, up to one ready attack.
+    A tick that damaged a champion or a camp spent all the credit there was (`champions.attack_worth`). A champion
+    that hit in a lane has what the lane handed back. Every other champion earned its attack speed times the tick,
+    up to one ready attack.
     """
     used = {hit.attacker for hit in hits} | {seat for _, seat, _ in camp_blows}
     tick_s = world.config.tick_s

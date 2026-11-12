@@ -61,6 +61,7 @@ BREAKER_ARRIVES_S = 240.0
 FREEZE_SURPLUS = (0, 2, 3, 4, 6)
 THIN_OVER = (1, 2, 3, 4)
 TRIM_TO = (2, 3, 4)
+# Both maps put the towers of top lane and all of mid lane on the same lane coordinates. Only the corners differ.
 TOP, MID = lane_geometry("top"), lane_geometry("mid")
 DRAW_KEY = {"lane_id": None}
 
@@ -127,11 +128,13 @@ def crash_metrics(trace, dt: float) -> dict:
 
 def fight(red_melee: int = 0, red_casters: int = 0):
     def case(rules, seed, dt):
-        sim = waves_in_contact(make_lane("top", rules, seed, dt, FIGHT_START_S), TOP.centre, red_melee, red_casters)
+        sim = make_lane("top", rules, seed, dt, FIGHT_START_S)
+        centre = sim.geometry.centre
+        waves_in_contact(sim, centre, red_melee, red_casters)
         left = [6, 6 + red_melee + red_casters]
         while min(left) > 0 and sim.time < FIGHT_START_S + FIGHT_LIMIT_S:
             sim.step(sim.tick)
-            left = [crowd(sim, team, TOP.centre) for team in Team]
+            left = [crowd(sim, team, centre) for team in Team]
         return {"fight_s": sim.time - FIGHT_START_S, "blue_left": left[BLUE], "red_left": left[RED]}, None
 
     return case
@@ -278,14 +281,14 @@ def freeze(surplus: int, plan: str, thin_over: int | None = None, trim_to: int |
             "band_s": sum(inside) * dt,
             **blue.report(),
             "cs_blue": cs_fraction(trace.events, BLUE),
-            "under_tower_s": sum(under_tower(TOP, BLUE, r.lead_red) for r in trace.rows) * dt,
+            "under_tower_s": sum(under_tower(trace.geometry, BLUE, r.lead_red) for r in trace.rows) * dt,
             "blue_tower_damage": tower_damage(trace.events, BLUE),
-            "pushed_out": any(r.lead_blue is not None and r.lead_blue > TOP.centre for r in trace.rows),
+            "pushed_out": any(r.lead_blue is not None and r.lead_blue > trace.geometry.centre for r in trace.rows),
         }
         if breaker:
             after = [ok for r, ok in zip(trace.rows, inside) if r.t > BREAKER_ARRIVES_S]
             metrics["band_s_after_breaker"] = sum(after) * dt
-            metrics["red_tower_reached"] = any(under_tower(TOP, RED, r.lead_blue) for r in trace.rows)
+            metrics["red_tower_reached"] = any(under_tower(trace.geometry, RED, r.lead_blue) for r in trace.rows)
         return metrics, trace
 
     return case

@@ -10,15 +10,15 @@ from riftgame.combat import Hit, Kill, harassed
 from riftgame.economy import lane_inputs
 from riftgame.harness import random_legal, tick
 from riftgame.jungle import SITES
-from riftgame.lanes import (AttackCredit, ChampionDamage, ChampionInput, LaneSim, MinionDeath, Mode, TowerDamage, TowerDestroyed,
-                            TowerPlate, TowerShot)
+from riftgame.lanes import (HOLD_MARGIN, MELEE_REACH, AttackCredit, ChampionDamage, ChampionInput, LaneSim, MinionDeath, Mode,
+                            TowerDamage, TowerDestroyed, TowerPlate, TowerShot)
 from riftgame.lanes import Kind as Minion
 from riftgame.vision import EnemyView, Place, legal_mask, observe, sees
 from riftgame.world import Config, World
-from test_world_observation import CHANGED, team_knowledge
+from test_world_observation import hidden_changes, team_knowledge
 from test_world_roles import legal, off_the_mid_lane, return_actions
 from worlds import (BLUE_CARRY, BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_CARRY, RED_JUNGLE, RED_MID,
-                    RED_SUPPORT, RED_TOP, act, ended_now, lane, move, patient, play, raze, staged, submit, until)
+                    RED_SUPPORT, RED_TOP, act, ended_now, lane, move, no_waves, patient, play, raze, staged, submit, until)
 
 TICK_S = EVERY_TICK.tick_s
 TOP, JUNGLE, MID, CARRY, SUPPORT = range(5)
@@ -40,9 +40,7 @@ ASSIST_S, DEFENCE_S, CALL_S = 10.0, 5.0, 2.0
 def calm(places: dict, config: Config = EVERY_TICK, seed: int = 0, towers: bool = True) -> World:
     """A world in which no minion wave ever spawns, with the given seats on their marks. Without `towers` every
     lane tower has fallen, so the champions are the only sight sources and nothing shoots them."""
-    world = staged(places, config, seed)
-    for sim in world.lanes.values():
-        sim.clock.next_wave = math.inf
+    world = no_waves(staged(places, config, seed))
     return world if towers else raze(world)
 
 
@@ -94,7 +92,7 @@ def test_damage_per_second_on_champions_never_falls_with_a_level_or_an_upgrade_a
     assert rates[0][0] == PROFILES[profile].champion_dps > 0
 
 
-def test_a_fighter_deals_its_damage_rate_times_the_tick_and_more_at_every_step_up_in_capability():
+def test_a_fighter_with_no_attack_ready_deals_its_damage_rate_times_the_tick_and_more_at_every_step_up_in_capability():
     """The carry's placeholder rate is 70 per second, grows by 8 percent of that per level, and each of its three
     damage upgrades adds 21."""
     expected = {(1, 0): 35.0, (1, 3): 45.5, (4, 3): 53.9, (4, 5): 74.9, (9, 5): 88.9}
@@ -102,13 +100,18 @@ def test_a_fighter_deals_its_damage_rate_times_the_tick_and_more_at_every_step_u
     for (level, upgrades), damage in expected.items():
         world = calm({BLUE_CARRY: mid(-200.0), RED_TOP: mid(200.0)})
         grow(world, BLUE_CARRY, level, upgrades)
+        grow(world, RED_TOP, 18, 5)
         foe = world.champions[RED_TOP]
         world.step()
+        world.champions[BLUE_CARRY].attack_credit = 0.0
         before = foe.hp
         submit(world, {BLUE_CARRY: fight(TOP)})
         hit, = events(world, Hit)
         assert (hit.attacker, hit.victim, hit.damage) == (BLUE_CARRY, RED_TOP, pytest.approx(damage))
         assert before - foe.hp == pytest.approx(damage - capability_of(foe).hp_regen * TICK_S), "less a tick of the victim's regeneration"
+        world.step()
+        again, = events(world, Hit)
+        assert again.damage == pytest.approx(damage), "a fight that goes on deals the rate times the tick on every tick"
         dealt.append(hit.damage)
     assert dealt == sorted(set(dealt))
 
@@ -117,6 +120,7 @@ def test_a_fighter_deals_its_damage_rate_times_the_tick_and_more_at_every_step_u
 def test_an_ally_joins_a_fight_on_the_tick_that_its_route_over_its_speed_gives(units):
     world = calm({BLUE_TOP: mid(-150.0), BLUE_JUNGLE: mid(-units), RED_SUPPORT: mid(0.0)})
     ally, foe = world.champions[BLUE_JUNGLE], world.champions[RED_SUPPORT]
+    grow(world, RED_SUPPORT, 18, 0)
     submit(world, {BLUE_TOP: fight(SUPPORT)})
     assert struck(world, BLUE_TOP, RED_SUPPORT) and observe(world, BLUE_JUNGLE).enemies[SUPPORT] is not None
     can = capability_of(ally)
@@ -214,7 +218,9 @@ def test_a_champion_that_holds_hits_back_at_the_enemy_that_damages_it_from_behin
     world.step()
     log = play_out(world, 4, {0: {BLUE_CARRY: fight(MID)}, 2: {BLUE_CARRY: HOLD}})
     assert [sorted(hit.attacker for hit in tick) for tick in log] == [[BLUE_CARRY, RED_MID]] * 2 + [[]] * 2
-    assert log[0][1].damage == capability_of(world.champions[RED_MID]).champion_dps * TICK_S
+    rate = capability_of(world.champions[RED_MID]).champion_dps
+    answers = [next(hit.damage for hit in tick if hit.attacker == RED_MID) for tick in log[:2]]
+    assert answers == pytest.approx([2 * rate * TICK_S, rate * TICK_S]), "it held for one tick before, and what that tick earned goes with the first answer"
 
 
 def test_a_standing_tower_gives_its_team_sight_and_a_fallen_one_gives_none():
@@ -536,7 +542,7 @@ def test_the_champion_that_dealt_the_most_damage_on_the_tick_is_the_killer_and_t
     world = brawl({BLUE_TOP: fight(SUPPORT), BLUE_CARRY: fight(SUPPORT)}, hp={RED_SUPPORT: 50.0})
     kill, = events(world, Kill)
     dealt = {hit.attacker: hit.damage for hit in events(world, Hit) if hit.victim == RED_SUPPORT}
-    assert dealt == {BLUE_TOP: 27.5, BLUE_CARRY: 35.0}
+    assert dealt == pytest.approx({BLUE_TOP: 2 * 27.5, BLUE_CARRY: 2 * 35.0}), "the tick before the fight earned each of them one tick's worth more"
     assert (kill.victim, kill.killer, kill.assists, kill.first_blood) == (RED_SUPPORT, BLUE_CARRY, (BLUE_TOP,), True)
     top, carry, victim = (world.champions[seat] for seat in (BLUE_TOP, BLUE_CARRY, RED_SUPPORT))
     assert carry.earned[Income.KILL] == KILL_GOLD + FIRST_BLOOD and carry.earned[Income.ASSIST] == 0.0
@@ -687,6 +693,55 @@ def test_the_fighters_path_is_the_same_wherever_its_hidden_target_is():
     _, moved = chase(hide=RIFT.at("red_krugs"))
     assert [row[2] for row in rows] != [row[2] for row in moved], "the target is in two different places"
     assert [(row[0], row[1], row[4]) for row in rows] == [(row[0], row[1], row[4]) for row in moved]
+
+
+def step_behind_the_wall(slowed: bool) -> list[tuple]:
+    """A top laner fights a jungler that stands further along the path to the blue Raptors, in its view and out of
+    its range. On the first tick the jungler walks on and crosses the wall. `slowed` halves that one step, which
+    is nothing that blue can see. Returns per tick the top laner's place, the jungler's place, whether blue sees
+    that place, whether the top laner hit the jungler, and the top laner's outcome."""
+    world = calm({}, towers=False)
+    me, foe = world.champions[BLUE_TOP], world.champions[RED_JUNGLE]
+    me.pos, foe.pos = over_the_wall(world, 0.30), over_the_wall(world, 0.47)
+    world.step()
+    assert observe(world, BLUE_TOP).enemies[JUNGLE] is not None and gap(world, BLUE_TOP, RED_JUNGLE) > capability_of(me).attack_range
+    if slowed:
+        foe.slow, foe.slow_until = 0.5, world.tick + 1
+    rows = []
+    for step in range(10):
+        submit(world, {BLUE_TOP: fight(JUNGLE), RED_JUNGLE: move("enemy_raptors")} if step == 0 else {})
+        rows.append((me.pos, foe.pos, sees(world, 0, foe.pos), struck(world, BLUE_TOP, RED_JUNGLE), me.outcome))
+    return rows
+
+
+def test_a_fighter_goes_where_its_team_last_saw_the_target_wherever_the_target_went_on_the_tick_it_left_the_view():
+    rows, slowed = step_behind_the_wall(False), step_behind_the_wall(True)
+    start, last_seen = over_the_wall(None, 0.30), over_the_wall(None, 0.47)
+    reach = capability("top", 1, 0).attack_range
+    assert not any(seen for _, _, seen, _, _ in rows + slowed), "the wall hides the jungler from the first tick on in both worlds"
+    assert all(one[1] != other[1] for one, other in zip(rows[:4], slowed[:4])), "the jungler is in two different places"
+    # Seen from where the top laner stood, the two places ask for two different walks, so a walk toward either shows.
+    assert RIFT.distance(start, rows[0][1]) - reach > 170.0 > RIFT.distance(start, slowed[0][1]) - reach > RIFT.distance(start, last_seen) - reach > 0
+    assert [(row[0], row[3], row[4]) for row in rows] == [(row[0], row[3], row[4]) for row in slowed]
+    assert rows[0][0] != start and RIFT.distance(rows[0][0], last_seen) == pytest.approx(reach), "it walked into its range of the last place seen"
+    assert all(row[0] == rows[0][0] for row in rows) and rows[-1][4] is Outcome.LOST
+
+
+def test_a_faster_fighter_keeps_hitting_a_target_that_walks_away_in_its_view():
+    """The jungler has no mana, so no lockdown slows the carry. It is the faster of the two by 10 units a tick."""
+    world = calm({BLUE_JUNGLE: mid(-150.0), RED_CARRY: mid(0.0)}, towers=False)
+    me, foe = world.champions[BLUE_JUNGLE], world.champions[RED_CARRY]
+    me.mana = 0.0
+    assert capability_of(me).move_speed - capability_of(foe).move_speed == 20.0
+    world.step()
+    left = foe.pos
+    for step in range(16):
+        submit(world, {BLUE_JUNGLE: fight(CARRY), RED_CARRY: move("own_base")} if step == 0 else {})
+        assert struck(world, BLUE_JUNGLE, RED_CARRY) and sees(world, 0, foe.pos), f"tick {step}"
+        assert gap(world, BLUE_JUNGLE, RED_CARRY) <= capability_of(me).attack_range + 1e-6
+        assert not any(hit.slow for hit in events(world, Hit))
+        heal(world)
+    assert RIFT.distance(left, foe.pos) == pytest.approx(16 * capability_of(foe).move_speed * TICK_S), "the carry walked at full speed all the way"
 
 
 def test_a_target_seen_again_before_the_fighter_arrives_is_fought_again_and_no_outcome_is_recorded():
@@ -886,12 +941,196 @@ def test_a_champion_that_switches_from_a_camp_to_the_lane_has_no_ready_attack_an
     submit(world, {BLUE_CARRY: act(Kind.CAMP, "own_raptors"), RED_TOP: fight(CARRY)})
     world.step()
     me, foe = world.champions[BLUE_CARRY], world.champions[RED_TOP]
-    assert full - world.camps[camp].hp == pytest.approx(2 * capability_of(me).camp_dps * TICK_S)
+    can = capability_of(me)
+    assert full - world.camps[camp].hp == pytest.approx(can.camp_dps / can.attack_speed + 2 * can.camp_dps * TICK_S), "the attack that was ready, and two ticks"
     assert struck(world, RED_TOP, BLUE_CARRY) and not struck(world, BLUE_CARRY, RED_TOP), "its attack is on the camp"
     assert me.attack_credit == 0.0
     left = world.camps[camp].hp
     submit(world, {BLUE_CARRY: HOLD})
     assert struck(world, BLUE_CARRY, RED_TOP) and world.camps[camp].hp == left, "holding, it hits back and leaves the camp alone"
+
+
+def heal(world: World) -> None:
+    """Every living champion back to full health, so that a long exchange kills nobody and changes no level."""
+    for c in world.champions:
+        if c.hp > 0:
+            c.hp = capability_of(c).max_hp
+
+
+def attacks(world: World, seat: int, script: list[int]) -> list[tuple[dict, float, float]]:
+    """Give a champion one intent per tick. Returns per tick the attacks it delivered by class of target, and its
+    attack credit before and after the tick.
+
+    A hit on a tower is one attack, and so is a hit on a minion: each kills one of the minions that these worlds
+    hold, which have 1 health. Damage on a champion or on a camp is counted in attacks of the rate's damage over
+    one attack period. Nothing else in these worlds damages a tower or a camp.
+    """
+    me = world.champions[seat]
+    can = capability_of(me)
+    rows = []
+    for intent in script:
+        credit = me.attack_credit
+        camps = [camp.hp for camp in world.camps]
+        submit(world, {seat: intent})
+        assert capability_of(me) == can
+        delivered = {"champion": sum(hit.damage for hit in events(world, Hit) if hit.attacker == seat) / (can.champion_dps / can.attack_speed),
+                     "camp": sum(max(0.0, was - camp.hp) for was, camp in zip(camps, world.camps)) / (can.camp_dps / can.attack_speed),
+                     "minions": float(sum(death.killer == seat for death in events(world, MinionDeath))),
+                     "tower": float(len(events(world, TowerDamage)))}
+        rows.append((delivered, credit, me.attack_credit))
+        heal(world)
+    return rows
+
+
+def at_the_raptors(seat: int = BLUE_CARRY, level: int = 1) -> tuple[World, dict]:
+    """A champion at the blue Raptors, which are up, with the enemy top laner beside it."""
+    node = "blue_raptors"
+    camp = next(i for i, site in enumerate(SITES) if site.node == node)
+    world = calm({seat: RIFT.at(node), RED_TOP: RIFT.at(node)})
+    grow(world, seat, level)
+    until(lambda: world.camps[camp].hp > 0, world.step)
+    world.step()
+    return world, {"camp": act(Kind.CAMP, "own_raptors"), "champion": fight(TOP)}
+
+
+def hold_line(world: World) -> float:
+    return world.lanes["mid"].towers[0][0].s + TOWER_RANGE + HOLD_MARGIN - MELEE_REACH
+
+
+def wave_at_the_hold_line(world: World, foe: int) -> dict:
+    """Put twelve red caster minions with 1 health, and an enemy champion, in a carry's range of the hold line of
+    blue's mid lane. Returns the orders that send a blue champion's attack to each."""
+    sim, line = world.lanes["mid"], hold_line(world)
+    sim.add_minion(1, Minion.CASTER, line + 300.0, count=12)
+    for m in sim.minions[1]:
+        m.hp = 1.0
+    world.champions[foe].pos = RIFT.lane_pos("mid", line + 400.0)
+    return {"minions": lane("mid", "thin", "hold"), "champion": fight(foe % 5)}
+
+
+def on_the_hold_line(level: int = 1) -> tuple[World, dict]:
+    world = calm({})
+    world.champions[BLUE_CARRY].pos = RIFT.lane_pos("mid", hold_line(world))
+    grow(world, BLUE_CARRY, level)
+    orders = wave_at_the_hold_line(world, RED_TOP)
+    world.step()
+    return world, orders
+
+
+def at_the_red_tower(level: int = 1) -> tuple[World, dict]:
+    """A carry in its range of red's outer mid tower and of an enemy support under it."""
+    world = calm({})
+    grow(world, BLUE_CARRY, level)
+    tower = world.lanes["mid"].towers[1][0]
+    world.champions[BLUE_CARRY].pos = RIFT.lane_pos("mid", tower.s - 500.0)
+    world.champions[RED_SUPPORT].pos = RIFT.lane_pos("mid", tower.s - 100.0)
+    world.step()
+    return world, {"tower": act(Kind.SIEGE, "mid"), "champion": fight(SUPPORT)}
+
+
+STAGES = {"a camp and a champion": at_the_raptors, "minions and a champion": on_the_hold_line, "a tower and a champion": at_the_red_tower}
+# One letter per tick: the champion's attack goes to the camp, the minions, or the tower on `o`, and to the enemy
+# champion on `c`.
+SWITCHES = "ooooccooooocoooccccooooo"
+
+
+@pytest.mark.parametrize("credit", [0.0, 0.4, 1.0])
+@pytest.mark.parametrize("stage", STAGES.values(), ids=STAGES.keys())
+def test_a_champion_that_always_has_a_target_delivers_exactly_the_attacks_that_its_credit_and_its_attack_speed_give(stage, credit):
+    world, orders = stage(level=18)
+    me = world.champions[BLUE_CARRY]
+    other = next(name for name in orders if name != "champion")
+    me.attack_credit = credit
+    rows = attacks(world, BLUE_CARRY, [orders[other if step == "o" else "champion"] for step in SWITCHES])
+    earned = capability_of(me).attack_speed * TICK_S
+    total = Counter()
+    for tick, (delivered, before, after) in enumerate(rows):
+        assert sum(delivered.values()) + after == pytest.approx(before + earned), f"tick {tick}: what it had and earned is what it delivered and kept"
+        total.update(delivered)
+    assert sum(total.values()) == pytest.approx(credit + len(rows) * earned - me.attack_credit)
+    assert me.attack_credit < 1.0, "it is short of the whole budget by less than one attack"
+    assert {name for name, count in total.items() if count} == {other, "champion"} and total[other] >= 2 and total["champion"] >= 2
+
+
+def test_over_camp_champion_minion_and_idle_ticks_a_champion_never_delivers_more_attacks_than_its_credit_and_its_attack_speed_give():
+    world, orders = at_the_raptors(level=18)
+    me = world.champions[BLUE_CARRY]
+    began = me.attack_credit
+    assert began == 1.0
+    script = [orders["camp"]] * 3 + [fight(TOP)] * 2 + [HOLD] * 3 + [orders["camp"]] * 2
+    rows = attacks(world, BLUE_CARRY, script)
+    to_the_line = lane("mid", "thin", "hold")
+    walked = until(lambda: me.pos == RIFT.lane_pos("mid", hold_line(world)), lambda: rows.extend(attacks(world, BLUE_CARRY, [to_the_line])), limit=40)
+    orders |= wave_at_the_hold_line(world, RED_MID)
+    script = [orders["minions"]] * 6 + [fight(MID)] * 3 + [orders["minions"]] * 4 + [HOLD] * 2 + [fight(MID)] * 2
+    rows += attacks(world, BLUE_CARRY, script)
+    earned = capability_of(me).attack_speed * TICK_S
+    total, so_far = Counter(), 0.0
+    for tick, (delivered, before, after) in enumerate(rows):
+        so_far += sum(delivered.values())
+        assert so_far <= began + (tick + 1) * earned + 1e-9, f"tick {tick}"
+        assert sum(delivered.values()) + after <= before + earned + 1e-9, f"tick {tick}"
+        total.update(delivered)
+    assert total["camp"] > 3 and total["champion"] > 3 and total["minions"] >= 3 and total["tower"] == 0
+    assert walked > 8 and so_far < began + len(rows) * earned - 3, "a ready attack earns nothing while the champion walks or holds"
+
+
+@pytest.mark.parametrize("seat", range(5), ids=ROLES)
+def test_a_ready_attack_lands_whole_on_the_first_tick_against_a_champion_and_against_a_camp(seat):
+    for target, rate_of in (("champion", lambda can: can.champion_dps), ("camp", lambda can: can.camp_dps)):
+        world, orders = at_the_raptors(seat)
+        me = world.champions[seat]
+        can = capability_of(me)
+        rate = rate_of(can)
+        assert me.attack_credit == 1.0, "it waited, so its attack is ready"
+        dealt = []
+        for _ in range(3):
+            before = world.camps[champions.CAMP_OF[0][orders["camp"]]].hp
+            submit(world, {seat: orders[target]})
+            on_champion = sum(hit.damage for hit in events(world, Hit) if hit.attacker == seat)
+            on_camp = before - world.camps[champions.CAMP_OF[0][orders["camp"]]].hp
+            dealt.append(on_champion if target == "champion" else on_camp)
+            assert (on_camp if target == "champion" else on_champion) == 0.0
+            heal(world)
+        assert dealt == pytest.approx([rate / can.attack_speed + rate * TICK_S, rate * TICK_S, rate * TICK_S]), target
+    carry = capability("carry", 1, 0)
+    assert carry.champion_dps / carry.attack_speed + carry.champion_dps * TICK_S == pytest.approx(135.0)
+
+
+def test_a_champion_that_has_just_hit_a_minion_deals_less_to_a_champion_on_the_next_tick_than_one_that_idled():
+    def then_fights(first: str) -> float:
+        world, orders = on_the_hold_line()
+        me = world.champions[BLUE_CARRY]
+        me.attack_credit = 1.0
+        (delivered, _, _), = attacks(world, BLUE_CARRY, [orders["minions"] if first == "hits a minion" else HOLD])
+        assert delivered == {"champion": 0.0, "camp": 0.0, "minions": 1.0 if first == "hits a minion" else 0.0, "tower": 0.0}
+        submit(world, {BLUE_CARRY: orders["champion"]})
+        hit, = [hit for hit in events(world, Hit) if hit.attacker == BLUE_CARRY]
+        return hit.damage
+
+    after_a_hit, after_idling = then_fights("hits a minion"), then_fights("holds")
+    assert after_a_hit < after_idling
+    assert after_a_hit == pytest.approx(70.0), "two ticks of 70 per second: the tick of the hit earned one, and the fight's tick the other"
+    assert after_idling == pytest.approx(135.0), "one attack's worth of 70 / 0.7, and the tick"
+
+
+@pytest.mark.parametrize("credit", [0.0, 0.4, 1.0])
+def test_the_damage_on_a_champion_over_six_seconds_is_the_same_at_two_tick_lengths(credit):
+    dealt = {}
+    for tick_s in (0.25, 0.5):
+        world = calm({BLUE_CARRY: mid(-200.0), RED_TOP: mid(200.0)}, Config(tick_s=tick_s, decision_ticks=1))
+        world.step()
+        world.champions[BLUE_CARRY].attack_credit = credit
+        total = 0.0
+        for step in range(round(6.0 / tick_s)):
+            submit(world, {BLUE_CARRY: fight(TOP)} if step == 0 else {})
+            total += sum(hit.damage for hit in events(world, Hit) if hit.attacker == BLUE_CARRY)
+            heal(world)
+        dealt[tick_s] = total
+    can = capability("carry", 1, 0)
+    assert abs(dealt[0.25] - dealt[0.5]) <= can.champion_dps * 0.25, "within the worth of one of the shorter ticks"
+    assert dealt[0.5] == pytest.approx(can.champion_dps * 6.0 + credit * can.champion_dps / can.attack_speed)
+    assert dealt[0.25] == pytest.approx(dealt[0.5])
 
 
 INTENTS = {"fight": fight(SUPPORT), "siege": act(Kind.SIEGE, "mid"), "push": lane("mid", "push"), "hold": HOLD, "move": move("mid_river")}
@@ -972,7 +1211,7 @@ def test_changing_every_field_of_every_enemy_that_a_team_does_not_see_changes_no
     assert 0 < len(hidden) < 5, "the team must see some enemies and not others"
     before, enemy_before = team_knowledge(world, team), team_knowledge(world, 1 - team)
     for enemy in hidden:
-        for name, value in CHANGED.items():
+        for name, value in hidden_changes(enemy).items():
             assert getattr(enemy, name) != value
             setattr(enemy, name, value)
     assert team_knowledge(world, team) == before
@@ -992,14 +1231,24 @@ def test_an_enemy_that_moves_where_a_team_does_not_see_changes_nothing_the_team_
     for seat in hidden:
         twin.champions[seat].pos = FOUNTAIN[1 - team]
     hold = [HOLD if c.hp > 0 else KEEP for c in world.champions]
+
+    def in_view() -> bool:
+        return any(sees(game, team, game.champions[seat].pos) for game in (world, twin) for seat in hidden)
+
+    unseen_steps = 0
     for step in range(40):
+        if in_view():
+            # A wave of the team marched up to an enemy that holds in a lane in one world and is gone in the other.
+            break
         assert team_knowledge(twin, team) == team_knowledge(world, team), f"step {step}"
         for game in (world, twin):
             game.step(hold if step == 0 else None)
-    assert [c.pos for c in twin.champions] != [c.pos for c in world.champions]
-    twin.champions[hidden[0]].pos = next(c.pos for c in world.champions[team * 5:team * 5 + 5] if c.hp > 0)
-    for game in (world, twin):
-        game.step()
+        unseen_steps += 1
+    assert unseen_steps >= 20 and [c.pos for c in twin.champions] != [c.pos for c in world.champions]
+    if not in_view():
+        twin.champions[hidden[0]].pos = next(c.pos for c in world.champions[team * 5:team * 5 + 5] if c.hp > 0)
+        for game in (world, twin):
+            game.step()
     assert team_knowledge(twin, team) != team_knowledge(world, team), "sight of the moved enemy shows the change"
 
 
@@ -1011,7 +1260,8 @@ DUELS = {
     "two die on one tick": [("a", 0, TOP, -50.0, ("fight", "c")), ("b", 0, JUNGLE, -60.0, ("fight", "c")), ("c", 1, MID, 50.0, ("fight", "a")),
                             ("d", 1, CARRY, 60.0, ("fight", "a"))],
 }
-LOW = {"both die on one tick": {"a": 1.0, "b": 1.0}, "two die on one tick": {"a": 1.0, "c": 1.0}}
+# In the duel the mid laner starts hurt. At full health the two would kill each other on one tick.
+LOW = {"duel": {"b": 400.0}, "both die on one tick": {"a": 1.0, "b": 1.0}, "two die on one tick": {"a": 1.0, "c": 1.0}}
 KILLS = {"duel": 1, "kite": 1, "two on one": 1, "both die on one tick": 2, "two die on one tick": 2}
 
 

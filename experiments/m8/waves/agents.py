@@ -1,9 +1,13 @@
-"""Wave experiments through the action interface.
+"""Wave experiments through the action interface and the observation.
 
 Every run is a full `World` with ten champions. A plan only chooses an entry of `ACTIONS` on a decision tick, from
-what a laner at its wave can know: its own health, its own caster kills, and the minions near the front. The world
-does the rest: the walk, the stance, the hits, minion damage, death. So every behaviour reported here is one that
-an agent could produce with the same actions.
+what its champion's observation holds: its own health, and its lane as its team sees it. The world does the rest:
+the walk, the stance, the hits, minion damage, death. So every behaviour reported here is one that an agent could
+produce with the same actions and the same information.
+
+A champion is at a lane only if a `Laner` plays it. Every other champion stays on its fountain, out of the lane's
+XP range and out of every minion's and tower's reach. A laner whose plan says `leave` walks back to its fountain.
+One whose plan says `tower` stands at its own outer tower, where it still gains XP and may be hit.
 
 The champions are the five profiles of `riftgame.champions` at a chosen level. Their numbers are placeholders.
 """
@@ -11,13 +15,15 @@ The champions are the five profiles of `riftgame.champions` at a chosen level. T
 from dataclasses import dataclass
 from typing import Callable
 
-from experiments.m8.waves.harness import BLUE, RED, Row, Trace, crowd, line, outer, under_tower
-from riftgame.champions import ACTIONS, HOME, KEEP, LEVEL_XP, OUTER_TOWER, ROLES, Action, Income, Kind, capability_of, level_of
-from riftgame.lanes import M8_LANE, TOWER_RANGE, LaneRules, LaneSim, MinionDeath
+from experiments.m8.waves.harness import BLUE, RED, Row, Trace, crowd, line, outer
+from riftgame.champions import ACTIONS, HOME, KEEP, LANES, LEVEL_XP, OUTER_TOWER, ROLES, Action, Income, Kind, capability_of, level_of
+from riftgame.lanes import M8_LANE, TOWER_RANGE, ChampionDamage, LaneGeometry, LaneRules, LaneSim, MinionDeath
 from riftgame.lanes import Kind as Minion
+from riftgame.vision import Observation, observe_team
 from riftgame.world import Config, World
 
 HOLD_SEAT = ACTIONS.index(Action(Kind.HOLD))
+TO_FOUNTAIN = ACTIONS.index(Action(Kind.MOVE, "own_fountain"))
 RETREAT_BELOW = 0.30
 RETURN_ABOVE = 0.60
 WAVE_SPAN = 1500.0
@@ -33,7 +39,10 @@ def seat_of(team: int, role: str) -> int:
 
 @dataclass(frozen=True, slots=True)
 class Seen:
-    """What a laner knows about its wave when it decides. Counts are minions within 1500 units of the front."""
+    """What a laner knows about its wave when it decides, all of it from its observation.
+
+    `own` counts its team's minions within 1500 units behind their lead minion. `foe` counts the enemy minions
+    that its team sees now within 1500 units behind the enemy lead, and is 0 while the team sees none."""
 
     time_s: float
     contact: bool
@@ -49,10 +58,11 @@ Plan = Callable[[Seen], tuple[str, str] | str]
 
 
 def staged(seed: int, levels: dict[str, int], start_s: float = 0.0, config: Config = Config(), rules: LaneRules = M8_LANE) -> World:
-    """A world whose named roles start at their outer towers at the given level, on both teams, so that no team leads.
+    """A world whose named roles have the given level on both teams, so that no team leads. Everyone is on its
+    fountain. `at_tower` puts a champion at its lane.
 
-    With `start_s` the clock and the lanes start there, with empty lanes. Everyone else holds on its fountain.
-    `rules` swaps the lane rules, for a diagnostic.
+    With `start_s` the clock and the lanes start there, with empty lanes. `rules` swaps the lane rules, for a
+    diagnostic.
     """
     world = World(config, seed)
     if start_s or rules != M8_LANE:
@@ -63,20 +73,43 @@ def staged(seed: int, levels: dict[str, int], start_s: float = 0.0, config: Conf
             c = world.champions[seat_of(team, role)]
             c.xp = LEVEL_XP[level - 2] if level > 1 else 0.0
             can = capability_of(c)
-            c.hp, c.mana, c.pos = can.max_hp, can.max_mana, OUTER_TOWER[team][HOME[c.role]]
+            c.hp, c.mana = can.max_hp, can.max_mana
     return world
 
 
+def at_tower(world: World, seat: int) -> None:
+    """Start a champion at its own outer tower, where a laner stands when the first wave arrives."""
+    c = world.champions[seat]
+    c.pos = OUTER_TOWER[c.team][HOME[c.role]]
+
+
+def scout(o: Observation, lane: str, team: int, geometry: LaneGeometry, caster_kills: int = 0) -> Seen:
+    """A laner's view of its wave, read from its observation alone."""
+    view = o.lanes[LANES.index(lane)]
+
+    def framed(s: float) -> float:
+        return s if team == BLUE else geometry.length - s
+
+    foe_lead = view.enemy_lead if view.enemy_age_s == 0.0 else None
+    return Seen(o.time_s, view.contact, sum(view.own_near), sum(view.enemy_near) if foe_lead is not None else 0, o.me.hp / o.me.max_hp, caster_kills,
+                foe_lead is not None and abs(foe_lead - framed(outer(geometry, team))) <= TOWER_RANGE,
+                view.own_lead is not None and abs(view.own_lead - framed(outer(geometry, 1 - team))) <= TOWER_RANGE)
+
+
 class Laner:
-    """One seat under a plan. The plan names a mode and a stand, or one of the words `leave` and `stay`.
+    """One seat under a plan. The plan names a mode and a stand, or one of the words `leave`, `tower`, and `stay`.
 
     Below 30 percent health the laner walks to its own outer tower and comes back above 60 percent. That is a choice
     of actions too: a `MOVE` to the tower node, then the plan's `LANE` action again.
+
+    `act` reads the observation only. `watch` reads the world: it keeps the experiment's record of the champion,
+    and it counts the champion's own caster kills, which a champion knows.
     """
 
-    def __init__(self, seat: int, plan: Plan, retreats: bool = True):
+    def __init__(self, world: World, seat: int, plan: Plan, retreats: bool = True):
         self.seat, self.plan, self.can_retreat = seat, plan, retreats
         self.lane = HOME[seat % 5]
+        self.geometry = world.lanes[self.lane].geometry
         self.home = ACTIONS.index(Action(Kind.MOVE, f"own_{self.lane}_t1"))
         self.caster_kills = 0
         self.retreating = False
@@ -84,6 +117,10 @@ class Laner:
         self.lowest = 1.0
         self.deaths = 0
         self.was_alive = True
+        self.minion_damage = 0.0
+        self.hits_before_contact = 0
+        self.contact_seen = False
+        at_tower(world, seat)
 
     def watch(self, world: World) -> None:
         c = world.champions[self.seat]
@@ -91,13 +128,17 @@ class Laner:
         self.deaths += self.was_alive and not alive
         self.was_alive = alive
         self.lowest = min(self.lowest, c.hp / capability_of(c).max_hp)
+        blows = [e for _, e in world.events if type(e) is ChampionDamage and e.seat == self.seat]
+        self.minion_damage += sum(e.damage for e in blows)
+        self.contact_seen = self.contact_seen or world.lanes[self.lane].front().s is not None
+        self.hits_before_contact += 0 if self.contact_seen else len(blows)
         self.caster_kills += sum(type(e) is MinionDeath and e.killer == self.seat and e.kind is Minion.CASTER for _, e in world.events)
 
-    def act(self, world: World) -> int:
-        c = world.champions[self.seat]
-        if c.hp <= 0:
+    def act(self, o: Observation) -> int:
+        me = o.me
+        if me.hp <= 0:
             return KEEP
-        health = c.hp / capability_of(c).max_hp
+        health = me.hp / me.max_hp
         if self.retreating:
             self.retreating = health < RETURN_ABOVE
         elif self.can_retreat and health < RETREAT_BELOW:
@@ -105,40 +146,44 @@ class Laner:
             self.retreats += 1
         if self.retreating:
             return self.home
-        choice = self.plan(scout(world, self.seat, self.caster_kills))
+        choice = self.plan(scout(o, self.lane, self.seat // 5, self.geometry, self.caster_kills))
         if choice == "leave":
+            return TO_FOUNTAIN
+        if choice == "tower":
             return self.home
         if choice == "stay":
             return HOLD_SEAT
         return lane_action(self.lane, *choice)
 
     def report(self, world: World) -> dict:
+        """What the plan cost and earned. `minion_blows_before_first_contact` counts minion blows on the champion
+        before the lane's waves first met, which the first wave of the real game would not deal."""
         c = world.champions[self.seat]
         return {"champion_lowest_health": self.lowest, "champion_retreats": self.retreats, "champion_deaths": self.deaths,
-                "minion_gold": c.earned[Income.MINION], "level": level_of(c.xp)}
+                "minion_damage_taken": self.minion_damage, "minion_blows_before_first_contact": self.hits_before_contact,
+                "minion_gold": c.earned[Income.MINION], "xp": c.xp, "level": level_of(c.xp)}
 
 
-def scout(world: World, seat: int, caster_kills: int = 0) -> Seen:
-    c = world.champions[seat]
-    team = seat // 5
-    sim = world.lanes[HOME[seat % 5]]
-    front = sim.front()
-    at = line(sim.geometry, front)
-    return Seen(world.tick * world.config.tick_s, front.s is not None, crowd(sim, team, at), crowd(sim, 1 - team, at),
-                c.hp / capability_of(c).max_hp, caster_kills, under_tower(sim.geometry, team, front.lead[1 - team]),
-                under_tower(sim.geometry, 1 - team, front.lead[team]))
+NO_LANER = {"champion_lowest_health": None, "champion_retreats": None, "champion_deaths": None, "minion_damage_taken": None,
+            "minion_blows_before_first_contact": None, "minion_gold": None, "xp": None, "level": None}
 
 
 def play(world: World, lane: str, laners: list[Laner], until_s: float, stop=lambda row: False) -> Trace:
-    """Run the world under the laners' plans and return the lane's trace. Seats without a plan keep holding."""
+    """Run the world under the laners' plans and return the lane's trace. Seats without a plan keep holding, on
+    their fountain."""
     sim = world.lanes[lane]
     config = world.config
     rows, events = [], []
     by_seat = {laner.seat: laner for laner in laners}
+    teams = sorted({seat // 5 for seat in by_seat})
     while world.tick * config.tick_s < until_s - 1e-9:
         actions = None
         if world.tick % config.decision_ticks == 0:
-            actions = [by_seat[seat].act(world) if seat in by_seat else KEEP for seat in range(10)]
+            actions = [KEEP] * 10
+            for team in teams:
+                for role, o in enumerate(observe_team(world, team)):
+                    if team * 5 + role in by_seat:
+                        actions[team * 5 + role] = by_seat[team * 5 + role].act(o)
         world.step(actions)
         for laner in laners:
             laner.watch(world)
@@ -181,14 +226,15 @@ def until_crash(plan: Plan, then: str = "leave") -> Plan:
     return choose
 
 
-def until_at_own_tower(plan: Plan, then: Plan) -> Plan:
-    """Follow `plan` until the enemy wave is in the laner's own outer tower's range, then follow `then`."""
-    arrived = []
+def from_wave(number: int, plan: Plan, before: Plan, wave_s: float = 30.0) -> Plan:
+    """Follow `before` until the `number`th waves are due to meet, then follow `plan`. The first waves meet when
+    the laner first sees contact, and each later pair one wave interval after the pair before it."""
+    met = []
 
     def choose(seen: Seen):
-        if seen.foe_at_own_tower:
-            arrived.append(seen.time_s)
-        return then(seen) if arrived else plan(seen)
+        if not met and seen.contact:
+            met.append(seen.time_s)
+        return plan(seen) if met and seen.time_s >= met[0] + (number - 1) * wave_s else before(seen)
 
     return choose
 

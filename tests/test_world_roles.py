@@ -8,15 +8,16 @@ from riftgame.harness import roamer, tick
 from riftgame.vision import legal_mask, observe
 from riftgame.world import Config, World
 from worlds import (BLUE_CARRY, BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, RED_CARRY, RED_JUNGLE, RED_MID,
-                    RED_SUPPORT, RED_TOP, StubLane, act, hazard, lane_place, move, staged, submit, until)
+                    RED_SUPPORT, RED_TOP, act, hazard, lane_place, move, staged, submit, until)
 
 LANERS = [seat for seat in SEATS if HOME[seat % 5] is not None]
 JUNGLERS = [BLUE_JUNGLE, RED_JUNGLE]
-OPEN_KINDS = (Kind.HOLD, Kind.RECALL, Kind.MOVE, Kind.CAMP, Kind.SIEGE)
+OPEN_KINDS = (Kind.HOLD, Kind.RECALL, Kind.MOVE, Kind.CAMP, Kind.SIEGE, Kind.WARD)
 
 
 def open_actions(role: int, lanes) -> set[int]:
-    """Every action that needs no enemy in view, with LANE limited to `lanes`, for a champion that holds."""
+    """Every action that needs no enemy in view, with LANE limited to `lanes`, for a champion that holds and has
+    a ward charge."""
     return {KEEP} | {i for i, a in enumerate(ACTIONS)
                      if a.kind in OPEN_KINDS or (a.kind is Kind.LANE and a.target[0] in lanes)
                      or (a.kind is Kind.FOLLOW and a.target != role)}
@@ -138,7 +139,7 @@ def test_with_the_restriction_switched_off_a_laner_keeps_its_open_mask_however_l
     for _ in range(400):
         world.step()
     seen = observe(world, BLUE_MID).me
-    assert (seen.home, seen.duty, seen.allowance) == ("mid", None, 90.0)
+    assert (seen.home, seen.duty, seen.allowance) == ("mid", None, 90.0) and seen.ward_charges > 0
     assert legal(world, BLUE_MID) == open_actions(BLUE_MID, ["mid"])
 
 
@@ -276,7 +277,7 @@ def test_assignments_end_at_the_configured_time_and_then_every_lane_is_open():
 @pytest.mark.parametrize("fallen_team", [0, 1])
 def test_a_fallen_outer_tower_ends_the_assignments_of_that_lane_alone(fallen_team):
     world = World()
-    world.lanes["bot"] = StubLane(fallen_team)
+    world.lanes["bot"].towers[fallen_team][0].hp = 0.0
     for seat in (BLUE_CARRY, BLUE_SUPPORT, RED_CARRY, RED_SUPPORT):
         world.champions[seat].allowance = -5.0
         assert observe(world, seat).me.home is None
@@ -288,7 +289,7 @@ def test_a_fallen_outer_tower_ends_the_assignments_of_that_lane_alone(fallen_tea
 
 def test_a_fallen_outer_tower_ends_no_assignment_when_the_config_says_so():
     world = World(Config(outer_tower_ends_assignment=False))
-    world.lanes["bot"] = StubLane(0)
+    world.lanes["bot"].towers[0][0].hp = 0.0
     assert observe(world, BLUE_CARRY).me.home == "bot"
     assert legal(world, BLUE_CARRY) == open_actions(BLUE_CARRY % 5, ["bot"])
 

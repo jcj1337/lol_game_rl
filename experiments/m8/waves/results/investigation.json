@@ -1,16 +1,17 @@
 {
- "ruleset": "ref-26.22-r1+m8.2",
+ "ruleset": "ref-26.22-r1+m8.3",
  "seeds": [ 0, 1, 2, 3, 4 ],
  "dt": 0.5,
  "variants": {
-  "m8 lane": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_resolution": false },
-  "m7 rules": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": false, "call_for_help": false, "pushing_advantage": false, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": false, "tower_shelter": false, "first_wave_call": false, "attack_timing": false, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_resolution": true },
-  "blows land at once": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": false, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_resolution": false },
-  "ranges along the lane": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": false, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_resolution": false },
-  "melee cap 2": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 2, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_resolution": false },
-  "detour of 0.3 s": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.3, "m7_resolution": false },
-  "detour of 0.6 s": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.6, "m7_resolution": false },
-  "flat damage": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": false, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_resolution": false }
+  "m8 lane": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": false, "m7_resolution": false },
+  "m7 rules": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": false, "call_for_help": false, "pushing_advantage": false, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": false, "tower_shelter": false, "first_wave_call": false, "attack_timing": false, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": true, "m7_resolution": true },
+  "M7's route graph": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": true, "m7_resolution": false },
+  "blows land at once": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": false, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": false, "m7_resolution": false },
+  "ranges along the lane": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": false, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": false, "m7_resolution": false },
+  "melee cap 2": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 2, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": false, "m7_resolution": false },
+  "detour of 0.3 s": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.3, "m7_map": false, "m7_resolution": false },
+  "detour of 0.6 s": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": true, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.6, "m7_map": false, "m7_resolution": false },
+  "flat damage": { "champion_aggro": true, "lateral_slots": true, "current_hp_damage": false, "side_lane_speed": true, "call_for_help": true, "pushing_advantage": true, "melee_cap": 0, "minion_damage_scale": 1.0, "straight_ranges": true, "tower_shelter": true, "first_wave_call": true, "attack_timing": true, "free_cancel": false, "missiles_turn": false, "detour_s": 0.0, "m7_map": false, "m7_resolution": false }
  },
  "fights": {
   "m8 lane": {
@@ -24,6 +25,12 @@
    "6v7 one caster": { "fight_s": 18.0, "blue_left": 0, "red_left": 4 },
    "6v9 three casters": { "fight_s": 13.5, "blue_left": 0, "red_left": 9 },
    "6v9 three melee": { "fight_s": 12.5, "blue_left": 0, "red_left": 8 }
+  },
+  "M7's route graph": {
+   "6v6": { "fight_s": 28.0, "blue_left": 0, "red_left": 0 },
+   "6v7 one caster": { "fight_s": 22.0, "blue_left": 0, "red_left": 4 },
+   "6v9 three casters": { "fight_s": 15.5, "blue_left": 0, "red_left": 8 },
+   "6v9 three melee": { "fight_s": 14.5, "blue_left": 0, "red_left": 8 }
   },
   "blows land at once": {
    "6v6": { "fight_s": 25.5, "blue_left": 0, "red_left": 0 },
@@ -78,6 +85,13 @@
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
     "wave_1_health_left_in_minions": { "median": 0.402, "mean": 0.402, "min": 0.402, "max": 0.402, "n": 5 }
    },
+   "M7's route graph": {
+    "first_blow_t": { "median": 52.5, "mean": 52.5, "min": 52.5, "max": 52.5, "n": 5 },
+    "alone_s": { "median": 33.0, "mean": 33.0, "min": 33.0, "max": 33.0, "n": 5 },
+    "wave_2_joins_after_s": { "median": 29.0, "mean": 29.0, "min": 29.0, "max": 29.0, "n": 5 },
+    "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
+    "wave_1_health_left_in_minions": { "median": 1.368, "mean": 1.368, "min": 1.368, "max": 1.368, "n": 5 }
+   },
    "blows land at once": {
     "first_blow_t": { "median": 52.0, "mean": 52.0, "min": 52.0, "max": 52.0, "n": 5 },
     "alone_s": { "median": 31.0, "mean": 31.0, "min": 31.0, "max": 31.0, "n": 5 },
@@ -124,10 +138,10 @@
   "top": {
    "m8 lane": {
     "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
-    "alone_s": { "median": 34.5, "mean": 34.5, "min": 34.5, "max": 34.5, "n": 5 },
+    "alone_s": { "median": 33.5, "mean": 33.5, "min": 33.5, "max": 33.5, "n": 5 },
     "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
-    "wave_1_health_left_in_minions": { "median": 3.672, "mean": 3.672, "min": 3.672, "max": 3.672, "n": 5 }
+    "wave_1_health_left_in_minions": { "median": 4.107, "mean": 4.107, "min": 4.107, "max": 4.107, "n": 5 }
    },
    "m7 rules": {
     "first_blow_t": { "median": 61.0, "mean": 61.0, "min": 61.0, "max": 61.0, "n": 5 },
@@ -136,44 +150,51 @@
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
     "wave_1_health_left_in_minions": { "median": 0.402, "mean": 0.402, "min": 0.402, "max": 0.402, "n": 5 }
    },
+   "M7's route graph": {
+    "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
+    "alone_s": { "median": 34.5, "mean": 34.5, "min": 34.5, "max": 34.5, "n": 5 },
+    "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
+    "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
+    "wave_1_health_left_in_minions": { "median": 3.672, "mean": 3.672, "min": 3.672, "max": 3.672, "n": 5 }
+   },
    "blows land at once": {
     "first_blow_t": { "median": 61.0, "mean": 61.0, "min": 61.0, "max": 61.0, "n": 5 },
-    "alone_s": { "median": 31.0, "mean": 31.0, "min": 31.0, "max": 31.0, "n": 5 },
+    "alone_s": { "median": 31.5, "mean": 31.5, "min": 31.5, "max": 31.5, "n": 5 },
     "wave_2_joins_after_s": { "median": 23.0, "mean": 23.0, "min": 23.0, "max": 23.0, "n": 5 },
-    "wave_1_minions_left_when_wave_2_joins": { "median": 5.0, "mean": 5.0, "min": 5.0, "max": 5.0, "n": 5 },
-    "wave_1_health_left_in_minions": { "median": 2.877, "mean": 2.877, "min": 2.877, "max": 2.877, "n": 5 }
+    "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
+    "wave_1_health_left_in_minions": { "median": 2.953, "mean": 2.953, "min": 2.953, "max": 2.953, "n": 5 }
    },
    "ranges along the lane": {
     "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
-    "alone_s": { "median": 33.0, "mean": 33.0, "min": 33.0, "max": 33.0, "n": 5 },
+    "alone_s": { "median": 33.5, "mean": 33.5, "min": 33.5, "max": 33.5, "n": 5 },
     "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
-    "wave_1_health_left_in_minions": { "median": 3.519, "mean": 3.519, "min": 3.519, "max": 3.519, "n": 5 }
+    "wave_1_health_left_in_minions": { "median": 4.107, "mean": 4.107, "min": 4.107, "max": 4.107, "n": 5 }
    },
    "melee cap 2": {
     "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
-    "alone_s": { "median": 34.5, "mean": 34.5, "min": 34.5, "max": 34.5, "n": 5 },
+    "alone_s": { "median": 33.5, "mean": 33.5, "min": 33.5, "max": 33.5, "n": 5 },
     "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
-    "wave_1_health_left_in_minions": { "median": 3.672, "mean": 3.672, "min": 3.672, "max": 3.672, "n": 5 }
+    "wave_1_health_left_in_minions": { "median": 4.107, "mean": 4.107, "min": 4.107, "max": 4.107, "n": 5 }
    },
    "detour of 0.3 s": {
     "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
-    "alone_s": { "median": 34.5, "mean": 34.5, "min": 34.5, "max": 34.5, "n": 5 },
+    "alone_s": { "median": 33.5, "mean": 33.5, "min": 33.5, "max": 33.5, "n": 5 },
     "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
-    "wave_1_health_left_in_minions": { "median": 3.672, "mean": 3.672, "min": 3.672, "max": 3.672, "n": 5 }
+    "wave_1_health_left_in_minions": { "median": 4.107, "mean": 4.107, "min": 4.107, "max": 4.107, "n": 5 }
    },
    "detour of 0.6 s": {
     "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
-    "alone_s": { "median": 34.5, "mean": 34.5, "min": 34.5, "max": 34.5, "n": 5 },
+    "alone_s": { "median": 33.5, "mean": 33.5, "min": 33.5, "max": 33.5, "n": 5 },
     "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
-    "wave_1_health_left_in_minions": { "median": 3.672, "mean": 3.672, "min": 3.672, "max": 3.672, "n": 5 }
+    "wave_1_health_left_in_minions": { "median": 4.107, "mean": 4.107, "min": 4.107, "max": 4.107, "n": 5 }
    },
    "flat damage": {
     "first_blow_t": { "median": 61.5, "mean": 61.5, "min": 61.5, "max": 61.5, "n": 5 },
-    "alone_s": { "median": 44.5, "mean": 44.2, "min": 43.0, "max": 44.5, "n": 5 },
+    "alone_s": { "median": 43.0, "mean": 43.0, "min": 43.0, "max": 43.0, "n": 5 },
     "wave_2_joins_after_s": { "median": 22.5, "mean": 22.5, "min": 22.5, "max": 22.5, "n": 5 },
     "wave_1_minions_left_when_wave_2_joins": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 },
     "wave_1_health_left_in_minions": { "median": 6.0, "mean": 6.0, "min": 6.0, "max": 6.0, "n": 5 }
@@ -184,30 +205,30 @@
   "top": {
    "m8 lane": {
     "blue": {
-     "wave 1": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 35.5 },
-     "wave 2": { "own tower edge": 20.5, "own hold line": 21.5, "centre": 24.5, "enemy tower edge": 29.0 },
+     "wave 1": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 2": { "own tower edge": 20.5, "own hold line": 21.5, "centre": 25.0, "enemy tower edge": 29.5 },
      "wave 3": { "own tower edge": 21.0, "own hold line": 21.5, "centre": 25.0, "enemy tower edge": 29.5 },
-     "wave 4": { "own tower edge": 21.0, "own hold line": 22.0, "centre": 25.0, "enemy tower edge": 30.0 }
+     "wave 4": { "own tower edge": 21.0, "own hold line": 22.0, "centre": 25.5, "enemy tower edge": 30.0 }
     },
     "red": {
      "wave 1": { "own tower edge": 26.5, "own hold line": 27.5, "centre": 31.0, "enemy tower edge": 36.0 },
-     "wave 2": { "own tower edge": 21.0, "own hold line": 21.5, "centre": 24.5, "enemy tower edge": 29.5 },
-     "wave 3": { "own tower edge": 21.0, "own hold line": 22.0, "centre": 25.0, "enemy tower edge": 29.5 },
-     "wave 4": { "own tower edge": 21.5, "own hold line": 22.0, "centre": 25.0, "enemy tower edge": 30.0 }
+     "wave 2": { "own tower edge": 21.0, "own hold line": 21.5, "centre": 25.0, "enemy tower edge": 29.5 },
+     "wave 3": { "own tower edge": 21.0, "own hold line": 22.0, "centre": 25.0, "enemy tower edge": 30.0 },
+     "wave 4": { "own tower edge": 21.5, "own hold line": 22.0, "centre": 25.5, "enemy tower edge": 30.5 }
     }
    },
    "m7 rules": {
     "blue": {
-     "wave 1": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 35.5 },
-     "wave 2": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 35.5 },
-     "wave 3": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 35.5 },
-     "wave 4": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 35.5 }
+     "wave 1": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 2": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 3": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 4": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 }
     },
     "red": {
-     "wave 1": { "own tower edge": 26.5, "own hold line": 27.5, "centre": 31.0, "enemy tower edge": 36.0 },
-     "wave 2": { "own tower edge": 26.5, "own hold line": 27.5, "centre": 31.0, "enemy tower edge": 36.0 },
-     "wave 3": { "own tower edge": 26.5, "own hold line": 27.5, "centre": 31.0, "enemy tower edge": 36.0 },
-     "wave 4": { "own tower edge": 26.5, "own hold line": 27.5, "centre": 31.0, "enemy tower edge": 36.0 }
+     "wave 1": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 2": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 3": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 },
+     "wave 4": { "own tower edge": 26.0, "own hold line": 27.0, "centre": 31.0, "enemy tower edge": 36.0 }
     }
    }
   },
@@ -253,20 +274,37 @@
    "most_melee_on_one_target": { "median": 2.0, "mean": 2.4, "min": 2.0, "max": 3.0, "n": 5 }
   },
   "top": {
-   "minion_deaths": { "median": 99.0, "mean": 99.2, "min": 99.0, "max": 100.0, "n": 5 },
-   "casts_cancelled": { "median": 89.0, "mean": 87.0, "min": 79.0, "max": 95.0, "n": 5 },
-   "missiles_lost": { "median": 79.0, "mean": 80.8, "min": 77.0, "max": 87.0, "n": 5 },
-   "casts_cancelled_per_death": { "median": 0.899, "mean": 0.877, "min": 0.798, "max": 0.96, "n": 5 },
-   "missiles_lost_per_death": { "median": 0.798, "mean": 0.815, "min": 0.778, "max": 0.879, "n": 5 },
-   "overlapping_share": { "median": 0.088, "mean": 0.086, "min": 0.072, "max": 0.107, "n": 5 },
-   "most_melee_on_one_target": { "median": 3.0, "mean": 3.0, "min": 3.0, "max": 3.0, "n": 5 }
+   "minion_deaths": { "median": 100.0, "mean": 100.0, "min": 100.0, "max": 100.0, "n": 5 },
+   "casts_cancelled": { "median": 34.0, "mean": 34.8, "min": 32.0, "max": 42.0, "n": 5 },
+   "missiles_lost": { "median": 50.0, "mean": 49.0, "min": 45.0, "max": 53.0, "n": 5 },
+   "casts_cancelled_per_death": { "median": 0.34, "mean": 0.348, "min": 0.32, "max": 0.42, "n": 5 },
+   "missiles_lost_per_death": { "median": 0.5, "mean": 0.49, "min": 0.45, "max": 0.53, "n": 5 },
+   "overlapping_share": { "median": 0.008, "mean": 0.01, "min": 0.007, "max": 0.019, "n": 5 },
+   "most_melee_on_one_target": { "median": 2.0, "mean": 2.2, "min": 2.0, "max": 3.0, "n": 5 }
   }
  },
  "untouched": {
   "top": {
    "m8 lane": {
+    "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_on_red_half_s": { "median": 281.0, "mean": 274.2, "min": 247.0, "max": 281.0, "n": 5 },
+    "front_leaves_the_centre_s": { "median": 281.0, "mean": 274.2, "min": 247.0, "max": 281.0, "n": 5 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "blue_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "largest_blue_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "M7's route graph": {
     "front_on_blue_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 5 },
     "front_on_red_half_s": { "median": 172.5, "mean": 198.6, "min": 171.5, "max": 244.5, "n": 5 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 5 },
+    "blue_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.8, "min": 0.0, "max": 2.0, "n": 5 },
     "red_crashes": { "median": 2.0, "mean": 1.6, "min": 1.0, "max": 2.0, "n": 5 },
     "largest_blue_crash": { "median": 0.0, "mean": 3.6, "min": 0.0, "max": 10.0, "n": 5 },
@@ -278,6 +316,9 @@
    "ranges along the lane": {
     "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
     "front_on_red_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_leaves_the_centre_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "largest_blue_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
@@ -287,21 +328,41 @@
     "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
    },
    "blows land at once": {
-    "front_on_blue_half_s": { "median": 95.0, "mean": 95.0, "min": 95.0, "max": 95.0, "n": 5 },
-    "front_on_red_half_s": { "median": 189.0, "mean": 208.1, "min": 189.0, "max": 260.5, "n": 5 },
-    "blue_crashes": { "median": 1.0, "mean": 1.2, "min": 1.0, "max": 2.0, "n": 5 },
-    "red_crashes": { "median": 1.0, "mean": 1.4, "min": 1.0, "max": 3.0, "n": 5 },
-    "largest_blue_crash": { "median": 6.0, "mean": 6.2, "min": 5.0, "max": 8.0, "n": 5 },
-    "largest_red_crash": { "median": 7.0, "mean": 6.2, "min": 4.0, "max": 7.0, "n": 5 },
-    "second_wave_in_largest_red_crash": { "median": 1.0, "mean": 0.6, "min": 0.0, "max": 1.0, "n": 5 },
-    "blue_tower_damage": { "median": 126.875, "mean": 76.125, "min": 0.0, "max": 126.875, "n": 5 },
-    "red_tower_damage": { "median": 224.171, "mean": 242.03, "min": 164.285, "max": 368.864, "n": 5 }
+    "front_on_blue_half_s": { "median": 228.0, "mean": 214.375, "min": 155.5, "max": 246.0, "n": 4 },
+    "front_on_red_half_s": { "median": 269.25, "mean": 247.5, "min": 156.0, "max": 295.5, "n": 4 },
+    "front_leaves_the_centre_s": { "median": 189.25, "mean": 195.0, "min": 155.5, "max": 246.0, "n": 4 },
+    "blue_half_first": { "median": 1.0, "mean": 0.6, "min": 0.0, "max": 1.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "blue_crashes": { "median": 0.0, "mean": 0.6, "min": 0.0, "max": 2.0, "n": 5 },
+    "red_crashes": { "median": 1.0, "mean": 0.8, "min": 0.0, "max": 1.0, "n": 5 },
+    "largest_blue_crash": { "median": 0.0, "mean": 2.8, "min": 0.0, "max": 8.0, "n": 5 },
+    "largest_red_crash": { "median": 4.0, "mean": 3.8, "min": 0.0, "max": 6.0, "n": 5 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
+    "blue_tower_damage": { "median": 0.0, "mean": 45.695, "min": 0.0, "max": 164.285, "n": 5 },
+    "red_tower_damage": { "median": 0.0, "mean": 78.589, "min": 0.0, "max": 392.945, "n": 5 }
    }
   },
   "mid": {
    "m8 lane": {
     "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
     "front_on_red_half_s": { "median": 243.0, "mean": 243.0, "min": 243.0, "max": 243.0, "n": 2 },
+    "front_leaves_the_centre_s": { "median": 243.0, "mean": 243.0, "min": 243.0, "max": 243.0, "n": 2 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
+    "blue_crashes": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
+    "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "largest_blue_crash": { "median": 0.0, "mean": 1.8, "min": 0.0, "max": 5.0, "n": 5 },
+    "largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_tower_damage": { "median": 0.0, "mean": 29.022, "min": 0.0, "max": 145.11, "n": 5 }
+   },
+   "M7's route graph": {
+    "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_on_red_half_s": { "median": 243.0, "mean": 243.0, "min": 243.0, "max": 243.0, "n": 2 },
+    "front_leaves_the_centre_s": { "median": 243.0, "mean": 243.0, "min": 243.0, "max": 243.0, "n": 2 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
     "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "largest_blue_crash": { "median": 0.0, "mean": 1.8, "min": 0.0, "max": 5.0, "n": 5 },
@@ -313,6 +374,9 @@
    "ranges along the lane": {
     "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
     "front_on_red_half_s": { "median": 243.0, "mean": 243.0, "min": 243.0, "max": 243.0, "n": 2 },
+    "front_leaves_the_centre_s": { "median": 243.0, "mean": 243.0, "min": 243.0, "max": 243.0, "n": 2 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
     "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "largest_blue_crash": { "median": 0.0, "mean": 1.8, "min": 0.0, "max": 5.0, "n": 5 },
@@ -324,6 +388,9 @@
    "blows land at once": {
     "front_on_blue_half_s": { "median": 220.75, "mean": 220.75, "min": 199.5, "max": 242.0, "n": 2 },
     "front_on_red_half_s": { "median": 206.0, "mean": 206.0, "min": 122.5, "max": 289.5, "n": 2 },
+    "front_leaves_the_centre_s": { "median": 182.25, "mean": 182.25, "min": 122.5, "max": 242.0, "n": 2 },
+    "blue_half_first": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 2.0, "n": 5 },
     "red_crashes": { "median": 0.0, "mean": 0.6, "min": 0.0, "max": 2.0, "n": 5 },
     "largest_blue_crash": { "median": 0.0, "mean": 1.4, "min": 0.0, "max": 7.0, "n": 5 },
@@ -335,8 +402,25 @@
   },
   "bot": {
    "m8 lane": {
+    "front_on_blue_half_s": { "median": 262.5, "mean": 262.5, "min": 262.5, "max": 262.5, "n": 1 },
+    "front_on_red_half_s": { "median": 158.0, "mean": 158.0, "min": 158.0, "max": 158.0, "n": 1 },
+    "front_leaves_the_centre_s": { "median": 158.0, "mean": 158.0, "min": 158.0, "max": 158.0, "n": 1 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "blue_crashes": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "red_crashes": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "largest_blue_crash": { "median": 0.0, "mean": 0.8, "min": 0.0, "max": 4.0, "n": 5 },
+    "largest_red_crash": { "median": 0.0, "mean": 1.6, "min": 0.0, "max": 8.0, "n": 5 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "blue_tower_damage": { "median": 0.0, "mean": 96.787, "min": 0.0, "max": 483.933, "n": 5 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+   },
+   "M7's route graph": {
     "front_on_blue_half_s": { "median": 157.5, "mean": 157.5, "min": 157.5, "max": 157.5, "n": 1 },
     "front_on_red_half_s": { "median": 259.5, "mean": 259.5, "min": 259.5, "max": 259.5, "n": 1 },
+    "front_leaves_the_centre_s": { "median": 157.5, "mean": 157.5, "min": 157.5, "max": 157.5, "n": 1 },
+    "blue_half_first": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
     "red_crashes": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
     "largest_blue_crash": { "median": 0.0, "mean": 1.6, "min": 0.0, "max": 8.0, "n": 5 },
@@ -346,61 +430,283 @@
     "red_tower_damage": { "median": 0.0, "mean": 36.828, "min": 0.0, "max": 184.142, "n": 5 }
    },
    "ranges along the lane": {
-    "front_on_blue_half_s": { "median": 157.5, "mean": 157.5, "min": 157.5, "max": 157.5, "n": 1 },
-    "front_on_red_half_s": { "median": 259.5, "mean": 259.5, "min": 259.5, "max": 259.5, "n": 1 },
+    "front_on_blue_half_s": { "median": 262.5, "mean": 262.5, "min": 262.5, "max": 262.5, "n": 1 },
+    "front_on_red_half_s": { "median": 158.0, "mean": 158.0, "min": 158.0, "max": 158.0, "n": 1 },
+    "front_leaves_the_centre_s": { "median": 158.0, "mean": 158.0, "min": 158.0, "max": 158.0, "n": 1 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
     "blue_crashes": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
     "red_crashes": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
-    "largest_blue_crash": { "median": 0.0, "mean": 1.6, "min": 0.0, "max": 8.0, "n": 5 },
-    "largest_red_crash": { "median": 0.0, "mean": 1.0, "min": 0.0, "max": 5.0, "n": 5 },
-    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
-    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 },
-    "red_tower_damage": { "median": 0.0, "mean": 34.998, "min": 0.0, "max": 174.991, "n": 5 }
+    "largest_blue_crash": { "median": 0.0, "mean": 0.8, "min": 0.0, "max": 4.0, "n": 5 },
+    "largest_red_crash": { "median": 0.0, "mean": 1.6, "min": 0.0, "max": 8.0, "n": 5 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.2, "min": 0.0, "max": 1.0, "n": 5 },
+    "blue_tower_damage": { "median": 0.0, "mean": 96.787, "min": 0.0, "max": 483.933, "n": 5 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
    },
    "blows land at once": {
-    "front_on_blue_half_s": { "median": 235.0, "mean": 235.0, "min": 235.0, "max": 235.0, "n": 4 },
-    "front_on_red_half_s": { "median": 155.5, "mean": 173.6, "min": 155.0, "max": 247.0, "n": 5 },
+    "front_on_blue_half_s": { "median": 235.0, "mean": 211.5, "min": 157.5, "max": 260.0, "n": 5 },
+    "front_on_red_half_s": { "median": 201.0, "mean": 204.625, "min": 157.5, "max": 259.0, "n": 4 },
+    "front_leaves_the_centre_s": { "median": 157.5, "mean": 175.5, "min": 157.5, "max": 247.5, "n": 5 },
+    "blue_half_first": { "median": 1.0, "mean": 0.6, "min": 0.0, "max": 1.0, "n": 5 },
+    "red_half_first": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
     "blue_crashes": { "median": 1.0, "mean": 0.8, "min": 0.0, "max": 1.0, "n": 5 },
-    "red_crashes": { "median": 1.0, "mean": 0.8, "min": 0.0, "max": 1.0, "n": 5 },
-    "largest_blue_crash": { "median": 4.0, "mean": 3.6, "min": 0.0, "max": 5.0, "n": 5 },
-    "largest_red_crash": { "median": 7.0, "mean": 5.8, "min": 0.0, "max": 8.0, "n": 5 },
-    "second_wave_in_largest_red_crash": { "median": 1.0, "mean": 1.0, "min": 0.0, "max": 2.0, "n": 5 },
-    "blue_tower_damage": { "median": 258.635, "mean": 254.957, "min": 0.0, "max": 410.389, "n": 5 },
-    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
+    "red_crashes": { "median": 0.0, "mean": 0.4, "min": 0.0, "max": 1.0, "n": 5 },
+    "largest_blue_crash": { "median": 4.0, "mean": 4.8, "min": 0.0, "max": 8.0, "n": 5 },
+    "largest_red_crash": { "median": 0.0, "mean": 2.8, "min": 0.0, "max": 7.0, "n": 5 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.6, "min": 0.0, "max": 2.0, "n": 5 },
+    "blue_tower_damage": { "median": 0.0, "mean": 85.037, "min": 0.0, "max": 247.453, "n": 5 },
+    "red_tower_damage": { "median": 0.0, "mean": 101.297, "min": 0.0, "max": 288.544, "n": 5 }
+   }
+  }
+ },
+ "bends": {
+  "corner_of_m7s_graph_from_the_centre": -294.877,
+  "bends_of_the_m8_map_from_the_centre": [ -1292.87, -319.338, 668.784, 1520.773 ],
+  "rows": {
+   "top, no bend": {
+    "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_on_red_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_leaves_the_centre_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_blue_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 }
+   },
+   "top, one bend of 46 degrees, -295 from the centre": {
+    "front_on_blue_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_on_red_half_s": { "median": 171.75, "mean": 188.0, "min": 171.5, "max": 244.5, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 2.0, "mean": 2.167, "min": 1.0, "max": 4.0, "n": 12 },
+    "red_crashes": { "median": 3.5, "mean": 3.5, "min": 2.0, "max": 5.0, "n": 12 },
+    "largest_blue_crash": { "median": 8.0, "mean": 7.833, "min": 5.0, "max": 10.0, "n": 12 },
+    "largest_red_crash": { "median": 8.0, "mean": 8.417, "min": 7.0, "max": 12.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 2.917, "min": 2.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 756.688, "mean": 695.674, "min": 149.308, "max": 1228.351, "n": 12 },
+    "red_tower_damage": { "median": 488.384, "mean": 545.062, "min": 135.03, "max": 1072.087, "n": 12 }
+   },
+   "top, one bend of 46 degrees, -150 from the centre": {
+    "front_on_blue_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_on_red_half_s": { "median": 219.5, "mean": 223.292, "min": 219.0, "max": 232.0, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 3.0, "mean": 2.833, "min": 2.0, "max": 5.0, "n": 12 },
+    "red_crashes": { "median": 3.0, "mean": 3.333, "min": 2.0, "max": 5.0, "n": 12 },
+    "largest_blue_crash": { "median": 9.0, "mean": 9.417, "min": 7.0, "max": 11.0, "n": 12 },
+    "largest_red_crash": { "median": 8.0, "mean": 8.0, "min": 8.0, "max": 8.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 3.0, "min": 3.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 523.249, "mean": 539.371, "min": 305.271, "max": 882.667, "n": 12 },
+    "red_tower_damage": { "median": 486.863, "mean": 686.786, "min": 225.723, "max": 1444.055, "n": 12 }
+   },
+   "top, one bend of 46 degrees, +0 from the centre": {
+    "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_on_red_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_leaves_the_centre_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_blue_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 }
+   },
+   "top, one bend of 46 degrees, +150 from the centre": {
+    "front_on_blue_half_s": { "median": 219.5, "mean": 210.417, "min": 189.5, "max": 231.5, "n": 12 },
+    "front_on_red_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "blue_crashes": { "median": 3.0, "mean": 3.333, "min": 2.0, "max": 5.0, "n": 12 },
+    "red_crashes": { "median": 2.5, "mean": 2.667, "min": 1.0, "max": 4.0, "n": 12 },
+    "largest_blue_crash": { "median": 8.0, "mean": 8.0, "min": 8.0, "max": 8.0, "n": 12 },
+    "largest_red_crash": { "median": 9.0, "mean": 9.0, "min": 7.0, "max": 11.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 2.583, "min": 1.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 795.712, "mean": 880.986, "min": 184.349, "max": 1649.579, "n": 12 },
+    "red_tower_damage": { "median": 615.993, "mean": 587.895, "min": 112.801, "max": 904.856, "n": 12 }
+   },
+   "top, one bend of 46 degrees, +295 from the centre": {
+    "front_on_blue_half_s": { "median": 232.25, "mean": 208.542, "min": 171.5, "max": 244.5, "n": 12 },
+    "front_on_red_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "blue_crashes": { "median": 3.0, "mean": 3.083, "min": 2.0, "max": 5.0, "n": 12 },
+    "red_crashes": { "median": 2.0, "mean": 2.083, "min": 1.0, "max": 3.0, "n": 12 },
+    "largest_blue_crash": { "median": 8.0, "mean": 8.167, "min": 8.0, "max": 9.0, "n": 12 },
+    "largest_red_crash": { "median": 8.0, "mean": 8.083, "min": 6.0, "max": 11.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 2.583, "min": 1.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 494.075, "mean": 669.203, "min": 19.075, "max": 1391.602, "n": 12 },
+    "red_tower_damage": { "median": 768.692, "mean": 737.144, "min": 208.804, "max": 1299.955, "n": 12 }
+   },
+   "top, one bend of 5 degrees, -295 from the centre": {
+    "front_on_blue_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_on_red_half_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "front_leaves_the_centre_s": { "median": null, "mean": null, "min": null, "max": null, "n": 0 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_blue_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 }
+   },
+   "top, one bend of 10 degrees, -295 from the centre": {
+    "front_on_blue_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_on_red_half_s": { "median": 186.5, "mean": 194.375, "min": 172.0, "max": 233.5, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 3.0, "mean": 2.833, "min": 1.0, "max": 4.0, "n": 12 },
+    "red_crashes": { "median": 3.0, "mean": 3.0, "min": 2.0, "max": 4.0, "n": 12 },
+    "largest_blue_crash": { "median": 7.5, "mean": 7.75, "min": 6.0, "max": 10.0, "n": 12 },
+    "largest_red_crash": { "median": 8.0, "mean": 7.917, "min": 7.0, "max": 8.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 2.583, "min": 1.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 601.853, "mean": 572.086, "min": 122.333, "max": 1272.814, "n": 12 },
+    "red_tower_damage": { "median": 459.815, "mean": 448.951, "min": 0.0, "max": 988.398, "n": 12 }
+   },
+   "top, one bend of 20 degrees, -295 from the centre": {
+    "front_on_blue_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_on_red_half_s": { "median": 186.5, "mean": 194.375, "min": 172.0, "max": 233.5, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 3.0, "mean": 2.833, "min": 1.0, "max": 4.0, "n": 12 },
+    "red_crashes": { "median": 3.0, "mean": 3.083, "min": 2.0, "max": 4.0, "n": 12 },
+    "largest_blue_crash": { "median": 7.5, "mean": 7.75, "min": 6.0, "max": 10.0, "n": 12 },
+    "largest_red_crash": { "median": 8.0, "mean": 7.917, "min": 7.0, "max": 8.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 2.583, "min": 1.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 572.3, "mean": 557.829, "min": 122.333, "max": 1272.814, "n": 12 },
+    "red_tower_damage": { "median": 422.568, "mean": 443.345, "min": 0.0, "max": 905.643, "n": 12 }
+   },
+   "top, M7's route graph": {
+    "front_on_blue_half_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "front_on_red_half_s": { "median": 171.75, "mean": 188.0, "min": 171.5, "max": 244.5, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 97.0, "mean": 97.0, "min": 97.0, "max": 97.0, "n": 12 },
+    "blue_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 2.0, "mean": 2.167, "min": 1.0, "max": 4.0, "n": 12 },
+    "red_crashes": { "median": 3.5, "mean": 3.5, "min": 2.0, "max": 5.0, "n": 12 },
+    "largest_blue_crash": { "median": 8.0, "mean": 7.833, "min": 5.0, "max": 10.0, "n": 12 },
+    "largest_red_crash": { "median": 8.0, "mean": 8.417, "min": 7.0, "max": 12.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 3.0, "mean": 2.917, "min": 2.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 756.688, "mean": 695.674, "min": 149.308, "max": 1228.351, "n": 12 },
+    "red_tower_damage": { "median": 488.384, "mean": 545.062, "min": 135.03, "max": 1072.087, "n": 12 }
+   },
+   "top, the M8 map": {
+    "front_on_blue_half_s": { "median": 398.0, "mean": 394.042, "min": 352.0, "max": 398.0, "n": 12 },
+    "front_on_red_half_s": { "median": 281.0, "mean": 278.167, "min": 247.0, "max": 281.0, "n": 12 },
+    "front_leaves_the_centre_s": { "median": 281.0, "mean": 278.167, "min": 247.0, "max": 281.0, "n": 12 },
+    "blue_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_half_first": { "median": 1.0, "mean": 1.0, "min": 1.0, "max": 1.0, "n": 12 },
+    "blue_crashes": { "median": 0.0, "mean": 0.5, "min": 0.0, "max": 2.0, "n": 12 },
+    "red_crashes": { "median": 1.0, "mean": 1.167, "min": 1.0, "max": 2.0, "n": 12 },
+    "largest_blue_crash": { "median": 0.0, "mean": 2.417, "min": 0.0, "max": 7.0, "n": 12 },
+    "largest_red_crash": { "median": 5.0, "mean": 5.333, "min": 4.0, "max": 7.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.583, "min": 0.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 191.617, "mean": 249.502, "min": 135.03, "max": 713.234, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 69.568, "min": 0.0, "max": 221.791, "n": 12 }
+   },
+   "mid, the M8 map": {
+    "front_on_blue_half_s": { "median": 243.5, "mean": 257.714, "min": 154.5, "max": 332.0, "n": 7 },
+    "front_on_red_half_s": { "median": 243.0, "mean": 246.929, "min": 154.5, "max": 345.5, "n": 7 },
+    "front_leaves_the_centre_s": { "median": 243.0, "mean": 205.143, "min": 154.5, "max": 243.5, "n": 7 },
+    "blue_half_first": { "median": 0.0, "mean": 0.25, "min": 0.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.333, "min": 0.0, "max": 1.0, "n": 12 },
+    "blue_crashes": { "median": 1.0, "mean": 1.333, "min": 0.0, "max": 4.0, "n": 12 },
+    "red_crashes": { "median": 1.0, "mean": 0.75, "min": 0.0, "max": 2.0, "n": 12 },
+    "largest_blue_crash": { "median": 5.5, "mean": 4.083, "min": 0.0, "max": 8.0, "n": 12 },
+    "largest_red_crash": { "median": 4.5, "mean": 4.083, "min": 0.0, "max": 8.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.5, "mean": 1.25, "min": 0.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 107.224, "mean": 187.854, "min": 0.0, "max": 670.824, "n": 12 },
+    "red_tower_damage": { "median": 72.555, "mean": 222.209, "min": 0.0, "max": 842.898, "n": 12 }
+   },
+   "bot, the M8 map": {
+    "front_on_blue_half_s": { "median": 261.5, "mean": 236.375, "min": 158.0, "max": 264.5, "n": 4 },
+    "front_on_red_half_s": { "median": 158.0, "mean": 183.5, "min": 158.0, "max": 260.0, "n": 4 },
+    "front_leaves_the_centre_s": { "median": 158.0, "mean": 158.0, "min": 158.0, "max": 158.0, "n": 4 },
+    "blue_half_first": { "median": 0.0, "mean": 0.083, "min": 0.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.25, "min": 0.0, "max": 1.0, "n": 12 },
+    "blue_crashes": { "median": 0.0, "mean": 0.75, "min": 0.0, "max": 3.0, "n": 12 },
+    "red_crashes": { "median": 0.0, "mean": 0.917, "min": 0.0, "max": 3.0, "n": 12 },
+    "largest_blue_crash": { "median": 0.0, "mean": 2.583, "min": 0.0, "max": 9.0, "n": 12 },
+    "largest_red_crash": { "median": 0.0, "mean": 2.75, "min": 0.0, "max": 9.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.667, "min": 0.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 0.0, "mean": 163.862, "min": 0.0, "max": 929.287, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 64.254, "min": 0.0, "max": 402.491, "n": 12 }
+   },
+   "bot, M7's route graph": {
+    "front_on_blue_half_s": { "median": 247.0, "mean": 253.786, "min": 157.5, "max": 353.5, "n": 7 },
+    "front_on_red_half_s": { "median": 247.0, "mean": 241.0, "min": 134.5, "max": 338.0, "n": 7 },
+    "front_leaves_the_centre_s": { "median": 224.5, "mean": 198.929, "min": 134.5, "max": 247.0, "n": 7 },
+    "blue_half_first": { "median": 0.0, "mean": 0.25, "min": 0.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.333, "min": 0.0, "max": 1.0, "n": 12 },
+    "blue_crashes": { "median": 0.5, "mean": 0.75, "min": 0.0, "max": 2.0, "n": 12 },
+    "red_crashes": { "median": 1.0, "mean": 1.333, "min": 0.0, "max": 4.0, "n": 12 },
+    "largest_blue_crash": { "median": 3.0, "mean": 3.667, "min": 0.0, "max": 8.0, "n": 12 },
+    "largest_red_crash": { "median": 6.5, "mean": 4.417, "min": 0.0, "max": 8.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 1.0, "mean": 1.417, "min": 0.0, "max": 3.0, "n": 12 },
+    "blue_tower_damage": { "median": 161.017, "mean": 259.705, "min": 0.0, "max": 740.336, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 114.219, "min": 0.0, "max": 419.736, "n": 12 }
+   },
+   "top, the M8 map, ranges along the lane": {
+    "front_on_blue_half_s": { "median": 430.0, "mean": 430.0, "min": 430.0, "max": 430.0, "n": 1 },
+    "front_on_red_half_s": { "median": 520.0, "mean": 520.0, "min": 520.0, "max": 520.0, "n": 1 },
+    "front_leaves_the_centre_s": { "median": 430.0, "mean": 430.0, "min": 430.0, "max": 430.0, "n": 1 },
+    "blue_half_first": { "median": 0.0, "mean": 0.083, "min": 0.0, "max": 1.0, "n": 12 },
+    "red_half_first": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_crashes": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_blue_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "second_wave_in_largest_red_crash": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 },
+    "red_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 12 }
    }
   }
  },
  "level_lead": {
   "top, blue level lead 0.0": {
-   "blue_crashes": { "median": 3.0, "mean": 2.8, "min": 2.0, "max": 4.0, "n": 5 },
-   "red_crashes": { "median": 3.0, "mean": 3.2, "min": 2.0, "max": 4.0, "n": 5 },
-   "largest_blue_crash": { "median": 8.0, "mean": 8.2, "min": 7.0, "max": 10.0, "n": 5 },
-   "largest_red_crash": { "median": 9.0, "mean": 9.0, "min": 7.0, "max": 12.0, "n": 5 },
-   "red_tower_damage": { "median": 832.529, "mean": 700.483, "min": 187.44, "max": 1072.087, "n": 5 },
-   "blue_tower_damage": { "median": 796.923, "mean": 896.878, "min": 768.233, "max": 1228.351, "n": 5 }
+   "blue_crashes": { "median": 1.0, "mean": 0.8, "min": 0.0, "max": 2.0, "n": 5 },
+   "red_crashes": { "median": 1.0, "mean": 1.4, "min": 1.0, "max": 2.0, "n": 5 },
+   "largest_blue_crash": { "median": 5.0, "mean": 3.6, "min": 0.0, "max": 7.0, "n": 5 },
+   "largest_red_crash": { "median": 6.0, "mean": 5.6, "min": 4.0, "max": 7.0, "n": 5 },
+   "red_tower_damage": { "median": 113.029, "mean": 96.826, "min": 0.0, "max": 221.791, "n": 5 },
+   "blue_tower_damage": { "median": 262.81, "mean": 312.971, "min": 135.03, "max": 713.234, "n": 5 }
   },
   "top, blue level lead 0.5": {
-   "blue_crashes": { "median": 3.0, "mean": 3.0, "min": 3.0, "max": 3.0, "n": 5 },
-   "red_crashes": { "median": 3.0, "mean": 2.6, "min": 2.0, "max": 3.0, "n": 5 },
-   "largest_blue_crash": { "median": 8.0, "mean": 8.8, "min": 8.0, "max": 10.0, "n": 5 },
-   "largest_red_crash": { "median": 8.0, "mean": 9.0, "min": 8.0, "max": 12.0, "n": 5 },
-   "red_tower_damage": { "median": 721.686, "mean": 762.94, "min": 347.698, "max": 1264.644, "n": 5 },
-   "blue_tower_damage": { "median": 423.824, "mean": 563.634, "min": 202.006, "max": 1228.351, "n": 5 }
+   "blue_crashes": { "median": 2.0, "mean": 1.8, "min": 1.0, "max": 3.0, "n": 5 },
+   "red_crashes": { "median": 1.0, "mean": 1.2, "min": 1.0, "max": 2.0, "n": 5 },
+   "largest_blue_crash": { "median": 7.0, "mean": 7.2, "min": 6.0, "max": 8.0, "n": 5 },
+   "largest_red_crash": { "median": 7.0, "mean": 7.2, "min": 6.0, "max": 8.0, "n": 5 },
+   "red_tower_damage": { "median": 665.753, "mean": 529.449, "min": 243.665, "max": 698.014, "n": 5 },
+   "blue_tower_damage": { "median": 227.336, "mean": 274.939, "min": 108.015, "max": 492.864, "n": 5 }
   },
   "top, blue level lead 1.0": {
-   "blue_crashes": { "median": 3.0, "mean": 2.6, "min": 2.0, "max": 3.0, "n": 5 },
-   "red_crashes": { "median": 2.0, "mean": 2.4, "min": 2.0, "max": 3.0, "n": 5 },
-   "largest_blue_crash": { "median": 8.0, "mean": 8.0, "min": 6.0, "max": 10.0, "n": 5 },
-   "largest_red_crash": { "median": 8.0, "mean": 8.8, "min": 7.0, "max": 12.0, "n": 5 },
-   "red_tower_damage": { "median": 575.257, "mean": 671.335, "min": 258.885, "max": 1044.489, "n": 5 },
-   "blue_tower_damage": { "median": 418.832, "mean": 586.085, "min": 120.778, "max": 1462.322, "n": 5 }
+   "blue_crashes": { "median": 2.0, "mean": 2.2, "min": 2.0, "max": 3.0, "n": 5 },
+   "red_crashes": { "median": 1.0, "mean": 1.4, "min": 1.0, "max": 2.0, "n": 5 },
+   "largest_blue_crash": { "median": 7.0, "mean": 7.0, "min": 6.0, "max": 8.0, "n": 5 },
+   "largest_red_crash": { "median": 8.0, "mean": 7.4, "min": 6.0, "max": 8.0, "n": 5 },
+   "red_tower_damage": { "median": 687.212, "mean": 657.114, "min": 422.775, "max": 818.903, "n": 5 },
+   "blue_tower_damage": { "median": 209.056, "mean": 187.964, "min": 90.376, "max": 232.94, "n": 5 }
   },
   "top, blue level lead 2.0": {
-   "blue_crashes": { "median": 3.0, "mean": 3.2, "min": 2.0, "max": 5.0, "n": 5 },
-   "red_crashes": { "median": 2.0, "mean": 2.0, "min": 1.0, "max": 3.0, "n": 5 },
-   "largest_blue_crash": { "median": 8.0, "mean": 8.4, "min": 7.0, "max": 10.0, "n": 5 },
-   "largest_red_crash": { "median": 8.0, "mean": 8.6, "min": 7.0, "max": 11.0, "n": 5 },
-   "red_tower_damage": { "median": 819.825, "mean": 739.669, "min": 194.531, "max": 1443.802, "n": 5 },
-   "blue_tower_damage": { "median": 508.405, "mean": 456.491, "min": 0.0, "max": 904.592, "n": 5 }
+   "blue_crashes": { "median": 2.0, "mean": 2.6, "min": 2.0, "max": 4.0, "n": 5 },
+   "red_crashes": { "median": 1.0, "mean": 0.6, "min": 0.0, "max": 1.0, "n": 5 },
+   "largest_blue_crash": { "median": 7.0, "mean": 6.4, "min": 4.0, "max": 7.0, "n": 5 },
+   "largest_red_crash": { "median": 3.0, "mean": 2.2, "min": 0.0, "max": 4.0, "n": 5 },
+   "red_tower_damage": { "median": 399.384, "mean": 406.503, "min": 114.34, "max": 791.397, "n": 5 },
+   "blue_tower_damage": { "median": 0.0, "mean": 0.0, "min": 0.0, "max": 0.0, "n": 5 }
   },
   "mid, blue level lead 0.0": {
    "blue_crashes": { "median": 0.0, "mean": 1.0, "min": 0.0, "max": 4.0, "n": 5 },
@@ -437,11 +743,11 @@
  },
  "run": {
   "command": "python -m experiments.m8.waves.investigate",
-  "created_utc": "2026-11-12T18:50:50+00:00",
-  "git_head": "ae1ea15cef0d082930643a34b6099d25e176895d",
+  "created_utc": "2026-11-12T21:47:59+00:00",
+  "git_head": "1380d0cc3471b3bd4cbdb289c4df0d1f05e9a6e1",
   "git_dirty": true,
-  "code_id": "c25e0b114f68d973",
-  "sources": { "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3", "experiments/m8/waves/harness.py": "9559eacec161b47286079d172e6fc884b8e82a08a25cfeb687b6415b468ec529", "experiments/m8/waves/investigate.py": "97335e41ccecb377507ad3365ef91dda85fe5c77ff74ff55ff7e62c88c4de40d", "experiments/m8/waves/m7_tests.py": "6e6f7c27c18da2e0de67ace741503ca5e5497ee22da90a7048f89775ae05ebc2", "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48", "riftgame/lanes.py": "e2034ada063fc2ba35f26f5efb9929712464b78357b9761ed3e682724ca9b1b2", "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e", "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42", "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b", "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659", "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1", "riftgame/rulesets/patch_26_22_m8.toml": "c52498543d9c7b5059dd9896184b422da7e9bde0031e97f3612c5be2d3611b7c" },
+  "code_id": "e8fb812ba9da4c90",
+  "sources": { "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3", "experiments/m8/waves/harness.py": "9559eacec161b47286079d172e6fc884b8e82a08a25cfeb687b6415b468ec529", "experiments/m8/waves/investigate.py": "ff4ee855520cea1de5a9aca774f81be4cbb753c3023d11f214312ac7057f1c0d", "experiments/m8/waves/m7_tests.py": "fc5a0ffdb3fe7ba7fc7175f610f192de606ab0b4b5ee0c740e96077476706f88", "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48", "riftgame/lanes.py": "953c27b6382b74f062f87e6c72579b9f2bb13157e42a2704959477f3e6f9e586", "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e", "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42", "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b", "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659", "riftgame/rulesets/map_summoners_rift_m8.toml": "f4acea380d416e62639c29c3910d3d4d97690b86cb77853bb74ad9d75a6347a0", "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1", "riftgame/rulesets/patch_26_22_m8.toml": "425b77b059ef2b9213b8ed527be62e925cbc7d4cbe4f63db8e8da8bdbfbe74f6" },
   "python": "3.14.7",
   "platform": "Windows-11-10.0.26200-SP0",
   "processor": "Intel64 Family 6 Model 167 Stepping 1, GenuineIntel",

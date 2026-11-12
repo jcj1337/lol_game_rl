@@ -16,13 +16,14 @@ from dataclasses import dataclass
 from enum import IntEnum
 from math import hypot, inf
 
-from riftgame.map import load_map
+from riftgame.map import REFERENCE_MAP, load_map
 from riftgame.rng import Stream, keyed_uniform
 from riftgame.ruleset import interpolated, load, scheduled
 
 RULES = load()
 ADDED = load("patch_26_22_m8")
 RULESET_ID = ADDED["meta"]["id"]
+MAP_ID = ADDED["map"]["id"]
 MINIONS = RULES["minions"]
 TOWERS = RULES["towers"]
 SIDE_SPEED = ADDED["minions"]["side_lane_speed"]
@@ -30,6 +31,7 @@ PUSHING = ADDED["minions"]["pushing_advantage"]
 TIMING = ADDED["minions"]["attack_timing"]
 SPEED = MINIONS["move_speed"]
 ACQUIRE = MINIONS["acquisition_range"]
+MINION_SIGHT = MINIONS["sight_range"]
 CALL_RANGE = ADDED["minions"]["call_for_help_range"]
 XP_SHARE = MINIONS["xp_share"]
 DAMAGE_TO_CHAMPIONS = MINIONS["damage_to_champions"]
@@ -113,6 +115,8 @@ class LaneRules:
     detour_s: a melee minion that turns to a new minion target loses this long before its cast, as if it walked
     around other bodies to reach it. A diagnostic bound on movement obstruction, not a rule of the M8 lane. It
     needs attack_timing.
+    m7_map: the lane runs on M7's route graph, which traces each side-lane corner with one of the game's four
+    waypoints. The M8 lane runs on the M8 map, which has all four.
     m7_resolution: resolve three details as M7's lane did, so that its results can be reproduced. A minion whose target
     dies inside a tick may hit a champion in reach although an enemy minion is in acquisition range. Champions that
     attack at the same instant are served in input order. A champion that leaves the lane keeps its attack credit.
@@ -135,12 +139,13 @@ class LaneRules:
     free_cancel: bool = False
     missiles_turn: bool = False
     detour_s: float = 0.0
+    m7_map: bool = False
     m7_resolution: bool = False
 
 
 M8_LANE = LaneRules()
 M7_LANE = LaneRules(side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
-                    first_wave_call=False, attack_timing=False, m7_resolution=True)
+                    first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -188,8 +193,8 @@ class LaneGeometry:
         return hypot(bx - ax, by - ay)
 
 
-def lane_geometry(name: str) -> LaneGeometry:
-    data = load_map()
+def lane_geometry(name: str, map_id: str = MAP_ID) -> LaneGeometry:
+    data = load_map(map_id)
     sites = {(site.team, site.tier): site.s for site in data.towers if site.lane == name}
     towers = tuple(tuple(sites[team, tier] for tier in TIERS) for team in ("blue", "red"))
     spawn = (data.minion_spawn_s["blue", name], data.minion_spawn_s["red", name])
@@ -461,10 +466,13 @@ class _Champion:
 
 
 def _target_code(target) -> tuple:
+    """A target as plain values. A dead minion leaves the lane's lists at the end of its tick, but a cast or a
+    missile may still point at it, and a cancelled cast starts again from the moment its target died. So a minion
+    target carries whether it lives and when it died."""
     if target is None:
         return ()
     if type(target) is Minion:
-        return (0, target.uid)
+        return (0, target.uid, target.hp > 0, target.died_at)
     if type(target) is Tower:
         return (1, target.team, target.tier)
     return (2, target.inp.seat)
@@ -476,7 +484,7 @@ class LaneSim:
         self.seed = seed
         self.tick_s = tick_s
         self.rules = rules
-        self.geometry = lane_geometry(name) if geometry is None else geometry
+        self.geometry = lane_geometry(name, REFERENCE_MAP if rules.m7_map else MAP_ID) if geometry is None else geometry
         self.length = self.geometry.length
         self.lane_id = LANE_NAMES.index(name)
         self.tick = round(start_s / tick_s)
@@ -504,6 +512,8 @@ class LaneSim:
         self._order = 0
         self.cancelled = 0
         self.lost = 0
+        self._sighted: list[list[tuple[float, float]] | None] = [None, None]
+        self._fronts: dict[tuple[int, float | None], Front] = {}
 
     @property
     def time(self) -> float:
@@ -525,11 +535,43 @@ class LaneSim:
         touching = blue is not None and red is not None and self._apart(blue, red) <= ACQUIRE + EPS
         return Front((blue + red) / 2 if touching else None, (blue, red), (len(self.minions[0]), len(self.minions[1])))
 
+    def known_front(self, team: int, foe: float | None) -> Front:
+        """The front as `team` knows it: its own lead minion, and `foe`, the enemy lead minion that it sees, or
+        None if it sees no enemy minion. The enemy's count is left at zero, because `stance` never reads it."""
+        front = self._fronts.get((team, foe))
+        if front is None:
+            spots = [m.s for m in self.minions[team]]
+            own = (max(spots) if self.geometry.direction(team) > 0 else min(spots)) if spots else None
+            touching = own is not None and foe is not None and self._apart(own, foe) <= ACQUIRE + EPS
+            lead = (own, foe) if team == Team.BLUE else (foe, own)
+            counts = (len(spots), 0) if team == Team.BLUE else (0, len(spots))
+            front = self._fronts[team, foe] = Front((own + foe) / 2 if touching else None, lead, counts)
+        return front
+
+    def sighted(self, team: int) -> list[tuple[float, float]]:
+        """The stretches of this lane that the team's minions see, as (low, high) lane coordinates in rising
+        order. A minion sees along its lane as far as its sight range. The lane is open ground, and along it the
+        straight line is never longer than the lane coordinate, so every place in a stretch is in sight by the
+        map's measure too."""
+        spans = self._sighted[team]
+        if spans is None:
+            spans = self._sighted[team] = []
+            for s in sorted(m.s for m in self.minions[team]):
+                if spans and s - MINION_SIGHT <= spans[-1][1]:
+                    spans[-1] = (spans[-1][0], s + MINION_SIGHT)
+                else:
+                    spans.append((s - MINION_SIGHT, s + MINION_SIGHT))
+        return spans
+
     def values(self) -> tuple:
-        """Every mutable fact of the lane as nested tuples of plain values, for the world digest."""
+        """Every fact of the lane that a later tick reads, as nested tuples of plain values, for the world digest.
+
+        Left out are the fields that every tick sets again before it reads them: a minion's nearest enemy, its
+        anchor, its arrival time, and its map coordinates, which follow from its lane coordinate.
+        """
         minions = tuple(
             (m.uid, m.rules.kind.value, m.s, m.hp, m.max_hp, m.ad, m.gold, m.wave, m.slot, m.born, m.boost, m.credit, m.draws, _target_code(m.target),
-             m.ready, m.swing, _target_code(m.swing_at), _target_code(m.aimed))
+             m.ready, m.swing, _target_code(m.swing_at), _target_code(m.aimed), m.delay)
             for team in Team for m in self.minions[team]
         )
         missiles = tuple((land, uid, team, rules.kind.value, ad, _target_code(target)) for land, uid, _, team, rules, ad, target in sorted(self._missiles, key=lambda blow: blow[:3]))
@@ -549,6 +591,8 @@ class LaneSim:
             self.minions[team].append(Minion(uid, team, KINDS[kind], s, hp, hp, ad, gold, wave, lateral, born, delay=delay))
             self._place(self.minions[team][-1])
             self.spawned += 1
+        self._sighted[team] = None
+        self._fronts.clear()
 
     def step(self, tick: int, inputs: Sequence[ChampionInput] = (), level_lead: float = 0.0) -> list:
         """Advance the lane by the tick that starts at world tick `tick`. `level_lead` is blue's average level minus red's."""
@@ -577,6 +621,8 @@ class LaneSim:
         self._fight(inputs)
         for team in Team:
             self.minions[team][:] = [m for m in self.minions[team] if m.hp > 0]
+        self._sighted = [None, None]
+        self._fronts.clear()
         self.tick = tick + 1
         return self._events
 

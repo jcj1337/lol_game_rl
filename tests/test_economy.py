@@ -4,8 +4,9 @@ from riftgame import economy
 from riftgame.champions import LANES, OUTER_TOWER, RIFT, SEATS, Income, R, capability_of, level_of
 from riftgame.lanes import TOWER_RANGE, ChampionDamage, MinionDeath, unit_stats
 from riftgame.lanes import Kind as Minion
-from riftgame.vision import legal_mask, observe
+from riftgame.vision import sees
 from riftgame.world import Config, World
+from test_world_observation import team_knowledge
 from worlds import (BLUE_CARRY, BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, RED_CARRY, RED_MID, RED_SUPPORT, RED_TOP, lane,
                     staged, submit)
 
@@ -125,11 +126,17 @@ def test_minion_xp_goes_to_living_enemy_champions_within_1500_units_in_a_straigh
 
 
 def test_xp_range_is_a_straight_line_and_not_a_walk():
-    corner = RIFT.lanes["top"].starts[4]
-    before, after = RIFT.lane_pos("top", corner - 800), RIFT.lane_pos("top", corner + 800)
-    assert RIFT.distance(before, after) == pytest.approx(1600) and RIFT.separation(before, after) < 1500
-    world = staged({BLUE_TOP: before})
-    economy.settle_lane(world, "top", [death_at(world, "top", corner + 800)])
+    """A minion dies on mid lane 1,300 units from a champion at the blue Raptors in a straight line. The walk
+    between the two is longer than the XP range."""
+    raptors = RIFT.at("blue_raptors")
+    x, y = RIFT.xy(raptors)
+    near = RIFT.project_to_lane("mid", x, y)
+    died = next(s for s in (near + step for step in range(0, 3000, 10))
+                if RIFT.separation(raptors, RIFT.lane_pos("mid", s)) >= 1300.0)
+    where = RIFT.lane_pos("mid", died)
+    assert RIFT.separation(raptors, where) < 1320.0 and RIFT.distance(raptors, where) > 1600.0
+    world = staged({BLUE_TOP: raptors})
+    economy.settle_lane(world, "mid", [death_at(world, "mid", died)])
     assert world.champions[BLUE_TOP].xp == 62.0
 
 
@@ -174,16 +181,35 @@ def test_minions_hurt_a_champion_that_holds_them_and_its_health_then_comes_back_
     assert champion.hp == pytest.approx(min(full, lowest + capability_of(champion).hp_regen * 10.0))
 
 
-def test_changing_the_minions_and_towers_of_every_lane_changes_no_observation_and_no_mask():
-    world, _ = played({BLUE_MID: lane("mid", "last_hit"), RED_MID: lane("mid", "last_hit")}, seconds=90.0)
-    before = [(observe(world, seat), legal_mask(observe(world, seat))) for seat in SEATS]
+@pytest.mark.parametrize("team", [BLUE, RED])
+def test_changing_the_enemy_minions_that_a_team_does_not_see_and_the_health_of_the_enemy_towers_changes_no_observation_and_no_mask(team):
+    """A team knows its own minions and towers, the enemy minions in its view, and how many enemy towers stand.
+    Everything else in a lane is hidden from it, now and on the tick after. At 1:40 the first waves fight in the
+    team's view and the second waves have just left their bases."""
+    world, _ = played({BLUE_MID: lane("mid", "last_hit"), RED_MID: lane("mid", "last_hit")}, seconds=100.0)
+    twin = World.restore(world.snapshot())
+    foe = 1 - team
+    hidden, in_view = 0, 0
     for name in LANES:
-        sim = world.lanes[name]
-        sim.minions[RED].clear()
-        sim.add_minion(BLUE, Minion.SIEGE, sim.geometry.centre, count=4)
-        for team in (BLUE, RED):
-            sim.towers[team][0].hp -= 1000.0
-    assert [(observe(world, seat), legal_mask(observe(world, seat))) for seat in SEATS] == before
+        sim = twin.lanes[name]
+        for m in sim.minions[foe]:
+            if sees(twin, team, RIFT.lane_pos(name, m.s)):
+                in_view += 1
+            else:
+                m.hp, m.ad, m.gold = m.hp / 2, m.ad * 3, m.gold + 5
+                hidden += 1
+        sim.add_minion(foe, Minion.SIEGE, sim.geometry.spawn[foe], count=4)
+        assert not sees(twin, team, RIFT.lane_pos(name, sim.geometry.spawn[foe]))
+        for tower in sim.towers[foe]:
+            tower.hp -= 1000.0
+    assert hidden >= 6 and in_view >= 3, "the team must see some enemy minions and not others"
+    for moment in ("now", "a tick later"):
+        assert team_knowledge(twin, team) == team_knowledge(world, team), moment
+        changed = [now != was for now, was in zip(team_knowledge(twin, foe), team_knowledge(world, foe))]
+        assert all(changed), "the test must be able to see a change"
+        for game in (world, twin):
+            game.step()
+    assert [sim.values() for sim in twin.lanes.values()] != [sim.values() for sim in world.lanes.values()]
 
 
 def test_a_champion_in_one_lane_changes_nothing_in_another_lane():

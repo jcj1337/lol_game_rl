@@ -83,7 +83,8 @@ def test_two_worlds_built_apart_with_equal_state_have_equal_digests():
 CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "xp": 300.0, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
            "upgrades": 2, "intent": move("mid_river"), "intent_tick": 3, "channel": 4, "outcome": Outcome.INTERRUPTED,
            "outcome_tick": 5, "allowance": 12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44,
-           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11}
+           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11,
+           "ward_charges": 2, "ward_tick": 12345}
 
 
 def test_the_test_changes_every_champion_field():
@@ -134,7 +135,7 @@ def test_a_replay_with_one_changed_action_gives_other_digests():
 
 
 PIN = {"config": Config(), "seed": 2026, "ticks": 600,
-       "digest": "25646bfd011e3a7c5abf78396811a2f64079592d9509d3db3b9dbdb1d8dcd6e8"}
+       "digest": "da567531698b92bdcf11ac874fd5e837291c0dcf4c7bb9097bb66cb3ddecb781"}
 
 
 def test_the_pinned_replay_digest_changes_only_with_a_deliberate_update_of_the_pin():

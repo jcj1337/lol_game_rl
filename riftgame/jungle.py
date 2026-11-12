@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from riftgame import ruleset
-from riftgame.champions import CAMP_OF, CAMP_SITES, DEST, MAP, RIFT, Champion, R, Target, attacks, capability_of, level_of
+from riftgame.champions import CAMP_OF, CAMP_SITES, DEST, MAP, RIFT, Champion, R, Target, attack_worth, attacks, capability_of, level_of
 from riftgame.map import Pos
 from riftgame.rng import Stream, keyed_uniform
 
@@ -152,7 +152,8 @@ def attack(world: "World", c: Champion) -> tuple[int, float] | None:
 
     This is the one place that decides it. A champion whose attack goes to a camp on this tick attacks while it
     stands at its camp and the camp is alive. The attack is the same one that it would otherwise spend on minions,
-    a champion, or a tower (M7 section 7.4), so a tick of it uses the champion's attack up.
+    a champion, or a tower (M7 section 7.4): the blow is what the champion's attack credit is worth on this tick,
+    and it leaves no credit.
     """
     if attacks(c) is not Target.CAMP:
         return None
@@ -160,7 +161,7 @@ def attack(world: "World", c: Champion) -> tuple[int, float] | None:
     camp = CAMP_OF[team][c.intent]
     if world.camps[camp].hp <= 0 or c.pos != DEST[team][c.intent]:
         return None
-    return camp, capability_of(c).camp_dps * world.config.tick_s
+    return camp, attack_worth(world, c, capability_of(c).camp_dps)
 
 
 def collect(world: "World") -> tuple[list[tuple[int, float]], list[tuple[int, int, float]]]:
