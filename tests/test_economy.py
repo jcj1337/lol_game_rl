@@ -183,13 +183,14 @@ def test_minions_hurt_a_champion_that_holds_them_and_its_health_then_comes_back_
 
 @pytest.mark.parametrize("team", [BLUE, RED])
 def test_changing_the_enemy_minions_that_a_team_does_not_see_and_the_health_of_the_enemy_towers_changes_no_observation_and_no_mask(team):
-    """A team knows its own minions and towers, the enemy minions in its view, and how many enemy towers stand.
+    """A team knows its own minions and towers, the enemy minions in its view, the health of an enemy front tower
+    whose place it sees, and the health of the enemy towers behind it, which take no damage while it stands.
     Everything else in a lane is hidden from it, now and on the tick after. At 1:40 the first waves fight in the
     team's view and the second waves have just left their bases."""
     world, _ = played({BLUE_MID: lane("mid", "last_hit"), RED_MID: lane("mid", "last_hit")}, seconds=100.0)
     twin = World.restore(world.snapshot())
     foe = 1 - team
-    hidden, in_view = 0, 0
+    hidden, in_view, towers = 0, 0, 0
     for name in LANES:
         sim = twin.lanes[name]
         for m in sim.minions[foe]:
@@ -200,9 +201,12 @@ def test_changing_the_enemy_minions_that_a_team_does_not_see_and_the_health_of_t
                 hidden += 1
         sim.add_minion(foe, Minion.SIEGE, sim.geometry.spawn[foe], count=4)
         assert not sees(twin, team, RIFT.lane_pos(name, sim.geometry.spawn[foe]))
-        for tower in sim.towers[foe]:
-            tower.hp -= 1000.0
+        front = sim.front_tower(foe)
+        if not sees(twin, team, RIFT.lane_pos(name, front.s)):
+            front.hp -= 1000.0
+            towers += 1
     assert hidden >= 6 and in_view >= 3, "the team must see some enemy minions and not others"
+    assert towers == 3, "no enemy front tower is in the team's view"
     for moment in ("now", "a tick later"):
         assert team_knowledge(twin, team) == team_knowledge(world, team), moment
         changed = [now != was for now, was in zip(team_knowledge(twin, foe), team_knowledge(world, foe))]

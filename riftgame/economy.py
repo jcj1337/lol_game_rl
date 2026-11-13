@@ -73,7 +73,8 @@ def lane_inputs(world: "World", lane: str, calls: dict[int, tuple[int, ...]]) ->
     the lane with a `LANE` intent for it hits minions in its mode. One with a `SIEGE` intent for the lane hits the
     enemy front tower. Everyone else only stands there: a tower may shoot it, and minions answer a call for help
     against it. A champion's attack credit goes in with its input, and the lane hands it back for those that hit.
-    A champion stands at the front that its team knows, as it walked there (`champions.lane_post`).
+    Its mana bounds the seconds of area damage it can pay for. A champion stands at the front that its team knows,
+    as it walked there (`champions.lane_post`).
     """
     inputs = []
     sim, reach, beside = world.lanes[lane], TOWERS_IN_REACH[lane], BESIDE[lane]
@@ -104,7 +105,7 @@ def lane_inputs(world: "World", lane: str, calls: dict[int, tuple[int, ...]]) ->
         inputs.append(ChampionInput(c.seat, c.team, s, mode, in_path, can.hit_damage, can.attack_speed, can.attack_range,
                                     can.area_dps, execute_below=execute, harassing=bool(victims), credit=c.attack_credit, xy=xy,
                                     tower_target=True, victims=victims, siege=SIEGE_LANE[c.intent] == lane,
-                                    melee=can.attack_range < RANGED_FROM))
+                                    melee=can.attack_range < RANGED_FROM, aoe_s=c.mana / can.area_mana_s))
     return inputs
 
 

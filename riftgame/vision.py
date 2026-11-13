@@ -25,7 +25,7 @@ from riftgame import ruleset
 from riftgame.champions import (ACTIONS, CAMP_OF, FOUNTAIN, HOME, KEEP, LANES, MAP, RETURNS, RIFT, RULE, TEAMS, WARDS, Champion,
                                 Duty, Kind, Outcome, R, capability_of, duty, frame_name, home_lane, homeguard_bonus, level_of)
 from riftgame.jungle import SITES, CampDeath
-from riftgame.lanes import MINION_SIGHT
+from riftgame.lanes import MINION_SIGHT, TIERS
 from riftgame.map import Pos, _crosses
 
 if TYPE_CHECKING:
@@ -70,15 +70,28 @@ class CampMemory:
 
 @dataclass(slots=True)
 class EnemyMemory:
-    """What a team knows of one enemy champion: where it last saw it, with what health and level, and when.
+    """What a team knows of one enemy champion: where it last saw it, with what health, level, and upgrades, and
+    when (M7 section 6.2).
 
-    `seen_tick` is -1 if the team never saw it. The record is current, and the team sees the champion now, while
-    `seen_tick` is the world's tick. Out of the view the record stays as it was (M7 section 6.2).
+    `was` is where the team saw it one tick before that, or None unless it saw it on both ticks. `seen_tick` is -1
+    if the team never saw it. The record is current, and the team sees the champion now, while `seen_tick` is the
+    world's tick. Out of the view the record stays as it was.
     """
 
     pos: Pos
+    was: Pos | None
     hp: float
     level: int
+    upgrades: int
+    seen_tick: int
+
+
+@dataclass(slots=True)
+class TowerMemory:
+    """An enemy lane tower's health as the team last saw it, and when. A fallen tower is public, so its record is
+    current at zero health. A tower behind a standing one takes no damage, so its full health is known too."""
+
+    hp: float
     seen_tick: int
 
 
@@ -99,19 +112,24 @@ class WaveMemory:
 
 @dataclass(slots=True)
 class Memory:
-    """One team's memory. The camps are in the order of `jungle.SITES`, the enemy champions in role order, and
-    the enemy waves in the order of `LANES`."""
+    """One team's memory. The camps are in the order of `jungle.SITES`, the enemy champions in role order, the
+    enemy waves in the order of `LANES`, and the enemy towers by lane in that order and then by tier."""
 
     camps: list[CampMemory]
     enemies: list[EnemyMemory]
     waves: list[WaveMemory]
+    towers: list[TowerMemory]
+
+
+TOWER_HP = tuple(R["towers"][tier]["hp"] for tier in TIERS)
 
 
 def new_memory(config: "Config", team: int) -> Memory:
     """A team's memory at the start of a game. The first spawn of every camp is public (reference row D16a), and
-    so is the fountain that every enemy champion starts on."""
+    so are the fountain that every enemy champion starts on and the full health of every tower."""
     return Memory([CampMemory(0.0, 0, -1, config.ticks(site.kind.first_spawn_s)) for site in SITES],
-                  [EnemyMemory(FOUNTAIN[1 - team], 0.0, 0, -1) for _ in range(5)], [WaveMemory(None, NO_WAVE, -1) for _ in LANES])
+                  [EnemyMemory(FOUNTAIN[1 - team], None, 0.0, 0, 0, -1) for _ in range(5)], [WaveMemory(None, NO_WAVE, -1) for _ in LANES],
+                  [TowerMemory(hp, 0) for _ in LANES for hp in TOWER_HP])
 
 
 def _edge_gaps() -> list[list[float]]:
@@ -136,15 +154,13 @@ EDGE_GAP = _edge_gaps()
 LANE_GAP = {name: [min(EDGE_GAP[e][on] for on in lane.edges) for e in range(len(RIFT.edges))] for name, lane in RIFT.lanes.items()}
 
 
-def sources(world: "World", team: int, places: Sequence[Pos] | None = None) -> list[tuple[Pos, float]]:
+def sources(world: "World", team: int) -> list[tuple[Pos, float]]:
     """The sight sources of a team that stand at one place each, as (position, radius): its living champions,
     its standing lane towers, its shrines, and its wards. Its lane minions are sources too. They are many, so
     `_minions_see` and `_wave_seen` ask the lanes for them.
-
-    `places` puts the champions somewhere else than where they stand, by seat.
     """
     first = team * 5
-    champions = [(c.pos if places is None else places[c.seat], SIGHT) for c in world.champions[first:first + 5] if c.hp > 0]
+    champions = [(c.pos, SIGHT) for c in world.champions[first:first + 5] if c.hp > 0]
     lanes = world.lanes
     towers = [(pos, TOWER_SIGHT) for lane, tier, pos in TOWER_SITES[team] if lanes[lane].tower_alive(team, tier)]
     return champions + towers + [(s.pos, s.radius) for s in world.sights if s.team == team]
@@ -185,13 +201,6 @@ def _minion_places(sim, team: int) -> list[tuple[float, float, float]]:
 def sees(world: "World", team: int, pos: Pos) -> bool:
     """Whether a team sees a position now, by the sight measure of M7 section 5.1."""
     return _lit(sources(world, team), pos) or _minions_see(world, team, pos)
-
-
-def watches(world: "World", team: int, pos: Pos, stood: Sequence[Pos]) -> bool:
-    """Whether a team sees a position inside the move step, when pursuers move last. Its pursuers count where
-    they stood before the step and everyone else where they stand now, so the seat order changes nothing."""
-    places = [stood[c.seat] if RULE[c.intent].pursues else c.pos for c in world.champions]
-    return _lit(sources(world, team, places), pos) or _minions_see(world, team, pos)
 
 
 # Per team and lane: the team's towers of other lanes that stand within their sight radius of this lane, with
@@ -291,7 +300,14 @@ def remember(world: "World") -> None:
         for enemy, record in zip(world.champions[(1 - team) * 5:(2 - team) * 5], world.memory[team].enemies):
             if enemy.hp > 0 and (any(ally.hurt_tick[enemy.seat % 5] == tick for ally in allies) or _lit(lit, enemy.pos)
                                  or _minions_see(world, team, enemy.pos)):
-                record.pos, record.hp, record.level, record.seen_tick = enemy.pos, enemy.hp, level_of(enemy.xp), now
+                record.was = record.pos if record.seen_tick == tick else None
+                record.pos, record.hp, record.level, record.upgrades, record.seen_tick = enemy.pos, enemy.hp, level_of(enemy.xp), enemy.upgrades, now
+        towers = world.memory[team].towers
+        for name, tier, pos in TOWER_SITES[1 - team]:
+            tower = world.lanes[name].towers[1 - team][TIERS.index(tier)]
+            if tower is not world.lanes[name].front_tower(1 - team) or _lit(lit, pos) or _minions_see(world, team, pos):
+                record = towers[LANES.index(name) * len(TIERS) + TIERS.index(tier)]
+                record.hp, record.seen_tick = max(0.0, tower.hp), now
         for name, wave in zip(LANES, world.memory[team].waves):
             if wave.lead is None and not world.lanes[name].minions[1 - team]:
                 continue
@@ -373,11 +389,14 @@ class ChampionView:
 
 
 class EnemyView(NamedTuple):
-    """An enemy champion that the champion's team sees now."""
+    """An enemy champion that the champion's team sees now. `was` is where the team saw it one tick before, or
+    None unless it saw it then too."""
 
     place: Place
+    was: Place | None
     hp: float
     level: int
+    upgrades: int
 
 
 class LastSeen(NamedTuple):
@@ -386,6 +405,7 @@ class LastSeen(NamedTuple):
     place: Place
     hp: float
     level: int
+    upgrades: int
     age_s: float
 
 
@@ -404,8 +424,9 @@ class LaneView(NamedTuple):
     one, as melee, caster, and siege counts. `enemy_lead` and `enemy_near` are the same for the enemy wave as the
     team last saw it, `enemy_age_s` ago: 0.0 while it sees an enemy minion in the lane, and None if it never saw
     one. `enemy_lead` is None with no known wave. `contact` says that the two leads, as the team sees them now,
-    are within acquisition range. `own_towers` holds the health of the team's towers from the outer one inward,
-    and `enemy_towers` the number of enemy towers that stand, which is public.
+    are within acquisition range. `own_towers` holds the health of the team's towers from the outer one inward.
+    `enemy_towers` holds the enemy towers' health in the same order as the team last saw it, `enemy_towers_age_s`
+    ago, and zero for a fallen one, which is public.
     """
 
     own_lead: float | None
@@ -415,7 +436,8 @@ class LaneView(NamedTuple):
     enemy_age_s: float | None
     contact: bool
     own_towers: tuple[float, ...]
-    enemy_towers: int
+    enemy_towers: tuple[float, ...]
+    enemy_towers_age_s: tuple[float, ...]
 
 
 class WardView(NamedTuple):
@@ -522,8 +544,10 @@ def _camps(world: "World", c: Champion) -> tuple[CampView, ...]:
 def _lanes(world: "World", team: int) -> tuple[LaneView, ...]:
     tick, tick_s = world.tick, world.config.tick_s
     views = []
-    for name, wave in zip(LANES, world.memory[team].waves):
+    towers = world.memory[team].towers
+    for lane, (name, wave) in enumerate(zip(LANES, world.memory[team].waves)):
         sim = world.lanes[name]
+        known = towers[lane * len(TIERS):(lane + 1) * len(TIERS)]
         length = sim.length
 
         def framed(s: float | None) -> float | None:
@@ -539,7 +563,8 @@ def _lanes(world: "World", team: int) -> tuple[LaneView, ...]:
                     near[m.rules.kind] += 1
         views.append(LaneView(framed(own), tuple(near), framed(wave.lead), wave.near,
                               None if wave.seen_tick < 0 else (tick - wave.seen_tick) * tick_s, front.s is not None,
-                              tuple(max(0.0, tower.hp) for tower in sim.towers[team]), sum(tower.hp > 0 for tower in sim.towers[1 - team])))
+                              tuple(max(0.0, tower.hp) for tower in sim.towers[team]), tuple(record.hp for record in known),
+                              tuple((tick - record.seen_tick) * tick_s for record in known)))
     return tuple(views)
 
 
@@ -554,9 +579,9 @@ def observe_team(world: "World", team: int) -> tuple[Observation, ...]:
     views = [_view(world, c) for c in world.champions[first:first + 5]]
     tick, tick_s = world.tick, world.config.tick_s
     records = world.memory[team].enemies
-    enemies = tuple(EnemyView(to_frame(team, record.pos), record.hp, record.level) if record.seen_tick == tick else None
-                    for record in records)
-    remembered = tuple(None if record.seen_tick < 0 else LastSeen(to_frame(team, record.pos), record.hp, record.level,
+    enemies = tuple(EnemyView(to_frame(team, record.pos), None if record.was is None else to_frame(team, record.was), record.hp,
+                              record.level, record.upgrades) if record.seen_tick == tick else None for record in records)
+    remembered = tuple(None if record.seen_tick < 0 else LastSeen(to_frame(team, record.pos), record.hp, record.level, record.upgrades,
                                                                  (tick - record.seen_tick) * tick_s) for record in records)
     rivals = tuple(Rival(level_of(foe.xp), max(0, foe.respawn_tick + 1 - tick) * tick_s)
                    for foe in world.champions[(1 - team) * 5:(2 - team) * 5])
@@ -656,13 +681,14 @@ def encode(o: Observation) -> tuple[float, ...]:
     for camp in o.camps:
         out += [camp.hp, camp.level, _or_unknown(camp.seen_age_s), _or_unknown(camp.spawn_s), camp.walk]
     for seen, last, rival in zip(o.enemies, o.remembered, o.rivals):
-        out += [*_place_code(seen.place if seen else None), seen.hp if seen else UNKNOWN, seen.level if seen else UNKNOWN,
+        out += [*_place_code(seen.place if seen else None), *_place_code(seen.was if seen else None), seen.hp if seen else UNKNOWN,
+                seen.level if seen else UNKNOWN, seen.upgrades if seen else UNKNOWN,
                 *_place_code(last.place if last else None), last.hp if last else UNKNOWN, last.level if last else UNKNOWN,
-                last.age_s if last else UNKNOWN,
+                last.upgrades if last else UNKNOWN, last.age_s if last else UNKNOWN,
                 rival.level, rival.dead_s]
     for lane in o.lanes:
         out += [_or_unknown(lane.own_lead), *lane.own_near, _or_unknown(lane.enemy_lead), *lane.enemy_near, _or_unknown(lane.enemy_age_s),
-                lane.contact, *lane.own_towers, lane.enemy_towers]
+                lane.contact, *lane.own_towers, *lane.enemy_towers, *lane.enemy_towers_age_s]
     for slot in range(WARD_SLOTS):
         ward = o.wards[slot] if slot < len(o.wards) else None
         out += [*_place_code(ward.place if ward else None), ward.left_s if ward else UNKNOWN]

@@ -135,7 +135,7 @@ def test_a_replay_with_one_changed_action_gives_other_digests():
 
 
 PIN = {"config": Config(), "seed": 2026, "ticks": 600,
-       "digest": "da567531698b92bdcf11ac874fd5e837291c0dcf4c7bb9097bb66cb3ddecb781"}
+       "digest": "80c69ca8a4e6ab0c5e875aa48219c1dc083c9964118aa62a58e3dbacec801a8b"}
 
 
 def test_the_pinned_replay_digest_changes_only_with_a_deliberate_update_of_the_pin():

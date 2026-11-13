@@ -4,7 +4,7 @@ A policy is `act(observation, noise) -> action index`. The noise is a keyed draw
 a policy holds no generator and a replay needs only the actions.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from riftgame.champions import ACTIONS, CAMP_OF, HOLD, HOME, KEEP, RECALL, RETURNS, ROLES, SEATS, Action, Kind, capability
@@ -142,16 +142,18 @@ def brawler(retreat_below: float = 0.0) -> Policy:
     return act
 
 
-def tick(world: World, policy: Policy, check: bool = False) -> tuple[int, ...] | None:
+def tick(world: World, policy: Policy | Sequence[Policy], check: bool = False) -> tuple[int, ...] | None:
     """Advance one tick and return the actions submitted on it, or None between decisions.
 
-    With `check`, an illegal choice or a broken invariant raises `InvariantError`.
+    `policy` plays every seat, or it is one policy per seat. With `check`, an illegal choice or a broken invariant
+    raises `InvariantError`.
     """
     actions = None
     if world.tick % world.config.decision_ticks == 0:
         observations = [*observe_team(world, 0), *observe_team(world, 1)]
-        actions = tuple(policy(o, keyed_uniform(world.seed, Stream.POLICY, seat, world.tick))
-                        for seat, o in enumerate(observations))
+        policies = policy if isinstance(policy, Sequence) else [policy] * len(observations)
+        actions = tuple(act(o, keyed_uniform(world.seed, Stream.POLICY, seat, world.tick))
+                        for seat, (act, o) in enumerate(zip(policies, observations, strict=True)))
         if check:
             for seat, (o, action) in enumerate(zip(observations, actions)):
                 if not legal_mask(o)[action]:

@@ -154,6 +154,10 @@ scuttler = 0.0                 # M
 ward_start_charges = 1         # A
 # A wave's size, as an observation reports it, counts the minions within this distance behind its lead minion.
 wave_span = 1500.0             # A
+# Ward spots besides the 12 camps and the 2 Scuttler nodes: the middle of each river edge that joins a Scuttler node
+# to a side-lane corner or to mid, named after the edge's ends. A ward there watches the river where a jungler
+# walks from one side of the map to a lane. The places are a simulator choice, not the game's ward bushes.
+river_ward_spots = [["top_river", "top_corner"], ["top_river", "mid_river"], ["bot_river", "mid_river"], ["bot_river", "bot_corner"]]   # A
 
 # Combat between champions (C5). The reference gives no value for any of the three windows.
 [combat]

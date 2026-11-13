@@ -89,6 +89,7 @@ def one_red_caster_short():
         casters = [m for m in sim.minions[RED] if m.rules.kind is Kind.CASTER]
         if not removed and len(casters) == 3:
             sim.minions[RED].remove(casters[-1])
+            sim.invalidate()
             removed.append(sim.time)
         return ()
 

@@ -69,21 +69,25 @@ class Capability(NamedTuple):
     lockdown_s: float
     lockdown_cooldown_s: float
     lockdown_mana: float
+    mana_regen: float
+    area_mana_s: float
 
 
-# Assumed until M9. The numbers come from the M7 prototype, except hp_regen, max_mana, and lockdown_mana, which are
-# new guesses, and camp_dps, which is set so that the jungler alone clears its six camps in about 75 s of fighting.
-# The last five columns are the damage per second against champions and the lockdown: the share of move speed it
-# removes, with 1.0 a stop, its duration, its cooldown, and its mana cost. The carry has no lockdown.
+# Assumed until M9. The numbers come from the M7 prototype, except hp_regen, max_mana, lockdown_mana, mana_regen, and
+# area_mana_s, which are new guesses, and camp_dps, which is set so that the jungler alone clears its six camps in
+# about 75 s of fighting. After the camp rate come the damage per second against champions and the lockdown: the
+# share of move speed it removes, with 1.0 a stop, its duration, its cooldown, and its mana cost. The carry has no
+# lockdown. The area damage of the `push` mode is an ability too. It costs `area_mana_s` mana for each second in
+# which it hits a minion, so that a full bar, with `mana_regen` per second, pays for pushing five or six waves.
 PROFILES = {
-    "top":     Capability(650.0, 1.7, 300.0, 340.0, 65.0, 0.65, 175.0, 20.0, 95.0, 55.0, 0.30, 2.0, 10.0, 50.0),
-    "jungle":  Capability(600.0, 1.6, 320.0, 345.0, 62.0, 0.68, 175.0, 25.0, 190.0, 60.0, 0.40, 2.0, 10.0, 50.0),
-    "mid":     Capability(540.0, 1.2, 420.0, 335.0, 55.0, 0.63, 525.0, 40.0, 110.0, 65.0, 0.25, 2.0, 12.0, 60.0),
-    "carry":   Capability(520.0, 0.8, 330.0, 325.0, 60.0, 0.70, 550.0, 10.0, 100.0, 70.0, 0.00, 0.0, 0.0, 0.0),
-    "support": Capability(560.0, 1.1, 380.0, 335.0, 50.0, 0.60, 500.0, 5.0, 55.0, 35.0, 0.45, 2.5, 12.0, 60.0),
+    "top":     Capability(650.0, 1.7, 300.0, 340.0, 65.0, 0.65, 175.0, 20.0, 95.0, 55.0, 0.30, 2.0, 10.0, 50.0, 1.0, 8.0),
+    "jungle":  Capability(600.0, 1.6, 320.0, 345.0, 62.0, 0.68, 175.0, 25.0, 190.0, 60.0, 0.40, 2.0, 10.0, 50.0, 1.0, 8.0),
+    "mid":     Capability(540.0, 1.2, 420.0, 335.0, 55.0, 0.63, 525.0, 40.0, 110.0, 65.0, 0.25, 2.0, 12.0, 60.0, 1.5, 12.0),
+    "carry":   Capability(520.0, 0.8, 330.0, 325.0, 60.0, 0.70, 550.0, 10.0, 100.0, 70.0, 0.00, 0.0, 0.0, 0.0, 1.1, 6.0),
+    "support": Capability(560.0, 1.1, 380.0, 335.0, 50.0, 0.60, 500.0, 5.0, 55.0, 35.0, 0.45, 2.5, 12.0, 60.0, 1.4, 6.0),
 }
 LEVEL_GROWTH = 0.08
-LEVEL_SCALED = frozenset(("max_hp", "hp_regen", "max_mana", "hit_damage", "area_dps", "camp_dps", "champion_dps"))
+LEVEL_SCALED = frozenset(("max_hp", "hp_regen", "max_mana", "hit_damage", "area_dps", "camp_dps", "champion_dps", "mana_regen"))
 
 
 class Upgrade(NamedTuple):
@@ -223,7 +227,16 @@ def frame_name(team: int, node: str) -> str:
 NODES = tuple(frame_name(0, node) for node in RIFT.node_names if node not in ADDED["map"]["lane_waypoints"])
 CAMP_NODES = tuple(frame_name(0, node) for node in (*MAP.camps, *MAP.scuttlers.values()))
 
-# A ward spot is a camp or a Scuttler's river node (Assumed: the places a jungler passes).
+def _edge_middle(a: str, b: str) -> Pos:
+    ends = {RIFT.node_names.index(a), RIFT.node_names.index(b)}
+    edge = next(i for i, e in enumerate(RIFT.edges) if {e.a, e.b} == ends)
+    return Pos(edge, RIFT.edges[edge].length / 2)
+
+
+# A ward spot is a camp, a Scuttler's river node, or the middle of a river edge between a Scuttler node and a lane
+# (Assumed: the places a jungler passes). The river spots are named `a>b` by the edge's ends and need no frame.
+RIVER_WARDS = {f"{a}>{b}": _edge_middle(a, b) for a, b in ADDED["vision"]["river_ward_spots"]}
+WARD_SPOTS = (*CAMP_NODES, *RIVER_WARDS)
 ACTIONS = (
     Action(Kind.KEEP), Action(Kind.HOLD), Action(Kind.RECALL),
     *(Action(Kind.MOVE, node) for node in NODES),
@@ -232,7 +245,7 @@ ACTIONS = (
     *(Action(Kind.FOLLOW, role) for role in range(len(ROLES))),
     *(Action(Kind.FIGHT, role) for role in range(len(ROLES))),
     *(Action(Kind.SIEGE, lane) for lane in LANES),
-    *(Action(Kind.WARD, node) for node in CAMP_NODES),
+    *(Action(Kind.WARD, spot) for spot in WARD_SPOTS),
 )
 KEEP, HOLD, RECALL = 0, 1, 2
 
@@ -240,7 +253,7 @@ KEEP, HOLD, RECALL = 0, 1, 2
 LANE_ORDER = tuple((a.target[0], Mode(MODES.index(a.target[1])), a.target[2] == "hold") if a.kind is Kind.LANE else None
                    for a in ACTIONS)
 
-NODE_POS = tuple({frame_name(team, node): RIFT.at(node) for node in RIFT.node_names} for team in range(2))
+NODE_POS = tuple({**{frame_name(team, node): RIFT.at(node) for node in RIFT.node_names}, **RIVER_WARDS} for team in range(2))
 DEST = tuple(tuple(NODE_POS[team][a.target] if a.kind in (Kind.MOVE, Kind.CAMP, Kind.WARD) else None for a in ACTIONS)
              for team in range(2))
 WARDS = tuple(i for i, a in enumerate(ACTIONS) if a.kind is Kind.WARD)
@@ -489,29 +502,28 @@ def duty(world: "World", c: Champion) -> Duty | None:
 class Rule(NamedTuple):
     """How one kind of intent is carried out.
 
-    `walk` gives the position the champion heads for in the move step, or None to stand. `settle` runs after
-    damage: it advances the intent and returns its outcome once it is over. A pursuer moves after everyone else,
-    against the positions held before the move step. `attacks` is the one class of target that the champion's
-    attack goes to under this intent.
+    `walk` gives the position the champion heads for in the move step, or None to stand. Every walk is read from
+    the state at the start of the step, before anyone moves, so no walk depends on another champion's move on the
+    same tick. `settle` runs after damage: it advances the intent and returns its outcome once it is over.
+    `attacks` is the one class of target that the champion's attack goes to under this intent.
     """
 
-    walk: Callable[["World", Champion, Sequence[Pos]], Pos | None] | None = None
+    walk: Callable[["World", Champion], Pos | None] | None = None
     settle: Callable[["World", Champion], Outcome] | None = None
-    pursues: bool = False
     attacks: Target = Target.NONE
 
 
-def _to_node(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos:
+def _to_node(world: "World", c: Champion) -> Pos:
     return DEST[c.seat // 5][c.intent]
 
 
-def _to_post(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos:
+def _to_post(world: "World", c: Champion) -> Pos:
     return lane_post(world, c.seat, ACTIONS[c.intent].target[0])
 
 
-def _to_ally(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
-    ally = c.seat // 5 * 5 + ACTIONS[c.intent].target
-    return stood[ally] if world.champions[ally].hp > 0 else None
+def _to_ally(world: "World", c: Champion) -> Pos | None:
+    ally = world.champions[c.seat // 5 * 5 + ACTIONS[c.intent].target]
+    return ally.pos if ally.hp > 0 else None
 
 
 def _within(pos: Pos, target: Pos, reach: float) -> Pos | None:
@@ -526,32 +538,39 @@ def _short_of(c: Champion, target: Pos) -> Pos | None:
     return _within(c.pos, target, capability_of(c).attack_range)
 
 
-def _to_enemy(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
-    """A fighter pursues its target while its team's record of the target is current, and otherwise walks to where
-    the team last saw it (M7 section 7.1). It never reads the place of a target that its team does not see.
+def _to_enemy(world: "World", c: Champion) -> Pos | None:
+    """A fighter heads for its target by its team's record of it alone (M7 section 7.1). It never reads where the
+    target is now or what it intends.
 
-    Pursuers move last. A target that does not pursue has moved by then, and the fighter heads for where it
-    stands now, if its team sees that place. Otherwise a fighter could never keep a target that walks away in
-    its range, however fast it is. A target that stepped out of the team's view on this tick is pursued to
-    where the team saw it last. A target that pursues too is taken where it stood before the move step, so the
-    seat order changes nothing.
+    The fighter closes to its attack range of the place where its team sees the target, or with the record out of
+    date of the last-seen place. On a lane, while the target's last step, as the team saw it, took it away from the
+    fighter, it heads instead for its range of where the target will be after one more such step. A fighter at least
+    as fast as a target that keeps walking away along a lane then keeps it in range, whatever its range, and a
+    slower one falls behind. Off the lanes the paths are walked 1.15 times their straight length and range is the
+    straight line, so a melee fighter reaches a target whose step is up to 1.15 times its range without the lead.
     """
-    team = c.seat // 5
-    foe = FOE[c.intent]
-    record = world.memory[team].enemies[foe]
-    if record.seen_tick != world.tick:
-        return _short_of(c, record.pos)
-    target = world.champions[(1 - team) * 5 + foe]
-    if RULE[target.intent].pursues or not world.watches(team, target.pos, stood):
-        return _short_of(c, record.pos)
-    return _short_of(c, target.pos)
+    record = world.memory[c.seat // 5].enemies[FOE[c.intent]]
+    target = record.pos
+    if record.seen_tick == world.tick and record.was is not None and RIFT.distance(c.pos, record.pos) > RIFT.distance(c.pos, record.was):
+        target = _ahead_on_lane(record.was, record.pos) or record.pos
+    return _short_of(c, target)
 
 
-def _to_ward_spot(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
+def _ahead_on_lane(was: Pos, pos: Pos) -> Pos | None:
+    """Where a champion that stepped from `was` to `pos` along a lane stands after one more such step, or None
+    if the two places are not on one lane."""
+    for name, lane in RIFT.lanes.items():
+        s0, s1 = RIFT.lane_s(name, was), RIFT.lane_s(name, pos)
+        if s0 is not None and s1 is not None:
+            return RIFT.lane_pos(name, min(lane.length, max(0.0, 2 * s1 - s0)))
+    return None
+
+
+def _to_ward_spot(world: "World", c: Champion) -> Pos | None:
     return _within(c.pos, DEST[c.seat // 5][c.intent], WARD["ward_place_range"])
 
 
-def _to_tower(world: "World", c: Champion, stood: Sequence[Pos]) -> Pos | None:
+def _to_tower(world: "World", c: Champion) -> Pos | None:
     lane = SIEGE_LANE[c.intent]
     tower = world.lanes[lane].front_tower(1 - c.seat // 5)
     return None if tower is None else _short_of(c, RIFT.lane_pos(lane, tower.s))
@@ -636,8 +655,8 @@ RULES = {
     Kind.MOVE: Rule(walk=_to_node, settle=_on_arrival(Outcome.ARRIVED)),
     Kind.LANE: Rule(walk=_to_post, attacks=Target.MINIONS),
     Kind.CAMP: Rule(walk=_to_node, settle=_find_empty, attacks=Target.CAMP),
-    Kind.FOLLOW: Rule(walk=_to_ally, pursues=True, attacks=Target.CHAMPION),
-    Kind.FIGHT: Rule(walk=_to_enemy, settle=_lose_track, pursues=True, attacks=Target.CHAMPION),
+    Kind.FOLLOW: Rule(walk=_to_ally, attacks=Target.CHAMPION),
+    Kind.FIGHT: Rule(walk=_to_enemy, settle=_lose_track, attacks=Target.CHAMPION),
     Kind.SIEGE: Rule(walk=_to_tower, settle=_find_no_tower, attacks=Target.TOWER),
     Kind.WARD: Rule(walk=_to_ward_spot, settle=_place_ward),
 }

@@ -117,6 +117,9 @@ class LaneRules:
     needs attack_timing.
     m7_map: the lane runs on M7's route graph, which traces each side-lane corner with one of the game's four
     waypoints. The M8 lane runs on the M8 map, which has all four.
+    tower_blocks: a minion never marches past the enemy's front tower while it stands, whatever it is walking to
+    (M7 section 10.1, checkpoint C7). Without the rule a minion that chases an enemy minion or a champion behind
+    the tower walks past it.
     m7_resolution: resolve three details as M7's lane did, so that its results can be reproduced. A minion whose target
     dies inside a tick may hit a champion in reach although an enemy minion is in acquisition range. Champions that
     attack at the same instant are served in input order. A champion that leaves the lane keeps its attack credit.
@@ -141,11 +144,12 @@ class LaneRules:
     detour_s: float = 0.0
     m7_map: bool = False
     m7_resolution: bool = False
+    tower_blocks: bool = True
 
 
 M8_LANE = LaneRules()
 M7_LANE = LaneRules(side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
-                    first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True)
+                    first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True, tower_blocks=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,6 +224,9 @@ class ChampionInput:
     it when one of them stands near the tower.
     siege: the champion hits the enemy front tower and nothing else.
     melee: a tower takes more damage from its hits.
+    aoe_s: the seconds of area damage that the champion's mana pays for on this tick. The area damage of `push`
+    runs only while it hits a minion, and the lane reports the seconds it ran in an `AreaSpent`. Without a bound
+    the area damage is free, as in M7.
     """
 
     seat: int
@@ -240,6 +247,7 @@ class ChampionInput:
     victims: tuple[int, ...] = ()
     siege: bool = False
     melee: bool = False
+    aoe_s: float = inf
 
 
 @dataclass(frozen=True, slots=True)
@@ -315,6 +323,14 @@ class AttackCredit:
 
     seat: int
     credit: float
+
+
+@dataclass(frozen=True, slots=True)
+class AreaSpent:
+    """The seconds of this tick in which a pushing champion's area damage hit minions, which its mana pays for."""
+
+    seat: int
+    seconds: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -515,6 +531,25 @@ class LaneSim:
         self._sighted: list[list[tuple[float, float]] | None] = [None, None]
         self._fronts: dict[tuple[int, float | None], Front] = {}
 
+    def invalidate(self) -> None:
+        """Derive again what follows from the minions' lane coordinates: their map coordinates, the stretches they
+        see, and the fronts. Code that moves or removes minions by hand calls it. The lane keeps these right itself
+        after every change it makes."""
+        for team in Team:
+            for m in self.minions[team]:
+                self._place(m)
+        self._forget()
+
+    def _forget(self) -> None:
+        self._sighted = [None, None]
+        self._fronts = {}
+
+    def __setstate__(self, state: dict) -> None:
+        """A copy or a pickle of the lane, a snapshot's among them, derives again from its minions' lane coordinates
+        what follows from them, so it never carries a stale cache."""
+        self.__dict__.update(state)
+        self.invalidate()
+
     @property
     def time(self) -> float:
         return self.tick * self.tick_s
@@ -540,13 +575,16 @@ class LaneSim:
         None if it sees no enemy minion. The enemy's count is left at zero, because `stance` never reads it."""
         front = self._fronts.get((team, foe))
         if front is None:
-            spots = [m.s for m in self.minions[team]]
-            own = (max(spots) if self.geometry.direction(team) > 0 else min(spots)) if spots else None
-            touching = own is not None and foe is not None and self._apart(own, foe) <= ACQUIRE + EPS
-            lead = (own, foe) if team == Team.BLUE else (foe, own)
-            counts = (len(spots), 0) if team == Team.BLUE else (0, len(spots))
-            front = self._fronts[team, foe] = Front((own + foe) / 2 if touching else None, lead, counts)
+            front = self._fronts[team, foe] = self._known_front(team, foe)
         return front
+
+    def _known_front(self, team: int, foe: float | None) -> Front:
+        spots = [m.s for m in self.minions[team]]
+        own = (max(spots) if self.geometry.direction(team) > 0 else min(spots)) if spots else None
+        touching = own is not None and foe is not None and self._apart(own, foe) <= ACQUIRE + EPS
+        lead = (own, foe) if team == Team.BLUE else (foe, own)
+        counts = (len(spots), 0) if team == Team.BLUE else (0, len(spots))
+        return Front((own + foe) / 2 if touching else None, lead, counts)
 
     def sighted(self, team: int) -> list[tuple[float, float]]:
         """The stretches of this lane that the team's minions see, as (low, high) lane coordinates in rising
@@ -555,13 +593,31 @@ class LaneSim:
         map's measure too."""
         spans = self._sighted[team]
         if spans is None:
-            spans = self._sighted[team] = []
-            for s in sorted(m.s for m in self.minions[team]):
-                if spans and s - MINION_SIGHT <= spans[-1][1]:
-                    spans[-1] = (spans[-1][0], s + MINION_SIGHT)
-                else:
-                    spans.append((s - MINION_SIGHT, s + MINION_SIGHT))
+            spans = self._sighted[team] = self._sight_spans(team)
         return spans
+
+    def _sight_spans(self, team: int) -> list[tuple[float, float]]:
+        spans = []
+        for s in sorted(m.s for m in self.minions[team]):
+            if spans and s - MINION_SIGHT <= spans[-1][1]:
+                spans[-1] = (spans[-1][0], s + MINION_SIGHT)
+            else:
+                spans.append((s - MINION_SIGHT, s + MINION_SIGHT))
+        return spans
+
+    def stale(self) -> str | None:
+        """What the lane holds that its minions' lane coordinates no longer give, or None while they agree: a map
+        coordinate, a cached stretch of sight, or a cached front."""
+        for team in Team:
+            if self._sighted[team] is not None and self._sighted[team] != self._sight_spans(team):
+                return f"the {self.name} lane's cached sight of team {team} is stale"
+        for (team, foe), front in self._fronts.items():
+            if front != self._known_front(team, foe):
+                return f"the {self.name} lane's cached front of team {team} is stale"
+        for team in Team:
+            if self._straight and any((m.x, m.y) != self.geometry.xy(m.s) for m in self.minions[team]):
+                return f"the {self.name} lane's map coordinates of a minion of team {team} are stale"
+        return None
 
     def values(self) -> tuple:
         """Every fact of the lane that a later tick reads, as nested tuples of plain values, for the world digest.
@@ -591,8 +647,7 @@ class LaneSim:
             self.minions[team].append(Minion(uid, team, KINDS[kind], s, hp, hp, ad, gold, wave, lateral, born, delay=delay))
             self._place(self.minions[team][-1])
             self.spawned += 1
-        self._sighted[team] = None
-        self._fronts.clear()
+        self._forget()
 
     def step(self, tick: int, inputs: Sequence[ChampionInput] = (), level_lead: float = 0.0) -> list:
         """Advance the lane by the tick that starts at world tick `tick`. `level_lead` is blue's average level minus red's."""
@@ -621,8 +676,7 @@ class LaneSim:
         self._fight(inputs)
         for team in Team:
             self.minions[team][:] = [m for m in self.minions[team] if m.hp > 0]
-        self._sighted = [None, None]
-        self._fronts.clear()
+        self._forget()
         self.tick = tick + 1
         return self._events
 
@@ -799,6 +853,8 @@ class LaneSim:
                     room = min(room, ahead - stop)
             elif (m.target is None or type(m.target) is Tower) and tower is not None and heading * (tower.s - m.s) > 0:
                 room = min(room, abs(tower.s - m.s) - stop)
+            if self.rules.tower_blocks and tower is not None and heading == geometry.direction(m.team):
+                room = min(room, heading * (tower.s - m.s))
             speed = self._speed(m)
             advance = max(0.0, min(speed * (dt - m.delay), room))
             m.s += heading * advance
@@ -953,11 +1009,12 @@ class LaneSim:
             if self._hits(inp) and ready < dt:
                 self._push(queue, ready, CHAMPION_KEY + i, BLOW, champion)
         pushers = [c.inp for _, c in champions if c.inp.mode is Mode.PUSH and c.inp.in_path and c.inp.aoe_dps * c.inp.capacity > 0]
+        area = dict.fromkeys((inp.seat for inp in pushers), 0.0)
         swept = 0.0
         self._group = 0
         while queue:
             now = queue[0][0]
-            self._sweep(pushers, now - swept, now)
+            self._sweep(pushers, now - swept, now, area)
             swept = now
             self._group += 1
             group = []
@@ -980,7 +1037,8 @@ class LaneSim:
                     champion.ready = now + 1.0 / champion.rate
                     if champion.ready < dt:
                         self._push(queue, champion.ready, key, BLOW, champion)
-        self._sweep(pushers, dt - swept, dt)
+        self._sweep(pushers, dt - swept, dt, area)
+        self._events += [AreaSpent(seat, seconds) for seat, seconds in area.items() if seconds > 0]
         for _, champion in champions:
             inp = champion.inp
             if champion.rate <= 0:
@@ -1131,14 +1189,21 @@ class LaneSim:
         self._hurt(target, target.hp if shared else inp.hit_damage, inp.seat, now, shared)
         return True
 
-    def _sweep(self, pushers: list, span: float, now: float) -> None:
+    def _sweep(self, pushers: list, span: float, now: float, area: dict[int, float]) -> None:
+        """The area damage of the pushers over the `span` seconds that end at `now`. It runs only while it hits a
+        minion and while the pusher's mana pays for it, and `area` counts the seconds it ran this tick."""
         if span <= 0:
             return
         for inp in pushers:
-            damage = inp.aoe_dps * inp.capacity * span
+            run = min(span, inp.aoe_s - area[inp.seat])
+            if run <= 0:
+                continue
             me = self._stand[inp.seat]
-            for m in self.minions[1 - inp.team]:
-                if m.hp > 0 and self._range(m, me) <= inp.attack_range + EPS:
+            hit = [m for m in self.minions[1 - inp.team] if m.hp > 0 and self._range(m, me) <= inp.attack_range + EPS]
+            if hit:
+                area[inp.seat] += run
+                damage = inp.aoe_dps * inp.capacity * run
+                for m in hit:
                     self._hurt(m, damage, inp.seat, now)
 
     def _hurt(self, target: Minion, damage: float, killer: int | None, now: float, shared: bool = False) -> None:

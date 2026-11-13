@@ -18,9 +18,9 @@ from riftgame import combat, economy, jungle
 from riftgame.champions import (ACTIONS, FOE, FOUNTAIN, HOLD, KEEP, LANES, RIFT, RULE, SEATS, SIEGE_LANE, WARD, Champion, Kind,
                                 Outcome, capability_of, damage, death_timer_s, duty, enter_combat, finish, level_of,
                                 recharge_ward, settle_fountain, spawn, speed_of, spent)
-from riftgame.lanes import MAP_ID, RULESET_ID, AttackCredit, LaneSim, TowerDestroyed
+from riftgame.lanes import MAP_ID, RULESET_ID, AreaSpent, AttackCredit, LaneSim, TowerDestroyed
 from riftgame.map import Pos
-from riftgame.vision import Memory, Sight, legal_mask, new_memory, observe_team, remember, watches
+from riftgame.vision import Memory, Sight, legal_mask, new_memory, observe_team, remember
 
 # Gold and its ledger add the same amounts in different orders, so they agree only up to rounding.
 GOLD_TOLERANCE = 1e-6
@@ -169,16 +169,14 @@ class World:
                 c.hp, c.mana, c.respawn_tick = can.max_hp, can.max_mana, -1
 
     def _move(self) -> None:
-        stood = [c.pos for c in self.champions]
+        """Step 3. Every champion picks where it heads from the state at the start of the step, and then all move
+        at once. No walk reads another champion's move on this tick, so neither the seat order nor an enemy's
+        intent changes where a champion goes."""
         tick_s = self.config.tick_s
-        for pursuers in (False, True):
-            for c in self.champions:
-                rule = RULE[c.intent]
-                if rule.walk is None or rule.pursues is not pursuers or c.hp <= 0:
-                    continue
-                dest = rule.walk(self, c, stood)
-                if dest is not None:
-                    c.pos = RIFT.advance(c.pos, dest, speed_of(self, c) * tick_s)
+        heading = [None if c.hp <= 0 or RULE[c.intent].walk is None else RULE[c.intent].walk(self, c) for c in self.champions]
+        for c, dest in zip(self.champions, heading):
+            if dest is not None:
+                c.pos = RIFT.advance(c.pos, dest, speed_of(self, c) * tick_s)
 
     def _collect(self) -> Attacks:
         """Every attack of this tick, all from the state that the move step left. The champions' hits on champions
@@ -193,6 +191,9 @@ class World:
             for e in events:
                 if type(e) is AttackCredit:
                     credit[e.seat] = e.credit
+                elif type(e) is AreaSpent:
+                    c = self.champions[e.seat]
+                    c.mana = max(0.0, c.mana - e.seconds * capability_of(c).area_mana_s)
                 else:
                     self.events.append((name, e))
             hits += economy.minion_hits(events)
@@ -243,6 +244,7 @@ class World:
             if c.hp > 0:
                 can = capability_of(c)
                 c.hp = min(can.max_hp, c.hp + can.hp_regen * config.tick_s)
+                c.mana = min(can.max_mana, c.mana + can.mana_regen * config.tick_s)
             settle = RULE[c.intent].settle
             if settle is not None and c.hp > 0:
                 outcome = settle(self, c)
@@ -270,10 +272,6 @@ class World:
         if len(mine) >= most:
             self.sights.remove(mine[0])
         self.light(seat // 5, pos, radius, seconds, seat)
-
-    def watches(self, team: int, pos: Pos, stood: Sequence[Pos]) -> bool:
-        """Whether a team sees a position inside the move step (`vision.watches`)."""
-        return watches(self, team, pos, stood)
 
     def damage_champion(self, seat: int, raw: float) -> None:
         """The one place a champion loses health. Damage ends a recall and Homeguard. Death is resolved in the tick's
@@ -313,6 +311,10 @@ def check_invariants(world: World, previous_tick: int | None = None) -> None:
             raise InvariantError(f"seat {c.seat} has more than {WARD['ward_max_placed']} wards on the map")
     for fault in jungle.faults(world):
         raise InvariantError(fault)
+    for sim in world.lanes.values():
+        fault = sim.stale()
+        if fault:
+            raise InvariantError(fault)
     # An observation covers a whole team, so it is taken only once every champion's own state has passed.
     for seat, o in enumerate((*observe_team(world, 0), *observe_team(world, 1))):
         if not any(legal_mask(o)):

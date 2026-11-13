@@ -8,6 +8,7 @@ from riftgame import champions
 from riftgame.lanes import (
     ACQUIRE,
     ADDED,
+    AreaSpent,
     CALL_RANGE,
     HOLD_MARGIN,
     LANE_NAMES,
@@ -418,7 +419,7 @@ def test_a_champion_that_comes_back_to_a_lane_has_its_attack_ready():
 
 def test_the_m7_rule_set_is_the_m8_lane_without_the_rules_m7_left_out_and_with_m7s_resolution():
     assert replace(M8_LANE, side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
-                   first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True) == M7_LANE
+                   first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True, tower_blocks=False) == M7_LANE
     assert (M8_LANE.melee_cap, M8_LANE.minion_damage_scale, M8_LANE.current_hp_damage) == (0, 1.0, True)
 
 
@@ -738,3 +739,43 @@ def test_the_walk_from_the_fountain_to_the_outer_tower_on_the_m8_map_matches_the
         walk = data.rift.distance(data.rift.at("blue_fountain"), data.rift.lane_pos(name, site.s))
         assert walk == pytest.approx(reference_units, rel=0.04)
     assert champions.MAP.rift is champions.RIFT and champions.MAP is not load_map()
+
+
+@pytest.mark.parametrize("team", [BLUE, RED])
+@pytest.mark.parametrize("rules, standing, passes", [(M8_LANE, True, False), (M8_LANE, False, True), (replace(M8_LANE, tower_blocks=False), True, True)],
+                         ids=["M8, tower standing", "M8, tower fallen", "without the rule"])
+def test_a_minion_that_chases_an_enemy_minion_behind_the_enemy_front_tower_stops_at_the_tower_while_it_stands(team, rules, standing, passes):
+    """A melee minion 300 units before the enemy outer tower targets an enemy caster 200 units behind it, which
+    waits where it was put. While the tower stands the melee minion walks up to the tower's lane coordinate and no
+    further. Once the tower is down it walks on into its reach of the caster."""
+    sim = quiet_lane(rules=rules)
+    tower, ahead = sim.towers[1 - team][0], sim.geometry.direction(team)
+    if not standing:
+        tower.hp = 0.0
+    sim.add_minion(team, Kind.MELEE, tower.s - ahead * 300.0)
+    sim.add_minion(1 - team, Kind.CASTER, tower.s + ahead * 200.0, delay=30.0)
+    walker, quarry = sim.minions[team][0], sim.minions[1 - team][0]
+    beyond = []
+    for _ in range(3):
+        sim.step(sim.tick)
+        assert walker.target is quarry, "it walks to the caster, not to the tower"
+        beyond.append(ahead * (walker.s - tower.s))
+    if passes:
+        assert beyond[-1] > 0.0 and walker.s == pytest.approx(quarry.s - ahead * MELEE_REACH)
+    else:
+        assert beyond[0] < 0.0 and beyond[1:] == [0.0, 0.0]
+
+
+@pytest.mark.parametrize("bound, minions, seconds", [(math.inf, True, DT), (0.2, True, 0.2), (0.0, True, 0.0), (math.inf, False, 0.0)])
+def test_a_push_runs_its_area_damage_only_while_it_hits_a_minion_and_for_no_more_seconds_than_its_mana_pays_for(bound, minions, seconds):
+    """A pusher with no attack ready for ten seconds, so that its only damage is the area's, and two enemy minions in its range
+    that wait where they were put. Each loses the area's damage per second times the seconds the lane reports."""
+    sim = quiet_lane()
+    centre = sim.geometry.centre
+    if minions:
+        sim.add_minion(RED, Kind.SIEGE, centre + 300.0, count=2, delay=1e6)
+    before = [m.hp for m in sim.minions[RED]]
+    pusher = ChampionInput(0, BLUE, centre, Mode.PUSH, in_path=True, attack_speed=0.1, credit=0.0, aoe_dps=40.0, aoe_s=bound)
+    spent = of(sim.step(sim.tick, [pusher]), AreaSpent)
+    assert spent == ([AreaSpent(0, pytest.approx(seconds))] if seconds > 0 else [])
+    assert [was - m.hp for was, m in zip(before, sim.minions[RED])] == pytest.approx([40.0 * seconds] * len(before))

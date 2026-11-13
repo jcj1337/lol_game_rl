@@ -58,8 +58,8 @@ def test_a_plan_reads_its_champions_observation_and_nothing_else():
 
 def test_a_champion_under_its_tower_gains_xp_and_an_absent_one_gains_none_after_it_left(stacks):
     """The two controls are different things: the old `absent` stood at the tower."""
-    gaps = stacks["paired"][f"{TOP_1}, from own tower, red absent"]
-    absent, under = (stacks["cases"][f"{TOP_1}, from own tower, red absent"][plan]["xp"] for plan in ("absent", "under tower"))
+    gaps = stacks["paired"][f"{TOP_1}, from own tower, opponent absent"]
+    absent, under = (stacks["cases"][f"{TOP_1}, from own tower, opponent absent"][plan]["xp"] for plan in ("absent", "under tower"))
     assert under["min"] > absent["max"]
     assert all(plans["absent"]["largest_crash_peak"]["n"] == len(SEEDS) for plans in gaps.values())
 
@@ -68,13 +68,15 @@ def test_a_hard_push_in_mid_crashes_before_the_next_enemy_wave_can_reach_its_tow
     contact = m7_tests.undisturbed("mid")(M8_LANE, 0, investigate.DT)[0]["first_contact_t"]
     red_wave_2_home = 2 * WAVE_INTERVAL_S + investigate.arrivals("mid", M8_LANE)["red"]["wave 2"]["own tower edge"]
     mid = capabilities.stacking((MID_1,), starts=("first contact",), reds=(False,), plans=("absent", "under tower", "push"), seeds=SEEDS, workers=WORKERS)
-    push = mid["cases"][f"{MID_1}, from first contact, red absent"]["push"]
+    push = mid["cases"][f"{MID_1}, from first contact, opponent absent"]["push"]
     assert push["first_crash_s"]["n"] == len(SEEDS)
     assert contact + push["first_crash_s"]["max"] < red_wave_2_home
 
 
+# A regression pin on blue's side, chosen after the results. With the plan on red no plan accumulates in this setting
+# (capabilities.json, sides), so it says nothing about how often accumulation appears.
 def test_a_thinning_plan_brings_three_minions_from_each_of_two_waves_and_more_than_a_push_an_empty_lane_or_a_laner_under_its_tower(stacks):
-    setting, plan = f"{CARRY_3}, from own tower, red absent", "thin 3, then last hit"
+    setting, plan = f"{CARRY_3}, from own tower, opponent absent", "thin 3, then last hit"
     assert plan in stacks["accumulates"][setting] and plan in stacks["delays"][setting]
     rows = stacks["cases"][setting]
     assert rows[plan]["largest_crash_second_wave"]["min"] >= capabilities.WAVE_SHARE
@@ -84,21 +86,16 @@ def test_a_thinning_plan_brings_three_minions_from_each_of_two_waves_and_more_th
 
 @pytest.mark.xfail(strict=True, reason="the slow-push drill of a level 1 top laner does not bring more minions than a hard push in every seed (handoff 007)")
 def test_killing_the_three_casters_of_the_first_wave_and_then_last_hitting_accumulates_reinforcements(stacks):
-    assert "thin 3, then last hit" in stacks["accumulates"][f"{TOP_1}, from first contact, red absent"]
+    assert "thin 3, then last hit" in stacks["accumulates"][f"{TOP_1}, from first contact, opponent absent"]
 
 
 @pytest.mark.xfail(strict=True, reason="against an opponent that last-hits no plan accumulates reinforcements in every seed (handoff 007)")
 def test_reinforcements_also_accumulate_against_an_opponent_that_last_hits(stacks):
-    assert any(plans for setting, plans in stacks["accumulates"].items() if setting.endswith("red last hits"))
-
-
-@pytest.mark.xfail(strict=True, reason="12 minions is a provisional count: the largest crash holds 10 (handoff 007)")
-def test_some_plan_brings_12_minions_to_the_enemy_tower(stacks):
-    assert stacks["crashes_of_12_or_more"]
+    assert any(plans for setting, plans in stacks["accumulates"].items() if setting.endswith("opponent last hits"))
 
 
 def test_a_champion_that_holds_and_thins_keeps_a_larger_wave_out_of_its_towers_range_for_three_wave_cycles(holds):
-    setting, plan = f"{MID_1}, 2 surplus casters, red last hits", "hold, thin over 1"
+    setting, plan = f"{MID_1}, 2 surplus casters, opponent last hits", "hold, thin over 1"
     held = holds["sustains"][setting][plan]
     assert held["cycles"] >= capabilities.SUSTAINED_CYCLES
     assert held["cycles"] > max(holds["cases"][setting][control]["held_cycles"]["max"] for control in capabilities.CONTROLS)
@@ -120,7 +117,7 @@ def test_some_plan_sustains_control_for_a_level_6_mid_laner():
 
 def test_a_hold_is_also_sustained_when_the_surplus_arrives_with_the_third_wave():
     later = capabilities.holding((MID_3,), surpluses=(3,), reds=(True,), seeds=SEEDS, workers=WORKERS, wave=capabilities.LATER_WAVE)
-    assert "hold, thin" in later["sustains"][f"{MID_3}, 3 surplus casters, red last hits"]
+    assert "hold, thin" in later["sustains"][f"{MID_3}, 3 surplus casters, opponent last hits"]
 
 
 @pytest.mark.parametrize("champion", [MID_1, MID_3])
@@ -128,11 +125,6 @@ def test_after_a_crash_of_a_thinned_wave_mid_lane_comes_back_past_the_centre_bef
     row = bounces[f"{champion}, thin 3, then last hit"]
     assert bounced(row, len(SEEDS))
     assert row["front_back_past_centre_s"]["max"] <= capabilities.MID_BOUNCE_S
-
-
-@pytest.mark.xfail(strict=True, reason="after a one-wave crash at 0:00 the tower clears the wave before the next enemy wave arrives, and mid resets to the centre (handoff 006)")
-def test_after_a_hard_push_of_the_first_wave_mid_lane_comes_back_past_the_centre(bounces):
-    assert bounced(bounces[f"{MID_1}, hard push"], len(SEEDS))
 
 
 @pytest.mark.parametrize("plan", list(capabilities.BOUNCE_PLANS))
@@ -169,12 +161,27 @@ def test_a_bend_tips_an_untouched_lane_toward_its_own_side_and_a_bend_at_the_cen
     assert first(investigate.one_bend(graph, centre - 295.0, 10.0)) == (len(seeds), 0), "the angle does not decide it"
 
 
-def test_the_tick_spread_sets_the_range_across_ticks_beside_the_range_across_seeds():
-    sweep = {tick: {metric: {"a": {"p": values}} if metric != "bounce_back_s_by_seed" else {"a": values} for metric in capabilities.BY_SEED}
-             for tick, values in (("0.25", [4, 6, 5]), ("0.5", [8, 8, 8]))}
-    row = capabilities.tick_spread(sweep)["largest_crash_by_seed"]
-    assert row["cases"] == 1 and row["mean_by_tick"] == {"0.25": 5, "0.5": 8}
-    assert row["mean_range_across_ticks"] == 3 and row["mean_range_across_seeds"] == 1 and row["cases_equal_at_every_tick"] == 0
+def test_a_sweep_sets_each_cases_range_across_clocks_beside_its_range_across_seeds_and_lists_each_verdict_that_flips():
+    def clock(values, holds):
+        row = {metric: {"a": {"p": values, "q": [1, 1, 1]}} if metric != "bounce_back_s_by_seed" else {"a": values} for metric in capabilities.BY_SEED}
+        return row | {"verdicts": {"sustains": {"a": {"p": holds, "q": True}}}}
+
+    out = capabilities.sensitivity({"0.25": clock([4, 6, 5], True), "0.5": clock([8, 8, 8], False)})
+    crash = out["metrics"]["largest_crash_by_seed"]
+    moved, still = crash["by_case"]["a, p"], crash["by_case"]["a, q"]
+    assert moved["means"] == {"0.25": 5, "0.5": 8} and moved["range_across_clocks"] == 3 and moved["mean_range_across_seeds"] == 1
+    assert moved["shift_from_reference"] == {"0.5": 3} and still["range_across_clocks"] == 0
+    assert crash["cases_moving_more_across_clocks_than_across_seeds"] == 1 and crash["cases_equal_in_every_seed_at_every_clock"] == 1
+    assert list(crash["largest_shifts"])[0] == "a, p"
+    held = out["verdicts"]["sustains"]
+    assert held["cases"] == 2 and held["unchanged"] == 1 and held["flips"] == {"a, p": {"0.25": True, "0.5": False}}
+
+
+def test_with_the_plan_on_red_the_mirror_world_measures_reds_crash_and_reds_own_tower():
+    blue, red = (capabilities.stacking_case((TOP_1, "first contact", False, "push", 0), team=team) for team in (agents.BLUE, agents.RED))
+    for row in (blue, red):
+        assert row["first_crash_s"] is not None and row["largest_crash_peak"] >= 3
+        assert row["enemy_tower_damage"] > 0 and row["own_tower_damage"] == 0
 
 
 def test_cast_times_and_missile_flight_lengthen_the_untouched_first_wave_fight():

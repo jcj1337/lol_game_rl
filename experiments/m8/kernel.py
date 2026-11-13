@@ -2,6 +2,8 @@
 
   throughput  Simulated seconds per wall second on one process, for a random-action game, a farming game in which
               the junglers hold, and a farming game in which they clear camps.
+  gate        The C7 throughput gate of M7 section 10.4: the integrated game of `riftgame.policies` for 15 game
+              minutes on one process, 7 runs, the same work in every run.
   profile     Where the time of the farming game goes.
   snapshot    Size and cost of a snapshot.
   intents     How the intents of a random-action game end.
@@ -31,15 +33,17 @@ from riftgame.champions import LANES, ROLES, SEATS, TEAMS, Income, level_of  # n
 from riftgame.harness import farmer, random_legal, scripted, tick  # noqa: E402
 from riftgame.jungle import CampDeath  # noqa: E402
 from riftgame.lanes import RULESET_ID, MinionDeath  # noqa: E402
+from riftgame.policies import team_policies  # noqa: E402
 from riftgame.world import Config, World  # noqa: E402
 
 RESULTS = Path(__file__).parent / "results" / "kernel.json"
 POLICIES = {"random legal actions": random_legal, "scripted farming": farmer, "scripted farming and jungling": scripted}
 PLAY_S, RUNS = 600.0, 7
+GATE_S, GATE = 900.0, 300.0
 
 
-def game(policy, seed: int, seconds: float = PLAY_S) -> tuple[float, dict, World]:
-    world = World(Config(), seed)
+def game(policy, seed: int, seconds: float = PLAY_S, config: Config = Config()) -> tuple[float, dict, World]:
+    world = World(config, seed)
     ticks = round(seconds / world.config.tick_s)
     work = Counter()
     began = time.perf_counter()
@@ -48,6 +52,8 @@ def game(policy, seed: int, seconds: float = PLAY_S) -> tuple[float, dict, World
         work["minion deaths"] += sum(type(e) is MinionDeath for _, e in world.events)
         work["camp deaths"] += sum(type(e) is CampDeath for _, e in world.events)
         work["champion deaths"] += sum(c.outcome_tick == world.tick - 1 and c.outcome.name == "DIED" for c in world.champions)
+        work["recalls"] += sum(c.outcome_tick == world.tick - 1 and c.outcome.name == "RECALLED" for c in world.champions)
+        work["wards placed"] += sum(c.outcome_tick == world.tick - 1 and c.outcome.name == "PLACED" for c in world.champions)
     wall = time.perf_counter() - began
     work["ticks"] = world.tick
     return seconds / wall, dict(work), world
@@ -67,15 +73,35 @@ def throughput() -> dict:
     return out
 
 
-def profile() -> dict:
+GATE_CLOCKS = {"tick 0.5 s, decide every 2 s": Config(), "tick 0.5 s, decide every 1 s": Config(decision_ticks=2),
+               "tick 0.25 s, decide every 2 s": Config(tick_s=0.25, decision_ticks=8)}
+
+
+def gate() -> dict:
+    """The integrated game as M7 section 10.4 measures it, at the starting clock values and at the two candidates
+    that the C7 sweep leaves open. The clocks alternate run by run, so drift on the machine favours none."""
+    rates = {name: [] for name in GATE_CLOCKS}
+    work = {}
+    for _ in range(RUNS):
+        for name, config in GATE_CLOCKS.items():
+            rate, done, _ = game(team_policies(), 0, GATE_S, config)
+            rates[name].append(rate)
+            assert work.setdefault(name, done) == done, "the same seed must do the same work in every run"
+    out = {name: {"median": statistics.median(values), "min": min(values), "max": max(values), "runs": RUNS, "work_per_run": work[name],
+                  "passes": statistics.median(values) >= GATE} for name, values in rates.items()}
+    return {"game_s": GATE_S, "gate": GATE, "clocks": out, "profile": profile(team_policies(), round(GATE_S / Config().tick_s))}
+
+
+def profile(policy=farmer, ticks: int = 1200) -> dict:
     world = World(Config(), 0)
     profiler = cProfile.Profile()
-    profiler.runcall(lambda: [tick(world, farmer) for _ in range(1200)])
+    profiler.runcall(lambda: [tick(world, policy) for _ in range(ticks)])
     stats = pstats.Stats(profiler)
     watched = {("lanes.py", "step"): "lanes", ("economy.py", "lane_inputs"): "lane inputs", ("economy.py", "settle_lane"): "gold and XP",
                ("vision.py", "observe_team"): "observe", ("vision.py", "legal_mask"): "legal mask", ("world.py", "_move"): "movement", ("world.py", "_settle"): "settle",
                ("vision.py", "remember"): "team memory", ("jungle.py", "collect"): "camp attacks", ("combat.py", "collect"): "champion attacks",
-               ("combat.py", "land"): "damage", ("combat.py", "harassed"): "calls for help"}
+               ("combat.py", "land"): "damage", ("combat.py", "harassed"): "calls for help", ("policies.py", "act"): "scripted policies",
+               ("vision.py", "encode"): "encoding"}
     shares = {}
     for (file, _, name), (_, _, _, cumulative, _) in stats.stats.items():
         label = watched.get((Path(file).name, name))
@@ -146,6 +172,7 @@ def rounded(value):
 
 def main() -> None:
     results = {"ruleset": RULESET_ID, "config": "tick 0.5 s, decision every 4 ticks", "game_s": PLAY_S, "throughput_sim_s_per_wall_s": throughput(),
+               "c7_gate": gate(),
                "profile_share_of_farming_game": profile(), "snapshot": snapshot(), "intents_ended_in_a_random_game": intents(), "roam": roam(),
                "after_600_s_of_scripted_farming": farming()}
     results["run"] = stamp([0, 3, 2026], {"runs": RUNS, "game_s": PLAY_S, "roam_game_s": GAME_S})
@@ -153,6 +180,10 @@ def main() -> None:
     RESULTS.write_text(json.dumps(rounded(results), indent=1), encoding="utf-8")
     for name, row in results["throughput_sim_s_per_wall_s"].items():
         print(f"throughput, {name}: median {row['median']:.0f} [{row['min']:.0f} to {row['max']:.0f}] sim s per wall s, {row['runs']} runs, work {row['work_per_run']}")
+    g = results["c7_gate"]
+    for name, row in g["clocks"].items():
+        print(f"C7 gate, {name}: median {row['median']:.0f} [{row['min']:.0f} to {row['max']:.0f}] sim s per wall s against {g['gate']:.0f}, work {row['work_per_run']}")
+    print("  profile:", rounded(g["profile"]))
     print("profile:", rounded(results["profile_share_of_farming_game"]))
     print("snapshot:", rounded(results["snapshot"]))
     print("intents:", results["intents_ended_in_a_random_game"])

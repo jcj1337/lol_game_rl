@@ -119,7 +119,7 @@ def test_the_fountain_restores_8_percent_of_health_and_10_percent_of_mana_per_se
     for ticks in range(1, round(13.0 / tick_s) + 1):
         world.step()
         assert me.hp == pytest.approx(min(can.max_hp, hp + ticks * tick_s * (FOUNTAIN_HP_PER_S * can.max_hp + can.hp_regen)))
-        assert me.mana == pytest.approx(min(can.max_mana, mana + ticks * tick_s * FOUNTAIN_MANA_PER_S * can.max_mana))
+        assert me.mana == pytest.approx(min(can.max_mana, mana + ticks * tick_s * (FOUNTAIN_MANA_PER_S * can.max_mana + can.mana_regen)))
     assert (me.hp, me.mana) == (can.max_hp, can.max_mana)
 
 
@@ -131,9 +131,9 @@ def test_the_fountain_restores_nothing_beyond_its_radius():
         c.hp, c.mana = 100.0, 50.0
     world.step()
     assert inside.hp == pytest.approx(100.0 + TICK_S * (FOUNTAIN_HP_PER_S * capability_of(inside).max_hp + capability_of(inside).hp_regen))
-    assert inside.mana == pytest.approx(50.0 + TICK_S * FOUNTAIN_MANA_PER_S * capability_of(inside).max_mana)
+    assert inside.mana == pytest.approx(50.0 + TICK_S * (FOUNTAIN_MANA_PER_S * capability_of(inside).max_mana + capability_of(inside).mana_regen))
     assert outside.hp == pytest.approx(100.0 + TICK_S * capability_of(outside).hp_regen)
-    assert outside.mana == 50.0
+    assert outside.mana == pytest.approx(50.0 + TICK_S * capability_of(outside).mana_regen)
 
 
 def test_the_fountain_restores_nothing_to_a_dead_champion():

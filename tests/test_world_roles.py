@@ -34,13 +34,13 @@ def legal(world: World, seat: int) -> set[int]:
     return {i for i, ok in enumerate(legal_mask(observe(world, seat))) if ok}
 
 
-def roam_soak(config: Config, seconds: float, deaths_per_game: float = 3.0) -> list[dict]:
+def roam_soak(config: Config, seconds: float, deaths_per_game: float = 3.0, seed: int = 8) -> list[dict]:
     """Ten champions under the roamer, measured through their observations and positions.
 
     `always_open` says that the role never took an action away: at every decision the champion could choose
     everything that a champion with allowance left may choose.
     """
-    world = World(config, seed=8)
+    world = World(config, seed)
     tick_s, ticks = config.tick_s, round(seconds / config.tick_s)
     rows = [{"roamed_s": 0.0, "stretch_s": 0.0, "longest_stretch_s": 0.0, "spent_at_s": None, "roamed_after_s": 0.0,
              "lowest_allowance_s": config.roam_cap_s, "off_lane_s": 0.0, "largest_step_over_speed": 0.0, "jumps": Counter(),
@@ -146,7 +146,8 @@ def test_with_the_restriction_switched_off_a_laner_keeps_its_open_mask_however_l
 def test_the_bound_follows_the_configured_cap_and_refill():
     config = Config(roam_cap_s=30.0, roam_refill=0.5)
     decision_s = config.decision_ticks * config.tick_s
-    rows = roam_soak(config, 600.0)
+    # With the minions stopped at the enemy front tower, seed 8 sends no laner past the default refill and seed 1 does.
+    rows = roam_soak(config, 600.0, seed=1)
     longest = [rows[seat]["longest_stretch_s"] for seat in LANERS]
     assert 30.0 <= max(longest) <= 30.0 + decision_s
     for seat in LANERS:

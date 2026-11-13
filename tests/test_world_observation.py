@@ -95,7 +95,7 @@ def test_an_observation_holds_the_champion_its_four_teammates_the_camps_and_the_
         o = observe(world, seat)
         assert [f.name for f in fields(Observation)] == ["time_s", "me", "mates", "camps", "enemies", "remembered", "rivals", "lanes",
                                                          "wards"]
-        assert EnemyView._fields == ("place", "hp", "level") and len(o.enemies) == 5
+        assert EnemyView._fields == ("place", "was", "hp", "level", "upgrades") and len(o.enemies) == 5
         assert CampView._fields == ("hp", "level", "seen_age_s", "spawn_s", "walk")
         assert o.time_s == 15.0 and o.me.role == seat % 5
         assert [mate.role for mate in o.mates] == [role for role in range(5) if role != seat % 5]

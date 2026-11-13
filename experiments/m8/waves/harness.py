@@ -118,9 +118,13 @@ def under_tower(geometry: LaneGeometry, tower_team: int, s: float | None) -> boo
     return s is not None and abs(s - outer(geometry, tower_team)) <= TOWER_RANGE
 
 
-def offset(geometry: LaneGeometry, s: float | None) -> float | None:
-    """Distance past the lane centre toward red's side."""
-    return None if s is None else geometry.direction(BLUE) * (s - geometry.centre)
+def offset(geometry: LaneGeometry, s: float | None, team: int = BLUE) -> float | None:
+    """Distance past the lane centre toward the side of `team`'s enemy, red's side by default."""
+    return None if s is None else geometry.direction(team) * (s - geometry.centre)
+
+
+def lead_of(row: Row, team: int) -> float | None:
+    return row.lead_blue if team == BLUE else row.lead_red
 
 
 def run(sim: LaneSim, policy, until: float, stop=lambda row: False, level_lead: float = 0.0) -> Trace:

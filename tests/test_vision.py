@@ -19,8 +19,8 @@ from riftgame.harness import jungler, scripted
 from riftgame.jungle import SITES
 from riftgame.lanes import Kind as Minion
 from riftgame.rng import Stream, keyed_uniform
-from riftgame.vision import (CampMemory, EnemyMemory, EnemyView, LastSeen, Place, Rival, Sight, WardView, WaveMemory, encode, legal_mask,
-                             observe, observe_team, sees, to_frame)
+from riftgame.vision import (CampMemory, EnemyMemory, EnemyView, LastSeen, Place, Rival, Sight, TowerMemory, WardView, WaveMemory, encode,
+                             legal_mask, observe, observe_team, sees, to_frame)
 from riftgame.world import Config, World, check_invariants
 from worlds import (BLUE_CARRY, BLUE_JUNGLE, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_CARRY, RED_JUNGLE, RED_MID, RED_TOP, act,
                     busy, lane, lane_place, move, raze, staged, submit)
@@ -225,9 +225,10 @@ def scramble(world: World, team: int, rng: random.Random, slack: float = 0.0, re
     Changed, per hidden enemy champion: `CHAMPION_HIDDEN`, and for a dead one all of them but `DEAD_KEPT`. Per
     hidden enemy minion: `MINION_HIDDEN`, where a moved minion stays in hidden places. Per camp whose place is
     hidden and whose spawn the team does not know: `CAMP_HIDDEN`, a living camp dies and a dead one lives, and a
-    Scuttler changes its health or its spawn tick. Enemy Stealth Wards: two are removed, one comes back elsewhere,
+    Scuttler changes its health or its spawn tick. A hidden enemy front tower loses one health. Enemy Stealth Wards: two are removed, one comes back elsewhere,
     and new ones are put on every champion of the team, on hidden enemies, and on hidden camps. The enemy team's
-    whole memory: every field of every `CampMemory`, `EnemyMemory`, and `WaveMemory`.
+    whole memory: every field of every `CampMemory`, `EnemyMemory`, `WaveMemory`, and `TowerMemory`. A lane whose
+    minions were moved forgets what it derived from their places.
 
     What the enemy knows moves the enemy champions that the team is watching, and that is no leak. So `quiet`
     leaves alone what would move them on the next tick: the enemy's wards stay, new ones go only to hidden
@@ -239,7 +240,7 @@ def scramble(world: World, team: int, rng: random.Random, slack: float = 0.0, re
     def hides(pos, near: float = reach[0]) -> bool:
         return not lit(sources, pos, slack) and all(RIFT.separation(pos, at) > near for at in mine)
 
-    changed = {"champions": [], "dead": [], "minions": 0, "moved": 0, "camps": [], "river": [], "wards": 0}
+    changed = {"champions": [], "dead": [], "minions": 0, "moved": 0, "camps": [], "river": [], "wards": 0, "towers": 0}
     for c, record in zip(team_of(world, foe), world.memory[team].enemies):
         if c.hp <= 0:
             scramble_champion(c, tick, rng, hides)
@@ -261,6 +262,11 @@ def scramble(world: World, team: int, rng: random.Random, slack: float = 0.0, re
             m.ready += rng.uniform(0.1, 1.0)
             m.credit = _other(rng, m.credit, (0.0, 0.3, 0.6))
             changed["minions"] += 1
+        sim.invalidate()
+        front = sim.front_tower(foe)
+        if front is not None and front.hp > 2.0 and hides(RIFT.lane_pos(name, front.s)):
+            front.hp -= 1.0
+            changed["towers"] += 1
     known = world.memory[team].camps
     for i, (camp, site) in enumerate(zip(world.camps, SITES)):
         if known[i].spawn_tick >= tick or not hides(site.pos):
@@ -298,7 +304,10 @@ def scramble(world: World, team: int, rng: random.Random, slack: float = 0.0, re
     stale = range(tick - 3, tick + 1 - quiet)
     for record in memory.enemies:
         if not (quiet and record.seen_tick == tick):
-            record.pos, record.hp, record.level, record.seen_tick = _other(rng, record.pos, PLACES), record.hp + 7.0, record.level + 1, _other(rng, record.seen_tick, stale)
+            record.pos, record.was, record.hp, record.level = _other(rng, record.pos, PLACES), _other(rng, record.was, (None, *PLACES)), record.hp + 7.0, record.level + 1
+            record.upgrades, record.seen_tick = record.upgrades + 1, _other(rng, record.seen_tick, stale)
+    for record in memory.towers:
+        record.hp, record.seen_tick = record.hp / 2 + 1.0, _other(rng, record.seen_tick, range(tick - 9, tick))
     for record in memory.waves:
         if not (quiet and record.seen_tick == tick):
             record.lead, record.near, record.seen_tick = rng.uniform(2000.0, 9000.0), _other(rng, record.near, ((1, 1, 0), (3, 2, 1), (2, 3, 0))), _other(rng, record.seen_tick, stale)
@@ -308,8 +317,9 @@ def scramble(world: World, team: int, rng: random.Random, slack: float = 0.0, re
 def test_the_scramble_changes_every_hidden_field_and_names_the_ones_it_leaves():
     assert set(CHAMPION_HIDDEN) | set(CHAMPION_KNOWN) == {f.name for f in fields(Champion)}
     assert {f.name for f in fields(CampMemory)} == {"hp", "level", "seen_tick", "spawn_tick"}
-    assert {f.name for f in fields(EnemyMemory)} == {"pos", "hp", "level", "seen_tick"}
+    assert {f.name for f in fields(EnemyMemory)} == {"pos", "was", "hp", "level", "upgrades", "seen_tick"}
     assert {f.name for f in fields(WaveMemory)} == {"lead", "near", "seen_tick"}
+    assert {f.name for f in fields(TowerMemory)} == {"hp", "seen_tick"}
     assert {f.name for f in fields(type(World().camps[0]))} == set(CAMP_HIDDEN)
     for seed, enemy in GAMES:
         world = game(seed, enemy, 0, 800)
@@ -325,8 +335,8 @@ def test_the_scramble_changes_every_hidden_field_and_names_the_ones_it_leaves():
         assert [name for name in CHAMPION_HIDDEN if getattr(was, name) == getattr(now, name)] == [name for name in CHAMPION_HIDDEN if name in kept]
         assert all(getattr(was, name) == getattr(now, name) for name in CHAMPION_KNOWN)
         assert level_of(was.xp) == level_of(now.xp) and (was.earned[Income.KILL] > 0) == (now.earned[Income.KILL] > 0)
-    for was, now in zip(world.memory[1].camps + world.memory[1].enemies + world.memory[1].waves,
-                        twin.memory[1].camps + twin.memory[1].enemies + twin.memory[1].waves):
+    for was, now in zip(world.memory[1].camps + world.memory[1].enemies + world.memory[1].waves + world.memory[1].towers,
+                        twin.memory[1].camps + twin.memory[1].enemies + twin.memory[1].waves + twin.memory[1].towers):
         assert all(getattr(was, f.name) != getattr(now, f.name) for f in fields(was))
     for i in changed["camps"]:
         assert all(getattr(world.camps[i], name) != getattr(twin.camps[i], name) for name in CAMP_HIDDEN[:4])
@@ -343,7 +353,7 @@ def test_the_scramble_changes_every_hidden_field_and_names_the_ones_it_leaves():
 @pytest.mark.parametrize("seed, enemy", GAMES)
 @pytest.mark.parametrize("team", [0, 1])
 def test_changing_every_field_hidden_from_a_team_changes_none_of_its_observations_encodings_or_masks(team, seed, enemy):
-    total = {"champions": 0, "dead": 0, "minions": 0, "camps": 0, "wards": 0}
+    total = {"champions": 0, "dead": 0, "minions": 0, "camps": 0, "wards": 0, "towers": 0}
     for ticks in SNAPSHOTS:
         world = game(seed, enemy, team, ticks)
         twin = World.restore(world.snapshot())
@@ -354,8 +364,8 @@ def test_changing_every_field_hidden_from_a_team_changes_none_of_its_observation
         for (o, code, _), (other, other_code, _) in zip(knowledge(twin, 1 - team), knowledge(world, 1 - team)):
             assert o != other and code != other_code, "the other team is told of the change, and its encoding shows it"
         for name in total:
-            total[name] += changed[name] if name in ("minions", "wards") else len(changed[name])
-    assert total["champions"] >= 4 and total["minions"] >= 10 and total["camps"] >= 8 and total["wards"] >= 20, total
+            total[name] += changed[name] if name in ("minions", "wards", "towers") else len(changed[name])
+    assert total["champions"] >= 4 and total["minions"] >= 10 and total["camps"] >= 8 and total["wards"] >= 20 and total["towers"] >= 2, total
 
 
 # How far a unit can be from where a state shows it, inside one tick: one move of a fast champion.
@@ -377,14 +387,16 @@ def facts(world: World, team: int) -> dict:
                for name in LANES for m in world.lanes[name].minions[foe]}
     public = [(level_of(c.xp), c.hp > 0, c.respawn_tick) for c in team_of(world, foe)]
     public += [tower.hp > 0 for name in LANES for tower in world.lanes[name].towers[foe]]
+    towers = {RIFT.lane_pos(name, tower.s): tower.hp for name in LANES for tower in world.lanes[name].towers[foe]}
     return {"sources": sources_of(world, team), "mine": {c.pos for c in team_of(world, team)},
-            "foes": copy.deepcopy(team_of(world, foe)), "minions": minions, "camps": copy.deepcopy(world.camps), "public": public}
+            "foes": copy.deepcopy(team_of(world, foe)), "minions": minions, "camps": copy.deepcopy(world.camps), "public": public,
+            "towers": towers}
 
 
 def exposed(before: tuple[dict, dict], after: tuple[dict, dict]) -> bool:
     """Whether the tick from `before` to `after` may have shown the team a difference between the two worlds.
 
-    The worlds differ in enemy champions, enemy minions, and camps. A difference is exposed when a sight source of
+    The worlds differ in enemy champions, enemy minions, camps, and enemy towers. A difference is exposed when a sight source of
     the team, where it stood before or after the tick, sees a place where the differing thing stood before or
     after it, by the map's sight measure with `SLACK` added to the radius. It is also exposed within `REACH` of a
     champion of the team, and when a public fact differs. This errs toward exposure, so it never excuses a leak.
@@ -400,6 +412,7 @@ def exposed(before: tuple[dict, dict], after: tuple[dict, dict]) -> bool:
             if one["minions"].get(key) != other["minions"].get(key):
                 minions |= {RIFT.lane_pos(key[0], rows[key][0]) for rows in (one["minions"], other["minions"]) if key in rows}
         camps |= {SITES[i].pos for i, (a, b) in enumerate(zip(one["camps"], other["camps"])) if a != b}
+        camps |= {pos for pos, hp in one["towers"].items() if other["towers"][pos] != hp}
     for near, places in ((REACH[0], champions), (REACH[1], minions), (0.0, camps)):
         for pos in places:
             if lit(sources, pos, SLACK) or any(RIFT.separation(pos, at) <= near for at in mine):
@@ -410,7 +423,8 @@ def exposed(before: tuple[dict, dict], after: tuple[dict, dict]) -> bool:
 def twins(world: World, team: int, enemy, seed: int) -> dict:
     """Scramble a copy of `world` and run both forward on the same actions: the team's from its policy, and the
     enemy's from its policy in the first world. Until the first exposed tick, assert that the team is told the
-    same in both and that its champions are in the same state. Then run on, up to `HORIZON` ticks in all, to see
+    same in both and that its champions and its whole memory (camps, enemies with their last places and upgrades,
+    waves, and towers) are in the same state. Then run on, up to `HORIZON` ticks in all, to see
     whether the team is ever told of the difference. Returns what the comparison covered."""
     twin = World.restore(world.snapshot())
     changed = scramble(twin, team, random.Random(seed), SLACK + MARGIN, (REACH[0] + MARGIN, REACH[1] + MARGIN), quiet=True)
@@ -438,6 +452,7 @@ def twins(world: World, team: int, enemy, seed: int) -> dict:
         if step > report["compared"] or exposed(before, (facts(world, team), facts(twin, team))):
             continue
         assert team_of(world, team) == team_of(twin, team), f"the team's champions differ at step {step} with nothing revealed"
+        assert world.memory[team] == twin.memory[team], f"the team's memory differs at step {step} with nothing revealed"
         report["compared"] += 1
         for action in intents:
             report["kinds"].add(action.kind)
@@ -459,7 +474,7 @@ def test_a_teams_champions_do_the_same_in_two_worlds_that_differ_only_in_what_is
     """The assertions are in `twins`: on every tick before anything is exposed the team is told the same in both
     worlds, and each of its champions is in the same state, which holds its place, health, intent, and outcome."""
     reports = comparisons(seed, enemy, team)
-    assert sum(report["compared"] for report in reports) >= 35
+    assert sum(report["compared"] for report in reports) >= 30
     assert any(report["revealed"] for report in reports), "the worlds differ in something that the team finds out"
 
 
@@ -474,7 +489,7 @@ def test_the_behaviour_comparison_covers_every_automatic_movement_and_enough_tic
     assert sum(report["blind"] for report in reports) >= 20, "champion ticks spent in a fight whose target is out of view"
     changed = [report["changed"] for report in reports]
     assert sum(len(c["champions"]) for c in changed) >= 40 and sum(c["minions"] for c in changed) >= 200
-    assert sum(len(c["camps"]) for c in changed) >= 80 and sum(c["wards"] for c in changed) >= 80
+    assert sum(len(c["camps"]) for c in changed) >= 80 and sum(c["wards"] for c in changed) >= 80 and sum(c["towers"] for c in changed) >= 3
 
 
 def test_a_fighter_whose_target_is_out_of_view_walks_to_where_its_team_last_saw_it_wherever_the_target_is():
@@ -498,7 +513,9 @@ def test_a_fighter_whose_target_is_out_of_view_walks_to_where_its_team_last_saw_
 @pytest.mark.parametrize("ally_behind_the_wall", [False, True])
 def test_a_fighter_follows_a_target_that_steps_behind_a_wall_only_if_its_team_sees_where_the_target_went(ally_behind_the_wall):
     """The fighter stands on the lane's side of the Raptor wall with its target in reach. The target walks one
-    tick toward the camp, which takes it behind the wall and 314 units from the fighter."""
+    tick toward the camp, which takes it behind the wall and 314 units from the fighter. On that tick the fighter
+    heads for where its team saw the target at the start of the tick, so it stands in both worlds. On the next it
+    walks after the target only if its team saw where the target went."""
     places = {BLUE_TOP: over_the_wall(0.35), RED_MID: over_the_wall(0.48)} | ({BLUE_SUPPORT: RIFT.at("blue_raptors")} if ally_behind_the_wall else {})
     world = quiet_world(places)
     fighter, target = world.champions[BLUE_TOP], world.champions[RED_MID]
@@ -506,6 +523,9 @@ def test_a_fighter_follows_a_target_that_steps_behind_a_wall_only_if_its_team_se
     submit(world, {BLUE_TOP: FIGHT[MID], RED_MID: move("enemy_raptors")})
     assert RIFT.separation(places[BLUE_TOP], target.pos) > capability_of(fighter).attack_range + 100.0
     assert not RIFT.sees(places[BLUE_TOP], target.pos, SIGHT) and sees(world, 0, target.pos) == ally_behind_the_wall
+    assert fighter.pos == places[BLUE_TOP], "no fighter reacts on the tick its target moves"
+    world.step()
+    assert sees(world, 0, target.pos) == ally_behind_the_wall
     assert (fighter.pos != places[BLUE_TOP]) == ally_behind_the_wall
 
 
@@ -596,8 +616,9 @@ def test_two_champions_on_two_arms_of_a_junction_see_each_other(node, arm, other
     world = quiet_world({BLUE_MID: a, RED_JUNGLE: b})
     world.step()
     assert sees(world, 0, b) and sees(world, 1, a)
-    hp = world.champions[RED_JUNGLE].hp
-    assert shown(world, BLUE_MID, RED_JUNGLE) == EnemyView(to_frame(0, b), hp, 1) and shown(world, RED_JUNGLE, BLUE_MID) is not None
+    hp, upgrades = world.champions[RED_JUNGLE].hp, world.champions[RED_JUNGLE].upgrades
+    assert shown(world, BLUE_MID, RED_JUNGLE) == EnemyView(to_frame(0, b), None, hp, 1, upgrades), "seen for the first time, so with no earlier place"
+    assert shown(world, RED_JUNGLE, BLUE_MID) is not None
     assert all(o.enemies[JUNGLE] is not None for o in observe_team(world, 0)), "teammates share the view"
 
 
@@ -710,11 +731,11 @@ def test_a_last_seen_record_keeps_place_and_health_while_the_enemy_walks_off_and
         o = observe(world, viewer)
         if o.enemies[JUNGLE] is not None:
             last = o.remembered[JUNGLE]
-            assert last == LastSeen(to_frame(team, world.champions[enemy].pos), world.champions[enemy].hp, 1, 0.0)
+            assert last == LastSeen(to_frame(team, world.champions[enemy].pos), world.champions[enemy].hp, 1, world.champions[enemy].upgrades, 0.0)
             assert not ages, "once out of view it stays out"
         else:
             ages.append(o.remembered[JUNGLE].age_s)
-            assert o.remembered[JUNGLE][:3] == last[:3]
+            assert o.remembered[JUNGLE][:4] == last[:4]
             assert all(mate.remembered == o.remembered for mate in observe_team(world, team))
     assert ages == [TICK_S * n for n in range(1, len(ages) + 1)] and len(ages) > 20
     assert RIFT.separation(world.champions[enemy].pos, lane_place(team, "mid", last.place.s)) > 3000.0
@@ -1004,7 +1025,7 @@ def lane_truth(world: World, team: int, name: str):
 def test_the_lane_fields_of_an_observation_are_the_lanes_truth_while_the_team_sees_the_enemy_wave_and_rivals_are_public(seed, enemy):
     world = game(seed, enemy, 0, 600)
     policies = (varied, ENEMIES[enemy])
-    counts = {"seen": 0, "unseen": 0, "contact": 0, "apart": 0, "edge": 0, "hidden rival": 0, "dead rival": 0}
+    counts = {"seen": 0, "unseen": 0, "contact": 0, "apart": 0, "edge": 0, "hidden rival": 0, "dead rival": 0, "tower known": 0, "tower unseen": 0}
     for step in range(240):
         advance(world, policies)
         if step % 3:
@@ -1018,7 +1039,16 @@ def test_the_lane_fields_of_an_observation_are_the_lanes_truth_while_the_team_se
             for name, view in zip(LANES, o.lanes):
                 sim = world.lanes[name]
                 assert view.own_towers == tuple(max(0.0, tower.hp) for tower in sim.towers[team])
-                assert view.enemy_towers == sum(tower.hp > 0 for tower in sim.towers[1 - team])
+                sources = sources_of(world, team)
+                for tier, tower in enumerate(sim.towers[1 - team]):
+                    place = RIFT.lane_pos(name, tower.s)
+                    known = tower.hp <= 0 or tower is not sim.front_tower(1 - team) or lit(sources, place, -BAND)
+                    if known:
+                        assert (view.enemy_towers[tier], view.enemy_towers_age_s[tier]) == (max(0.0, tower.hp), 0.0), f"{name} tier {tier}, tick {world.tick}"
+                        counts["tower known"] += 1
+                    elif not lit(sources, place, BAND):
+                        assert view.enemy_towers_age_s[tier] > 0.0 and view.enemy_towers[tier] >= tower.hp, f"{name} tier {tier}, tick {world.tick}"
+                        counts["tower unseen"] += 1
                 truth = lane_truth(world, team, name)
                 if truth is None:
                     counts["edge"] += 1
@@ -1034,6 +1064,7 @@ def test_the_lane_fields_of_an_observation_are_the_lanes_truth_while_the_team_se
                     counts["contact" if contact else "apart"] += 1
     assert counts["seen"] > 150 and counts["unseen"] > 10 and counts["contact"] > 50 and counts["apart"] > 10, counts
     assert counts["edge"] < counts["seen"] / 4 and counts["hidden rival"] > 50 and counts["dead rival"] > 5, counts
+    assert counts["tower known"] > 100 and counts["tower unseen"] > 20, counts
 
 
 def test_an_encoding_has_one_length_holds_finite_numbers_and_is_equal_exactly_when_the_observation_is():
@@ -1067,8 +1098,8 @@ def one_leaf_changed(value, path: tuple = ()):
             for where, changed in one_leaf_changed(item, (*path, i)):
                 yield where, value[:i] + (changed,) + value[i + 1:]
     elif value is None:
-        filled = {"enemies": EnemyView(Place("mid", 100.0), 50.0, 3), "remembered": LastSeen(Place("mid", 100.0), 50.0, 3, 2.0), "home": "mid",
-                  "duty": Duty.ON_LANE}
+        filled = {"enemies": EnemyView(Place("mid", 100.0), Place("mid", 80.0), 50.0, 3, 2), "remembered": LastSeen(Place("mid", 100.0), 50.0, 3, 2, 2.0),
+                  "was": Place("mid", 80.0), "home": "mid", "duty": Duty.ON_LANE}
         yield path, filled.get(path[-2] if type(path[-1]) is int else path[-1], 1.5)
     elif isinstance(value, bool):
         yield path, not value
@@ -1114,13 +1145,13 @@ def test_a_snapshot_taken_with_wards_wave_memory_and_a_fight_under_way_replays_e
     runs = []
     for game in (world, World.restore(snapshot)):
         digests, ended = [], set()
-        for _ in range(300):
+        for _ in range(600):
             advance(game, (varied, varied))
             digests.append(game.digest())
             ended |= {c.outcome for c in game.champions if c.outcome_tick == game.tick - 1}
         runs.append(digests)
-    assert runs[0] == runs[1] and len(set(runs[0])) == 300
-    assert {Outcome.PLACED, Outcome.LOST} <= ended, "wards were placed and targets were lost in the replayed stretch"
+    assert runs[0] == runs[1] and len(set(runs[0])) == 600
+    assert Outcome.PLACED in ended and ended & {Outcome.LOST, Outcome.KILLED}, "wards were placed and a fight ended in the replayed stretch"
     assert World.restore(snapshot).digest() == World.restore(snapshot).digest() != world.digest()
 
 

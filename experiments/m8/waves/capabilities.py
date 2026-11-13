@@ -10,6 +10,11 @@ Two controls stand beside every plan and are different things. `absent` is a lan
 the champion is on its fountain. `under tower` is a champion that stands at its own outer tower and does nothing:
 it gains XP there and may be hit.
 
+Every section runs with the plan on blue and, mirrored, with the plan on red. `between_sides` gives blue's value less
+red's per seed, and `sides` the verdict counts per side and for both. The diagnostics run with the plan on blue. The
+sweeps run both sides at four tick lengths with a decision every 2 s, and at three decision intervals with a tick of
+0.5 s, and `sensitivity` compares each case across the clocks of a sweep with its spread across seeds.
+
 Run: python -m experiments.m8.waves.capabilities
 Print the summary of the results file again: python -m experiments.m8.waves.capabilities --report
 """
@@ -27,9 +32,9 @@ from experiments.m8.provenance import stamp
 from experiments.m8.waves import agents
 from experiments.m8.waves.agents import NO_LANER, Laner, always, from_wave, hold_thin_over, hold_trim_to, seat_of, thin_then, until_crash
 from experiments.m8.waves import investigate
-from experiments.m8.waves.harness import BLUE, RED, Crashes, Crowding, offset, rounded, second_wave, summarize, tower_damage, under_tower
+from experiments.m8.waves.harness import BLUE, RED, Crashes, Crowding, lead_of, offset, outer, rounded, second_wave, summarize, tower_damage, under_tower
 from riftgame.champions import HOME, ROLES, known_front
-from riftgame.lanes import HOLD_MARGIN, M8_LANE, RULESET_ID, LaneRules
+from riftgame.lanes import HOLD_MARGIN, M8_LANE, RULESET_ID, TOWER_RANGE, LaneRules
 from riftgame.world import Config
 from riftgame.lanes import Kind as Minion
 
@@ -91,8 +96,16 @@ HOLD_PLANS = {
 SURPLUS = (2, 3, 4, 6)
 LATER_SURPLUS = (3, 4)
 PAIRED = {
-    "stacking": (("push", "last hit", "absent", "under tower"), ("largest_crash_peak", "first_crash_s", "minion_gold", "xp", "red_tower_damage", "blue_tower_damage")),
-    "holding": (CONTROLS, ("held_cycles", "kept_out_s", "minion_gold", "xp", "blue_tower_damage", "champion_lowest_health")),
+    "stacking": (("push", "last hit", "absent", "under tower"), ("largest_crash_peak", "first_crash_s", "minion_gold", "xp", "enemy_tower_damage", "own_tower_damage")),
+    "holding": (CONTROLS, ("held_cycles", "kept_out_s", "minion_gold", "xp", "own_tower_damage", "champion_lowest_health")),
+}
+SIDES = {"blue": BLUE, "red": RED}
+# The metric on which a plan "beats" a control in the headline of the paired tables: a larger crash, a longer hold.
+BEATS = {"stacking": ("largest_crash_peak", "first_crash_s"), "holding": ("held_cycles", "kept_out_s")}
+BETWEEN_SIDES = {
+    "stacking": ("largest_crash_peak", "largest_crash_second_wave", "first_crash_s", "minion_gold", "xp", "enemy_tower_damage", "own_tower_damage"),
+    "holding": ("held_cycles", "kept_out_s", "minion_gold", "xp", "own_tower_damage", "champion_lowest_health", "champion_retreats"),
+    "bounce": ("front_back_past_centre_s", "untouched_front_there_s", "back_sooner_than_untouched_s", "crash_s", "crash_peak"),
 }
 
 
@@ -134,10 +147,11 @@ class Unseen:
         return self.unseen / self.ticks if self.ticks else 0.0
 
 
-def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -> dict:
-    """Blue plays a plan from first contact, from the moment a red push reaches blue's outer tower, or from the
+def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE) -> dict:
+    """`team` plays a plan from first contact, from the moment an enemy push reaches its outer tower, or from the
     meeting of the third waves after both laners last-hit the first two."""
-    champion, start, red_last_hits, plan, seed = args
+    champion, start, foe_last_hits, plan, seed = args
+    foe = 1 - team
     roles, level, start_s = CHAMPIONS[champion]
     lane = lane_of(champion)
     world = agents.staged(seed, dict.fromkeys(roles, level), start_s, config, rules)
@@ -152,20 +166,20 @@ def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -
                 began.append(seen.time_s)
         return bool(began)
 
-    blue_plan = PUSH_PLANS[plan]
+    chosen_plan = PUSH_PLANS[plan]
 
-    def blue():
-        chosen = blue_plan()
+    def mine():
+        chosen = chosen_plan()
         return lambda seen: chosen(seen) if opening(seen) else ("last_hit", "wave")
 
-    def red():
-        after = always("last_hit") if red_last_hits else (lambda seen: "leave")
+    def theirs():
+        after = always("last_hit") if foe_last_hits else (lambda seen: "leave")
         before = always("push") if start == "own tower" else always("last_hit") if start == "third wave" else after
         return lambda seen: after(seen) if began else before(seen)
 
-    laners = team_laners(world, champion, BLUE, blue)
-    present = red_last_hits or start != "first contact"
-    crashes, crowding, unseen = Crashes(sim, BLUE), Crowding(sim), Unseen(world, lane, BLUE)
+    laners = team_laners(world, champion, team, mine)
+    present = foe_last_hits or start != "first contact"
+    crashes, crowding, unseen = Crashes(sim, team), Crowding(sim), Unseen(world, lane, team)
     largest = [0]
 
     def stop(row) -> bool:
@@ -173,10 +187,10 @@ def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -
             crashes.watch(row)
             crowding.watch(row)
             unseen.watch()
-            largest[0] = max(largest[0], row.wave_blue)
+            largest[0] = max(largest[0], agents.crowd(sim, team, lead_of(row, team)))
         return bool(began) and row.t >= began[0] + PLAN_RUN_S
 
-    trace = agents.play(world, lane, laners + (team_laners(world, champion, RED, red) if present else []), start_s + 900.0, stop)
+    trace = agents.play(world, lane, laners + (team_laners(world, champion, foe, theirs) if present else []), start_s + 900.0, stop)
     first, biggest = (crashes.spans[0] if crashes.spans else None), crashes.largest()
     return {
         "first_crash_s": first["start"] - began[0] if first else None,
@@ -187,8 +201,8 @@ def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -
         "largest_crash_waves": len(biggest["by_wave"]) if biggest else None,
         "largest_crash_second_wave": second_wave(biggest),
         "largest_wave_anywhere": largest[0],
-        "red_tower_damage": tower_damage(trace.events, RED, began[0]) if began else None,
-        "blue_tower_damage": tower_damage(trace.events, BLUE, began[0]) if began else None,
+        "enemy_tower_damage": tower_damage(trace.events, foe, began[0]) if began else None,
+        "own_tower_damage": tower_damage(trace.events, team, began[0]) if began else None,
         "casts_cancelled": sim.cancelled,
         "missiles_lost": sim.lost,
         "enemy_lead_unseen_share": unseen.share(),
@@ -197,41 +211,44 @@ def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -
     }
 
 
-def holding_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -> dict:
-    """The experiment places `surplus` red casters at the hold line when a blue wave reaches its own tower's edge:
-    the first wave, or the third with `wave` 3.
+def holding_case(args, rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE) -> dict:
+    """The experiment places `surplus` enemy casters at the hold line when a wave of `team` reaches its own tower's
+    edge: the first wave, or the third with `wave` 3.
 
-    The run then lasts 240 s. With a red laner, red last-hits from the start.
+    The run then lasts 240 s. With an enemy laner, it last-hits from the start.
     """
-    champion, surplus, red_last_hits, plan, wave, seed = args
+    champion, surplus, foe_last_hits, plan, wave, seed = args
+    foe = 1 - team
     roles, level, start_s = CHAMPIONS[champion]
     lane = lane_of(champion)
     world = agents.staged(seed, dict.fromkeys(roles, level), start_s, config, rules)
     sim = world.lanes[lane]
     geometry = sim.geometry
-    lo, hi = agents.band(geometry)
+    heading = geometry.direction(team)
+    lo, hi = agents.band(geometry, team)
+    edge = outer(geometry, team) + heading * TOWER_RANGE
     placed = []
-    laners = team_laners(world, champion, BLUE, HOLD_PLANS[plan]) if HOLD_PLANS[plan] else []
-    reds = team_laners(world, champion, RED, lambda: always("last_hit")) if red_last_hits else []
+    laners = team_laners(world, champion, team, HOLD_PLANS[plan]) if HOLD_PLANS[plan] else []
+    foes = team_laners(world, champion, foe, lambda: always("last_hit")) if foe_last_hits else []
     peak, earliest = [0], []
-    unseen = Unseen(world, lane, BLUE)
+    unseen = Unseen(world, lane, team)
 
     def stop(row) -> bool:
-        if not earliest and sim.minions[BLUE]:
-            earliest.append(min(m.wave for m in sim.minions[BLUE]))
-        if not placed and any(m.wave >= earliest[0] + wave - 1 and m.s >= lo for m in sim.minions[BLUE]):
-            sim.add_minion(RED, Minion.CASTER, lo + HOLD_MARGIN + 390.0, count=surplus)
+        if not earliest and sim.minions[team]:
+            earliest.append(min(m.wave for m in sim.minions[team]))
+        if not placed and any(m.wave >= earliest[0] + wave - 1 and heading * (m.s - edge) >= 0 for m in sim.minions[team]):
+            sim.add_minion(foe, Minion.CASTER, edge + heading * (HOLD_MARGIN + 390.0), count=surplus)
             placed.append(row.t)
         if placed:
-            peak[0] = max(peak[0], agents.crowd(sim, RED, row.line))
+            peak[0] = max(peak[0], agents.crowd(sim, foe, row.line))
             unseen.watch()
         return bool(placed) and row.t >= placed[0] + HOLD_RUN_S
 
-    trace = agents.play(world, lane, laners + reds, start_s + 900.0, stop)
+    trace = agents.play(world, lane, laners + foes, start_s + 900.0, stop)
     rows = [r for r in trace.rows if r.t >= placed[0]]
     inside = [r.line is not None and lo <= r.line <= hi for r in rows]
     dt = world.config.tick_s
-    breached = [under_tower(geometry, BLUE, r.lead_red) for r in rows]
+    breached = [under_tower(geometry, team, lead_of(r, foe)) for r in rows]
     spans = [(placed[0] + WAVE_S * i, placed[0] + WAVE_S * (i + 1)) for i in range(int(HOLD_RUN_S // WAVE_S))]
     cycles = [sum(ok for r, ok in zip(rows, inside) if lo_t <= r.t < hi_t) * dt for lo_t, hi_t in spans]
     at_tower = [sum(hit for r, hit in zip(rows, breached) if lo_t <= r.t < hi_t) * dt for lo_t, hi_t in spans]
@@ -242,8 +259,8 @@ def holding_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) ->
         "held_cycles": next((i for i, ok in enumerate(held) if not ok), len(held)),
         "kept_out_s": next((r.t - placed[0] for r, hit in zip(rows, breached) if hit), HOLD_RUN_S),
         "under_tower_s": sum(breached) * dt,
-        "blue_tower_damage": tower_damage(trace.events, BLUE),
-        "pushed_out": any(r.lead_blue is not None and r.lead_blue > geometry.centre for r in rows),
+        "own_tower_damage": tower_damage(trace.events, team),
+        "pushed_out": any(lead_of(r, team) is not None and offset(geometry, lead_of(r, team), team) > 0 for r in rows),
         "largest_enemy_wave": peak[0],
         "enemy_lead_unseen_share": unseen.share(),
         **(laners[0].report(world) if laners else NO_LANER),
@@ -257,19 +274,19 @@ BOUNCE_PLANS = {
 }
 
 
-def bounce_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -> dict:
-    """A laner follows a plan from first contact until its wave is in the enemy tower's range, then walks back to
-    its fountain. Nobody else is in the lane. A lane that meets again within 100 units of the centre has reset.
-    One that meets on blue's half has bounced. The same world with no laner at all runs beside it, because an
-    untouched lane moves too."""
+def bounce_case(args, rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE) -> dict:
+    """A laner of `team` follows a plan from first contact until its wave is in the enemy tower's range, then walks
+    back to its fountain. Nobody else is in the lane. A lane that meets again within 100 units of the centre has
+    reset. One that meets on the laner's own half has bounced. The same world with no laner at all runs beside it,
+    because an untouched lane moves too."""
     champion, plan, seed = args
     roles, level, start_s = CHAMPIONS[champion]
     lane = lane_of(champion)
     world = agents.staged(seed, dict.fromkeys(roles, level), start_s, config, rules)
     geometry = world.lanes[lane].geometry
-    laners = team_laners(world, champion, BLUE, lambda: until_crash(BOUNCE_PLANS[plan]()), retreats=False)
-    crashes = Crashes(world.lanes[lane], BLUE)
-    answer = Crashes(world.lanes[lane], RED)
+    laners = team_laners(world, champion, team, lambda: until_crash(BOUNCE_PLANS[plan]()), retreats=False)
+    crashes = Crashes(world.lanes[lane], team)
+    answer = Crashes(world.lanes[lane], 1 - team)
 
     def stop(row) -> bool:
         crashes.watch(row)
@@ -278,17 +295,17 @@ def bounce_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -> 
 
     trace = agents.play(world, lane, laners, start_s + BOUNCE_RUN_S, stop)
     if not crashes.spans:
-        return {"crash_s": None, "crash_peak": None, "front_back_past_centre_s": None, "red_wave_at_blue_tower_s": None, "answer_peak": None,
-                "front_on_blue_half_share": None, "front_at_centre_share": None, "deepest_offset": None, "untouched_front_there_s": None, "back_before_the_untouched_lane": 0,
+        return {"crash_s": None, "crash_peak": None, "front_back_past_centre_s": None, "answer_at_own_tower_s": None, "answer_peak": None,
+                "front_on_own_half_share": None, "front_at_centre_share": None, "deepest_offset": None, "untouched_front_there_s": None, "back_before_the_untouched_lane": 0,
                 "back_sooner_than_untouched_s": None}
     crash = crashes.spans[0]["start"]
     later = [r for r in trace.rows if r.t > crash]
-    back = next((r.t - crash for r in later if r.contact and offset(geometry, r.line) < -RESET_WITHIN), None)
+    back = next((r.t - crash for r in later if r.contact and offset(geometry, r.line, team) < -RESET_WITHIN), None)
     replies = [span for span in answer.spans if span["start"] > crash]
-    contacts = [offset(geometry, r.line) for r in later if r.contact]
+    contacts = [offset(geometry, r.line, team) for r in later if r.contact]
     untouched = agents.staged(seed, dict.fromkeys(roles, level), start_s, config, rules)
     drift = agents.play(untouched, lane, [], start_s + BOUNCE_RUN_S)
-    there = next((r.t - crash for r in drift.rows if r.t > crash and r.contact and offset(geometry, r.line) < -RESET_WITHIN), None)
+    there = next((r.t - crash for r in drift.rows if r.t > crash and r.contact and offset(geometry, r.line, team) < -RESET_WITHIN), None)
     return {
         "untouched_front_there_s": there,
         "back_before_the_untouched_lane": int(back is not None and (there is None or back < there)),
@@ -296,9 +313,9 @@ def bounce_case(args, rules: LaneRules = M8_LANE, config: Config = Config()) -> 
         "crash_s": crash - start_s,
         "crash_peak": crashes.spans[0]["peak"],
         "front_back_past_centre_s": back,
-        "red_wave_at_blue_tower_s": replies[0]["start"] - crash if replies else None,
+        "answer_at_own_tower_s": replies[0]["start"] - crash if replies else None,
         "answer_peak": replies[0]["peak"] if replies else None,
-        "front_on_blue_half_share": sum(o < -RESET_WITHIN for o in contacts) / len(contacts) if contacts else None,
+        "front_on_own_half_share": sum(o < -RESET_WITHIN for o in contacts) / len(contacts) if contacts else None,
         "front_at_centre_share": sum(abs(o) <= RESET_WITHIN for o in contacts) / len(contacts) if contacts else None,
         "deepest_offset": min(contacts, default=None),
     }
@@ -328,15 +345,18 @@ def spread(runs: list[dict]) -> dict:
     return summary
 
 
+def differences(left: list, right: list) -> dict:
+    """`left`'s value minus `right`'s on the same seed: every seed's difference (None where either has no value),
+    and the median, range, and how many are above and below zero over the seeds that have one."""
+    values = [None if a is None or b is None else a - b for a, b in zip(left, right)]
+    gaps = [gap for gap in values if gap is not None]
+    return {"values": values, "median": statistics.median(gaps) if gaps else None, "min": min(gaps, default=None), "max": max(gaps, default=None),
+            "higher": sum(gap > 0 for gap in gaps), "lower": sum(gap < 0 for gap in gaps), "n": len(gaps)}
+
+
 def paired(plan: list[dict], control: list[dict], metrics: tuple[str, ...]) -> dict:
-    """Per metric, the plan's value minus the control's on the same seed: the differences' median, range, and how
-    many are above zero. A seed on which either side has no value is left out."""
-    out = {}
-    for name in metrics:
-        gaps = [a[name] - b[name] for a, b in zip(plan, control) if a[name] is not None and b[name] is not None]
-        out[name] = {"median": statistics.median(gaps) if gaps else None, "min": min(gaps, default=None), "max": max(gaps, default=None),
-                     "higher": sum(gap > 0 for gap in gaps), "n": len(gaps)}
-    return out
+    """Per metric, the plan's value minus the control's on the same seed (`differences`)."""
+    return {name: differences([m[name] for m in plan], [m[name] for m in control]) for name in metrics}
 
 
 def pairs(section: str, runs: dict[str, list[dict]]) -> dict:
@@ -345,12 +365,17 @@ def pairs(section: str, runs: dict[str, list[dict]]) -> dict:
             for plan, rows in runs.items() if plan not in controls}
 
 
+def opponent(last_hits: bool) -> str:
+    return f"opponent {'last hits' if last_hits else 'absent'}"
+
+
 def stacking(champions=tuple(CHAMPIONS), starts=STARTS, reds=(False, True), plans=tuple(PUSH_PLANS), seeds=SEEDS, workers=WORKERS,
-             rules: LaneRules = M8_LANE, config: Config = Config()) -> dict:
+             rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE) -> dict:
+    """The stacking section with the plan on `team`. `reds` says whether the opponent last-hits."""
     keys = [(c, start, red, plan) for c in champions for start in starts for red in reds for plan in plans]
     runs = {}
-    for (c, start, red, plan), rows in over_seeds(partial(stacking_case, rules=rules, config=config), keys, seeds, workers).items():
-        runs.setdefault(f"{c}, from {start}, red {'last hits' if red else 'absent'}", {})[plan] = rows
+    for (c, start, red, plan), rows in over_seeds(partial(stacking_case, rules=rules, config=config, team=team), keys, seeds, workers).items():
+        runs.setdefault(f"{c}, from {start}, {opponent(red)}", {})[plan] = rows
     cases = {setting: {plan: spread(rows) for plan, rows in by_plan.items()} for setting, by_plan in runs.items()}
     return {"cases": cases, "paired": {setting: pairs("stacking", by_plan) for setting, by_plan in runs.items()}, **stacking_verdict(cases)}
 
@@ -386,11 +411,12 @@ def stacking_verdict(cases: dict) -> dict:
 
 
 def holding(champions=tuple(CHAMPIONS), surpluses=SURPLUS, reds=(False, True), plans=tuple(HOLD_PLANS), seeds=SEEDS, workers=WORKERS,
-            rules: LaneRules = M8_LANE, config: Config = Config(), wave: int = 1) -> dict:
+            rules: LaneRules = M8_LANE, config: Config = Config(), wave: int = 1, team: int = BLUE) -> dict:
+    """The holding section with the plan on `team`. `reds` says whether the opponent last-hits."""
     keys = [(c, k, red, plan, wave) for c in champions for k in surpluses for red in reds for plan in plans]
     runs = {}
-    for (c, k, red, plan, _), rows in over_seeds(partial(holding_case, rules=rules, config=config), keys, seeds, workers).items():
-        runs.setdefault(f"{c}, {k} surplus casters, red {'last hits' if red else 'absent'}", {})[plan] = rows
+    for (c, k, red, plan, _), rows in over_seeds(partial(holding_case, rules=rules, config=config, team=team), keys, seeds, workers).items():
+        runs.setdefault(f"{c}, {k} surplus casters, {opponent(red)}", {})[plan] = rows
     cases = {setting: {plan: spread(rows) for plan, rows in by_plan.items()} for setting, by_plan in runs.items()}
     return {"cases": cases, "paired": {setting: pairs("holding", by_plan) for setting, by_plan in runs.items()}, **holding_verdict(cases)}
 
@@ -420,8 +446,9 @@ def holding_verdict(cases: dict) -> dict:
     return out
 
 
-def bounce(champions=tuple(CHAMPIONS), plans=tuple(BOUNCE_PLANS), seeds=SEEDS, workers=WORKERS, rules: LaneRules = M8_LANE, config: Config = Config()) -> dict:
-    rows = over_seeds(partial(bounce_case, rules=rules, config=config), [(c, plan) for c in champions for plan in plans], seeds, workers)
+def bounce(champions=tuple(CHAMPIONS), plans=tuple(BOUNCE_PLANS), seeds=SEEDS, workers=WORKERS, rules: LaneRules = M8_LANE, config: Config = Config(),
+           team: int = BLUE) -> dict:
+    rows = over_seeds(partial(bounce_case, rules=rules, config=config, team=team), [(c, plan) for c in champions for plan in plans], seeds, workers)
     return {f"{c}, {plan}": spread(runs) for (c, plan), runs in rows.items()}
 
 
@@ -453,13 +480,27 @@ def bounced(row: dict, seeds: int) -> bool:
 def thinning(plans: list[str]) -> list[str]:
     return [plan for plan in plans if plan.startswith("thin")]
 
+def verdicts(stack: dict, hold: dict, back: dict, seeds: int) -> dict:
+    """Each verdict of section 5.4 per setting and plan, as true or false."""
+    by_champion: dict = {}
+    for case, row in back.items():
+        plan = next(plan for plan in BOUNCE_PLANS if case.endswith(f", {plan}"))
+        by_champion.setdefault(case[: -len(plan) - 2], {})[plan] = bounced(row, seeds)
+    return {
+        "accumulates": {setting: {plan: plan in stack["accumulates"][setting] for plan in rows if plan not in STACK_CONTROLS} for setting, rows in stack["cases"].items()},
+        "delays": {setting: {plan: plan in stack["delays"][setting] for plan in thinning(list(rows))} for setting, rows in stack["cases"].items()},
+        "sustains": {setting: {plan: plan in hold["sustains"][setting] for plan in rows if plan.startswith("hold")} for setting, rows in hold["cases"].items()},
+        "bounces": by_champion,
+    }
 
-def verdict_counts(rules: LaneRules = M8_LANE, config: Config = Config(), seeds=range(3), workers=WORKERS) -> dict:
-    """How often each verdict holds on the two diagnostic champions under these lane rules and this clock, and the
-    numbers behind the verdicts: per setting and plan, every seed's largest crash and held cycles."""
-    stack = stacking(DIAGNOSTIC_CHAMPIONS, DIAGNOSTIC_STARTS, seeds=seeds, workers=workers, rules=rules, config=config)
-    hold = holding(DIAGNOSTIC_CHAMPIONS, surpluses=DIAGNOSTIC_SURPLUS, seeds=seeds, workers=workers, rules=rules, config=config)
-    back = bounce(DIAGNOSTIC_CHAMPIONS, DIAGNOSTIC_BOUNCES, seeds=seeds, workers=workers, rules=rules, config=config)
+
+def verdict_counts(rules: LaneRules = M8_LANE, config: Config = Config(), seeds=range(3), workers=WORKERS, team: int = BLUE) -> dict:
+    """How often each verdict holds on the two diagnostic champions under these lane rules and this clock, with the
+    plan on `team`, and what is behind the counts: every verdict per setting and plan, and every seed's largest
+    crash, first crash, held cycles, time kept out, and bounce time."""
+    stack = stacking(DIAGNOSTIC_CHAMPIONS, DIAGNOSTIC_STARTS, seeds=seeds, workers=workers, rules=rules, config=config, team=team)
+    hold = holding(DIAGNOSTIC_CHAMPIONS, surpluses=DIAGNOSTIC_SURPLUS, seeds=seeds, workers=workers, rules=rules, config=config, team=team)
+    back = bounce(DIAGNOSTIC_CHAMPIONS, DIAGNOSTIC_BOUNCES, seeds=seeds, workers=workers, rules=rules, config=config, team=team)
     return {
         "settings": len(stack["accumulates"]),
         "settings_where_a_plan_accumulates": sum(bool(plans) for plans in stack["accumulates"].values()),
@@ -473,6 +514,7 @@ def verdict_counts(rules: LaneRules = M8_LANE, config: Config = Config(), seeds=
         "bounce_cases": len(back),
         "bounce_cases_back_in_every_run": sum(row["front_back_past_centre_s"]["n"] == len(seeds) for row in back.values()),
         "bounce_cases_back_before_the_untouched_lane": sum(bounced(row, len(seeds)) for row in back.values()),
+        "verdicts": verdicts(stack, hold, back, len(seeds)),
         "largest_crash_by_seed": {setting: {plan: row["largest_crash_peak"]["values"] for plan, row in rows.items()} for setting, rows in stack["cases"].items()},
         "first_crash_s_by_seed": {setting: {plan: row["first_crash_s"]["values"] for plan, row in rows.items()} for setting, rows in stack["cases"].items()},
         "held_cycles_by_seed": {setting: {plan: row["held_cycles"]["values"] for plan, row in rows.items()} for setting, rows in hold["cases"].items()},
@@ -482,49 +524,162 @@ def verdict_counts(rules: LaneRules = M8_LANE, config: Config = Config(), seeds=
 
 
 def diagnostics(variants=VARIANTS, seeds=range(3), workers=WORKERS) -> dict:
-    """The verdicts under one changed lane rule at a time. A diagnostic changes the lane only for this table. It
-    shows which rule a verdict rests on, not what the lane should be."""
+    """The verdicts under one changed lane rule at a time, with the plan on blue. A diagnostic changes the lane only
+    for this table. It shows which rule a verdict rests on, not what the lane should be."""
     return {name: {"natural_first_wave_fight_s": {lane: investigate.natural_fight(lane, rules, seeds)["alone_s"]["median"] for lane in ("mid", "top")},
                    **verdict_counts(rules, seeds=seeds, workers=workers)} for name, rules in variants.items()}
 
 
 TICKS = (0.125, 0.25, 0.5, 1.0)
 DECISION_S = 2.0
+DECISIONS_S = (1.0, 2.0, 5.0)
+DECISION_SWEEP_TICK_S = 0.5
 
 
-def tick_sweep(ticks=TICKS, seeds=range(3), workers=WORKERS) -> dict:
-    """The same verdicts and the numbers behind them at four tick lengths, with a decision every 2 s at each."""
-    return {str(tick_s): verdict_counts(config=Config(tick_s=tick_s, decision_ticks=round(DECISION_S / tick_s)), seeds=seeds, workers=workers) for tick_s in ticks}
+def sweeps(ticks=TICKS, decisions=DECISIONS_S, seeds=range(3), workers=WORKERS, sides=tuple(SIDES)) -> dict:
+    """The verdict counts and the numbers behind them, per side, at four tick lengths with a decision every 2 s,
+    and at three decision intervals with a tick of 0.5 s. A clock that both sweeps share runs once."""
+    clocks = {("tick_sweep", str(tick_s)): (tick_s, round(DECISION_S / tick_s)) for tick_s in ticks}
+    clocks |= {("decision_sweep", str(every)): (DECISION_SWEEP_TICK_S, round(every / DECISION_SWEEP_TICK_S)) for every in decisions}
+    done, out = {}, {"tick_sweep": {}, "decision_sweep": {}}
+    for side in sides:
+        for (sweep, label), clock in clocks.items():
+            if (side, clock) not in done:
+                done[side, clock] = verdict_counts(config=Config(tick_s=clock[0], decision_ticks=clock[1]), seeds=seeds, workers=workers, team=SIDES[side])
+            out[sweep].setdefault(side, {})[label] = done[side, clock]
+    return out
 
 
 BY_SEED = ("largest_crash_by_seed", "first_crash_s_by_seed", "held_cycles_by_seed", "kept_out_s_by_seed", "bounce_back_s_by_seed")
+LARGEST_SHIFTS = 8
 
 
-def tick_spread(sweep: dict) -> dict:
-    """How far the numbers behind the verdicts move with the tick length, beside how far they move with the seed.
+def flat(nested: dict) -> dict:
+    """{setting: {plan: value}} as {"setting, plan": value}. A value that is not a dict of plans keeps its key."""
+    return {f"{setting}, {plan}": value for setting, plans in nested.items() for plan, value in plans.items()} if all(isinstance(v, dict) for v in nested.values()) else dict(nested)
 
-    Per metric, over the cases that have a value in every run: the mean at each tick, the mean over cases of the
-    range of the per-tick means, the mean over cases of the range across seeds, and the cases whose every seed
-    gives the same value at every tick.
+
+def sensitivity(sweep: dict) -> dict:
+    """How the numbers and the verdicts behind section 5.4 move across the clocks of one sweep, per case, beside how
+    far they move across seeds. A case is a setting and a plan. The first clock of the sweep is the reference.
+
+    Per metric and case: every seed's value at every clock, the mean at each clock, the range of those means, the
+    range across seeds averaged over the clocks, and each clock's shift of the mean from the reference. Over the
+    cases with a value in every run: how many move more across clocks than across seeds, how many give the same
+    value in every seed at every clock, the median of the absolute shift from the reference at each clock, and the
+    cases that move most. Per verdict: how many cases keep it at every clock, and each case that flips.
     """
-    ticks = list(sweep)
-    out = {}
+    labels = list(sweep)
+    reference = labels[0]
+    out = {"reference": reference, "metrics": {}, "verdicts": {}}
     for metric in BY_SEED:
-        cases = []
-        for setting, rows in sweep[ticks[0]][metric].items():
-            for plan in (rows if isinstance(rows, dict) else [None]):
-                values = [sweep[tick][metric][setting] if plan is None else sweep[tick][metric][setting][plan] for tick in ticks]
-                if all(value is not None for run in values for value in run):
-                    cases.append(values)
-        means = [[statistics.mean(run) for run in values] for values in cases]
-        out[metric] = {
-            "cases": len(cases),
-            "mean_by_tick": {tick: statistics.mean(row[i] for row in means) for i, tick in enumerate(ticks)},
-            "mean_range_across_ticks": statistics.mean(max(row) - min(row) for row in means),
-            "mean_range_across_seeds": statistics.mean(statistics.mean(max(run) - min(run) for run in values) for values in cases),
-            "cases_equal_at_every_tick": sum(all(run == values[0] for run in values) for values in cases),
+        runs = {label: flat(sweep[label][metric]) for label in labels}
+        by_case = {}
+        for case in runs[reference]:
+            values = {label: runs[label][case] for label in labels}
+            row = {"values": values}
+            if all(value is not None for run in values.values() for value in run):
+                means = {label: statistics.mean(run) for label, run in values.items()}
+                row |= {"means": means, "range_across_clocks": max(means.values()) - min(means.values()),
+                        "mean_range_across_seeds": statistics.mean(max(run) - min(run) for run in values.values()),
+                        "shift_from_reference": {label: means[label] - means[reference] for label in labels[1:]}}
+            by_case[case] = row
+        complete = {case: row for case, row in by_case.items() if "means" in row}
+        moving = sorted(complete, key=lambda case: -complete[case]["range_across_clocks"])[:LARGEST_SHIFTS]
+        out["metrics"][metric] = {
+            "cases": len(by_case),
+            "cases_with_a_value_in_every_run": len(complete),
+            "cases_moving_more_across_clocks_than_across_seeds": sum(row["range_across_clocks"] > row["mean_range_across_seeds"] for row in complete.values()),
+            "cases_equal_in_every_seed_at_every_clock": sum(all(run == row["values"][reference] for run in row["values"].values()) for row in complete.values()),
+            "median_absolute_shift_from_reference": {label: statistics.median(abs(row["shift_from_reference"][label]) for row in complete.values()) if complete else None
+                                                     for label in labels[1:]},
+            "mean_by_clock": {label: statistics.mean(row["means"][label] for row in complete.values()) if complete else None for label in labels},
+            "largest_shifts": {case: {"means": complete[case]["means"], "mean_range_across_seeds": complete[case]["mean_range_across_seeds"]} for case in moving},
+            "by_case": by_case,
         }
+    for kind in sweep[reference]["verdicts"]:
+        held = {label: flat(sweep[label]["verdicts"][kind]) for label in labels}
+        flips = {case: {label: held[label][case] for label in labels} for case in held[reference] if len({held[label][case] for label in labels}) > 1}
+        cases = len(held[reference])
+        out["verdicts"][kind] = {"cases": cases, "unchanged": cases - len(flips), "unchanged_share": (cases - len(flips)) / cases if cases else None,
+                                 "true_at": {label: sum(held[label].values()) for label in labels}, "flips": flips}
     return out
+
+
+def between_sides(section: str, blue: dict, red: dict) -> dict:
+    """Per setting, plan, and metric: blue's value minus red's on the same seed, with the plan on that side."""
+    metrics = BETWEEN_SIDES["bounce" if section == "bounce" else section.split("_")[0]]
+    if section == "bounce":
+        return {case: {name: differences(row[name]["values"], red[case][name]["values"]) for name in metrics} for case, row in blue.items()}
+    return {setting: {plan: {name: differences(row[name]["values"], red["cases"][setting][plan][name]["values"]) for name in metrics}
+                      for plan, row in rows.items()} for setting, rows in blue["cases"].items()}
+
+
+def compare(blue: dict, red: dict) -> dict:
+    """One verdict, {setting: {plan: bool}} on each side, compared per setting and per case. A setting counts on
+    both sides when some plan holds the verdict on both."""
+    settings = {setting: {"blue": [plan for plan, ok in plans.items() if ok], "red": [plan for plan, ok in red[setting].items() if ok]} for setting, plans in blue.items()}
+    cases_blue, cases_red = flat(blue), flat(red)
+    return {
+        "settings": len(settings),
+        "settings_blue": sum(bool(row["blue"]) for row in settings.values()),
+        "settings_red": sum(bool(row["red"]) for row in settings.values()),
+        "settings_both_sides": sum(bool(set(row["blue"]) & set(row["red"])) for row in settings.values()),
+        "settings_either_side": sum(bool(row["blue"] or row["red"]) for row in settings.values()),
+        "cases": len(cases_blue),
+        "cases_blue": sum(cases_blue.values()),
+        "cases_red": sum(cases_red.values()),
+        "cases_both_sides": sum(ok and cases_red[case] for case, ok in cases_blue.items()),
+        "settings_that_differ": {setting: row for setting, row in settings.items() if set(row["blue"]) != set(row["red"])},
+    }
+
+
+def beats(section: dict, kind: str, seeds: int) -> dict:
+    """The headline of a paired table: per metric and control, of all plan scenarios (setting and plan), how many
+    have the plan's value above the control's in every seed, and below it in every seed."""
+    out = {}
+    for metric in BEATS[kind]:
+        for plans in section["paired"].values():
+            for controls in plans.values():
+                for control, row in controls.items():
+                    tally = out.setdefault(metric, {}).setdefault(control, {"scenarios": 0, "higher_in_every_seed": 0, "lower_in_every_seed": 0})
+                    tally["scenarios"] += 1
+                    tally["higher_in_every_seed"] += row[metric]["higher"] == seeds
+                    tally["lower_in_every_seed"] += row[metric]["lower"] == seeds
+    return out
+
+
+def at_least(longest: dict) -> dict:
+    cycles = [row["cycles"] for row in longest.values()]
+    return {str(n): sum(c >= n for c in cycles) for n in range(1, int(HOLD_RUN_S // WAVE_S) + 1)}
+
+
+def side_summary(results: dict, seeds: int) -> dict:
+    """The counts of section 5.4 per side and for both sides, and the paired headlines per side."""
+    blue, red = ({section: results[section][side] for section in SECTIONS} for side in SIDES)
+    on = {side: verdicts(results["stacking"][side], results["holding"][side], results["bounce"][side], seeds) for side in SIDES}
+    third = {side: {setting: {plan: plan in plans for plan in results["holding_from_the_third_wave"][side]["cases"][setting] if plan.startswith("hold")}
+                    for setting, plans in results["holding_from_the_third_wave"][side]["sustains"].items()} for side in SIDES}
+    longest = {section: {setting: {"cycles": min(blue[section]["longest"][setting]["cycles"], red[section]["longest"][setting]["cycles"])}
+                         for setting in blue[section]["longest"]} for section in ("holding", "holding_from_the_third_wave")}
+    return {
+        "accumulates": compare(on["blue"]["accumulates"], on["red"]["accumulates"]),
+        "delays": compare(on["blue"]["delays"], on["red"]["delays"]),
+        "sustains": compare(on["blue"]["sustains"], on["red"]["sustains"]),
+        "sustains_from_the_third_wave": compare(third["blue"], third["red"]),
+        "bounces": compare(on["blue"]["bounces"], on["red"]["bounces"]),
+        "settings_with_a_hold_of_at_least_n_cycles_in_every_seed": {
+            section: {"blue": blue[section]["settings_with_a_hold_of_at_least_n_cycles_in_every_seed"], "red": red[section]["settings_with_a_hold_of_at_least_n_cycles_in_every_seed"],
+                      "both_sides": at_least(longest[section])} for section in longest},
+        "largest_crash": {side: max(row["peak"] for row in results["stacking"][side]["largest_crash"].values()) for side in SIDES},
+        "crashes_of_12_or_more": {side: results["stacking"][side]["crashes_of_12_or_more"] for side in SIDES},
+        "bounce_back_in_every_run": {side: sum(row["front_back_past_centre_s"]["n"] == seeds for row in results["bounce"][side].values()) for side in SIDES},
+        "paired_headline": {side: {section: beats(results[section][side], section.split("_")[0], seeds) for section in ("stacking", "holding", "holding_from_the_third_wave")}
+                            for side in SIDES},
+    }
+
+
+SECTIONS = ("stacking", "holding", "holding_from_the_third_wave", "bounce")
 
 
 def write(results: dict, path: Path, settings: dict) -> None:
@@ -541,50 +696,80 @@ COUNTS = ("settings_where_a_plan_accumulates", "settings_where_a_thinning_plan_a
 def report(results: dict) -> None:
     """Print the counts and the rows that the M8 document quotes from a results file."""
     seeds = len(results["seeds"])
-    stack = results["stacking"]
-    print(f"stacking: a plan accumulates in {sum(bool(plans) for plans in stack['accumulates'].values())} of {len(stack['accumulates'])} settings, "
-          f"a thinning plan in {sum(bool(thinning(plans)) for plans in stack['accumulates'].values())}, largest crash {max(row['peak'] for row in stack['largest_crash'].values())}, "
-          f"largest with no laner {max(row['absent peak'] for row in stack['largest_crash'].values())}, crashes of 12 or more: {len(stack['crashes_of_12_or_more'])}")
-    for start in STARTS:
-        mine = {setting: plans for setting, plans in stack["accumulates"].items() if f", from {start}, " in setting}
-        print(f"  from {start}: accumulates in {sum(bool(plans) for plans in mine.values())} of {len(mine)}, delays in {sum(bool(stack['delays'][setting]) for setting in mine)}")
-    for setting, plans in stack["accumulates"].items():
-        if plans:
-            row = stack["largest_crash"][setting]
-            print(f"  accumulates: {setting}: {plans}, largest {row}")
-    for name in ("holding", "holding_from_the_third_wave"):
-        hold = results[name]
-        print(f"{name}: a hold sustains control in {sum(bool(plans) for plans in hold['sustains'].values())} of {len(hold['sustains'])} settings, "
-              f"by cycles {hold['settings_with_a_hold_of_at_least_n_cycles_in_every_seed']}")
-        for setting, plans in hold["sustains"].items():
+    for side in SIDES:
+        stack = results["stacking"][side]
+        print(f"[{side}] stacking: a plan accumulates in {sum(bool(plans) for plans in stack['accumulates'].values())} of {len(stack['accumulates'])} settings, "
+              f"a thinning plan in {sum(bool(thinning(plans)) for plans in stack['accumulates'].values())}, largest crash {max(row['peak'] for row in stack['largest_crash'].values())}, "
+              f"largest with no laner {max(row['absent peak'] for row in stack['largest_crash'].values())}, crashes of 12 or more: {len(stack['crashes_of_12_or_more'])}")
+        for start in STARTS:
+            mine = {setting: plans for setting, plans in stack["accumulates"].items() if f", from {start}, " in setting}
+            print(f"[{side}]   from {start}: accumulates in {sum(bool(plans) for plans in mine.values())} of {len(mine)}, delays in {sum(bool(stack['delays'][setting]) for setting in mine)}")
+        for setting, plans in stack["accumulates"].items():
             if plans:
-                print(f"  sustains: {setting}: {plans}, controls {({key: value for key, value in hold['longest'][setting].items() if key.endswith(' cycles')})}")
-    for case, row in results["bounce"].items():
-        print(f"bounce {case}: back after {row['front_back_past_centre_s']['median']} s in {row['front_back_past_centre_s']['n']} of {seeds} runs, "
-              f"untouched lane there after {row['untouched_front_there_s']['median']} s in {row['untouched_front_there_s']['n']}, "
-              f"sooner by {row['back_sooner_than_untouched_s']['values']}, counts: {bounced(row, seeds)}")
+                print(f"[{side}]   accumulates: {setting}: {plans}, largest {stack['largest_crash'][setting]}")
+        for name in ("holding", "holding_from_the_third_wave"):
+            hold = results[name][side]
+            print(f"[{side}] {name}: a hold sustains control in {sum(bool(plans) for plans in hold['sustains'].values())} of {len(hold['sustains'])} settings, "
+                  f"by cycles {hold['settings_with_a_hold_of_at_least_n_cycles_in_every_seed']}")
+            for setting, plans in hold["sustains"].items():
+                if plans:
+                    print(f"[{side}]   sustains: {setting}: {plans}, controls {({key: value for key, value in hold['longest'][setting].items() if key.endswith(' cycles')})}")
+        for case, row in results["bounce"][side].items():
+            print(f"[{side}] bounce {case}: back after {row['front_back_past_centre_s']['median']} s in {row['front_back_past_centre_s']['n']} of {seeds} runs, "
+                  f"untouched lane there after {row['untouched_front_there_s']['median']} s in {row['untouched_front_there_s']['n']}, "
+                  f"sooner by {row['back_sooner_than_untouched_s']['values']}, counts: {bounced(row, seeds)}")
+        for name in ("stacking", "holding", "holding_from_the_third_wave"):
+            rows = [row for plans in results[name][side]["cases"].values() for row in plans.values()]
+            early = [row["minion_blows_before_first_contact"]["max"] for row in rows if row["minion_blows_before_first_contact"]["n"]]
+            unseen = [row["enemy_lead_unseen_share"]["median"] for row in rows]
+            print(f"[{side}] {name}: cases with a minion blow on the champion before the first waves met: {sum(blows > 0 for blows in early)} of {len(early)}. "
+                  f"Share of ticks on which the team did not see the enemy lead minion: median {statistics.median(unseen):.3f}, largest {max(unseen):.3f}")
+    summary = results["sides"]
+    for kind in ("accumulates", "delays", "sustains", "sustains_from_the_third_wave", "bounces"):
+        row = summary[kind]
+        print(f"sides {kind}: settings blue {row['settings_blue']}, red {row['settings_red']}, both {row['settings_both_sides']}, either {row['settings_either_side']} of {row['settings']}; "
+              f"cases blue {row['cases_blue']}, red {row['cases_red']}, both {row['cases_both_sides']} of {row['cases']}")
+        for setting, plans in row["settings_that_differ"].items():
+            print(f"    differs: {setting}: {plans}")
+    for key in ("settings_with_a_hold_of_at_least_n_cycles_in_every_seed", "largest_crash", "bounce_back_in_every_run"):
+        print(f"sides {key}: {summary[key]}")
+    for side, sections in summary["paired_headline"].items():
+        for section, metrics in sections.items():
+            print(f"[{side}] paired {section}: {metrics}")
     for name, row in results["diagnostics"].items():
         print(f"diagnostic {name}: fight {row['natural_first_wave_fight_s']} {({key: row[key] for key in COUNTS})}")
-    for tick_s, row in results["tick_sweep"].items():
-        print(f"tick {tick_s} s: {({key: row[key] for key in COUNTS})}")
-    for metric, row in tick_spread(results["tick_sweep"]).items():
-        print(f"tick spread {metric}: {rounded(row)}")
-    for name in ("stacking", "holding", "holding_from_the_third_wave"):
-        rows = [row for plans in results[name]["cases"].values() for row in plans.values()]
-        early = [row["minion_blows_before_first_contact"]["max"] for row in rows if row["minion_blows_before_first_contact"]["n"]]
-        unseen = [row["enemy_lead_unseen_share"]["median"] for row in rows]
-        print(f"{name}: cases with a minion blow on the champion before the first waves met: {sum(blows > 0 for blows in early)} of {len(early)}. "
-              f"Share of ticks on which the team did not see the enemy lead minion: median {statistics.median(unseen):.3f}, largest {max(unseen):.3f}")
+    for sweep in ("tick_sweep", "decision_sweep"):
+        for side, by_clock in results[sweep].items():
+            for clock, row in by_clock.items():
+                print(f"[{side}] {sweep} {clock}: {({key: row[key] for key in COUNTS})}")
+            spread_ = sensitivity(by_clock)
+            for kind, row in spread_["verdicts"].items():
+                print(f"[{side}] {sweep} verdict {kind}: unchanged in {row['unchanged']} of {row['cases']}, true at {row['true_at']}, flips {row['flips']}")
+            for metric, row in spread_["metrics"].items():
+                print(f"[{side}] {sweep} {metric}: {row['cases_with_a_value_in_every_run']} cases, more across clocks than seeds in {row['cases_moving_more_across_clocks_than_across_seeds']}, "
+                      f"equal in {row['cases_equal_in_every_seed_at_every_clock']}, median |shift| from {spread_['reference']}: {rounded(row['median_absolute_shift_from_reference'])}, "
+                      f"means {rounded(row['mean_by_clock'])}")
+                for case, shift in list(row["largest_shifts"].items())[:3]:
+                    print(f"        moves most: {case}: {rounded(shift)}")
 
 
 def main() -> None:
     if sys.argv[1:] == ["--report"]:
         return report(json.loads(RESULTS.read_text(encoding="utf-8")))
-    results = {"ruleset": RULESET_ID, "seeds": list(SEEDS), "champions": {label: {"roles": list(roles), "level": level, "start_s": start_s} for label, (roles, level, start_s) in CHAMPIONS.items()},
-               "stacking": stacking(), "holding": holding(), "holding_from_the_third_wave": holding(surpluses=LATER_SURPLUS, wave=LATER_WAVE), "bounce": bounce(),
-               "variants": {name: asdict(rules) for name, rules in VARIANTS.items()}, "diagnostics": diagnostics(), "tick_sweep": tick_sweep()}
+    results = {"ruleset": RULESET_ID, "seeds": list(SEEDS), "champions": {label: {"roles": list(roles), "level": level, "start_s": start_s} for label, (roles, level, start_s) in CHAMPIONS.items()}}
+    for side, team in SIDES.items():
+        for section, run in (("stacking", partial(stacking, team=team)), ("holding", partial(holding, team=team)),
+                             ("holding_from_the_third_wave", partial(holding, surpluses=LATER_SURPLUS, wave=LATER_WAVE, team=team)), ("bounce", partial(bounce, team=team))):
+            results.setdefault(section, {})[side] = run()
+    for section in SECTIONS:
+        results[section]["between_sides"] = between_sides(section, results[section]["blue"], results[section]["red"])
+    results["sides"] = side_summary(results, len(SEEDS))
+    results |= {"variants": {name: asdict(rules) for name, rules in VARIANTS.items()}, "diagnostics": diagnostics(), **sweeps()}
+    for sweep in ("tick_sweep", "decision_sweep"):
+        results[f"{sweep}_sensitivity"] = {side: sensitivity(by_clock) for side, by_clock in results[sweep].items()}
     write(results, RESULTS, {"plan_run_s": PLAN_RUN_S, "hold_run_s": HOLD_RUN_S, "bounce_run_s": BOUNCE_RUN_S, "surplus": SURPLUS, "later_surplus": LATER_SURPLUS,
-                             "later_wave": LATER_WAVE, "ticks": TICKS, "decision_s": DECISION_S})
+                             "later_wave": LATER_WAVE, "ticks": TICKS, "decision_s": DECISION_S, "decisions_s": DECISIONS_S, "decision_sweep_tick_s": DECISION_SWEEP_TICK_S,
+                             "sides": list(SIDES), "sweep_seeds": 3, "diagnostics_side": "blue"})
     report(json.loads(RESULTS.read_text(encoding="utf-8")))
     print(f"wrote {RESULTS}")
 

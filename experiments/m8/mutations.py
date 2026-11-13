@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-COPIED = ("riftgame", "tests", "pyproject.toml")
+COPIED = ("riftgame", "tests", "experiments", "pyproject.toml")
 LANES, WORLD, CHAMPIONS, VISION, ECONOMY = (f"riftgame/{name}.py" for name in ("lanes", "world", "champions", "vision", "economy"))
 LANE_TESTS = "tests/test_lanes.py"
 KERNEL_TESTS = " ".join(f"tests/test_world_{name}.py" for name in ("clock", "intents", "roles", "snapshot", "observation", "soak"))
@@ -25,9 +25,22 @@ JUNGLE_TESTS = "tests/test_jungle.py tests/test_world_observation.py"
 COMBAT = "riftgame/combat.py"
 COMBAT_TESTS = "tests/test_combat.py"
 VISION_TESTS = "tests/test_vision.py"
-TIMEOUT_S = 300
+MEMORY_TESTS = "tests/test_memory.py"
+PURSUIT_TESTS = "tests/test_pursuit.py"
+# The referee of experiments/m8/integrated.py alone, on two scripted games of 20 minutes.
+REFEREE_TESTS = "tests/test_integrated.py::test_a_scripted_game_of_20_minutes_breaks_no_invariant_and_no_rule_of_the_referee"
+TIMEOUT_S = 900
 
 MUTATIONS = [
+    ("the referee misses a tower that shoots a champion while minions are in range", LANES,
+     "marks = [spot for spot in marks if self._provokes(spot, tower)] or ([] if foes else marks)",
+     "marks = [spot for spot in marks if self._provokes(spot, tower)] or marks", REFEREE_TESTS),
+    ("the referee misses a tower that ignores its provokers", LANES,
+     "marks = [spot for spot in marks if self._provokes(spot, tower)] or ([] if foes else marks)", "marks = [] if foes else marks", REFEREE_TESTS),
+    ("the referee misses a champion that respawns a tick late", WORLD, "if 0 <= c.respawn_tick <= self.tick:", "if 0 <= c.respawn_tick < self.tick:", REFEREE_TESTS),
+    ("the referee misses a camp that never respawns", JUNGLE, "world.camps[i].spawn_tick = tick + config.ticks(kind.respawn_s)", "world.camps[i].spawn_tick = -1", REFEREE_TESTS),
+    ("the referee misses a wave interval of twice the schedule", LANES,
+     'self.next_wave = t + scheduled(MINIONS["interval_schedule"], t)', 'self.next_wave = t + 2 * scheduled(MINIONS["interval_schedule"], t)', REFEREE_TESTS),
     ("a tower shot ignores the minion kind's share", LANES, "target.rules.tower_shot_pct * target.max_hp", "0.45 * target.max_hp", LANE_TESTS),
     ("gold is paid for every minion death", LANES, "gold = target.gold if killer is not None else 0", "gold = target.gold", LANE_TESTS),
     ("a champion that stepped aside still hits", LANES, "return inp.in_path and inp.mode is not Mode.PASSIVE", "return inp.mode is not Mode.PASSIVE", LANE_TESTS),
@@ -84,7 +97,6 @@ MUTATIONS = [
     ("a snapshot shares its lanes with the world", WORLD, "tuple(copy.deepcopy(self.lanes[name]) for name in LANES))", "tuple(self.lanes[name] for name in LANES))", KERNEL_TESTS),
     ("red positions are not put in red's frame", VISION, "    route, start, sign = _FRAME_EDGES[team][pos.edge]", "    route, start, sign = _FRAME_EDGES[0][pos.edge]", KERNEL_TESTS),
     ("red action targets resolve to blue nodes", CHAMPIONS, "DEST = tuple(tuple(NODE_POS[team][a.target] if", "DEST = tuple(tuple(NODE_POS[0][a.target] if", KERNEL_TESTS),
-    ("a follower chases positions already moved this tick", CHAMPIONS, "    return stood[ally] if world.champions[ally].hp > 0 else None", "    return world.champions[ally].pos if world.champions[ally].hp > 0 else None", KERNEL_TESTS),
     ("durations round down", WORLD, "return math.ceil(seconds / self.tick_s - 1e-9)", "return math.floor(seconds / self.tick_s + 1e-9)", KERNEL_TESTS),
     ("a respawn comes one tick late", WORLD, "c.respawn_tick = self.tick + self.config.ticks(", "c.respawn_tick = self.tick + 1 + self.config.ticks(", KERNEL_TESTS),
     ("damage does not interrupt a recall", WORLD, "        if ACTIONS[c.intent].kind is Kind.RECALL:\n            finish(c, Outcome.INTERRUPTED, self.tick)\n", "", KERNEL_TESTS),
@@ -192,7 +204,6 @@ MUTATIONS = [
     ("camp damage ignores the attack credit", JUNGLE, "attack_worth(world, c, capability_of(c).camp_dps)", "capability_of(c).camp_dps * world.config.tick_s", JUNGLE_TESTS),
     ("a ready attack is worth nothing on a champion or a camp", CHAMPIONS, "(c.attack_credit + speed * world.config.tick_s)", "(speed * world.config.tick_s)", COMBAT_TESTS),
     ("a fight tick leaves the credit untouched", COMBAT, "        if c.seat in used:\n            c.attack_credit = 0.0\n", "        if c.seat in used:\n            pass\n", COMBAT_TESTS),
-    ("damage on champions does not grow with the level", CHAMPIONS, '"area_dps", "camp_dps", "champion_dps"))', '"area_dps", "camp_dps"))', COMBAT_TESTS),
     ("a lockdown is used without the mana for it", COMBAT, " and c.mana >= can.lockdown_mana", "", COMBAT_TESTS),
     ("a lockdown has no cooldown", COMBAT, " and world.tick >= c.lockdown_tick", "", COMBAT_TESTS),
     ("a lockdown costs no mana", COMBAT, "            attacker.mana -= can.lockdown_mana\n", "", COMBAT_TESTS),
@@ -223,12 +234,6 @@ MUTATIONS = [
     ("self-defence is not legal under a leash", VISION, "(permitted[i] or me.hurt_by[foe])", "permitted[i]", COMBAT_TESTS),
     ("a fight against an enemy out of view is legal", VISION, "o.enemies[foe] is not None and (permitted[i] or me.hurt_by[foe])", "(permitted[i] or me.hurt_by[foe])", COMBAT_TESTS),
     ("the self-defence window never closes", VISION, "hurt_by=tuple(tick >= since for tick in c.hurt_tick),", "hurt_by=tuple(tick >= 0 for tick in c.hurt_tick),", COMBAT_TESTS),
-    ("the observation shows an enemy that the team saw earlier", VISION, "if record.seen_tick == tick else None", "if record.seen_tick >= 0 else None", COMBAT_TESTS),
-    ("a fighter walks to the true place of a target that its team does not see", CHAMPIONS,
-     "    if record.seen_tick != world.tick:\n        return _short_of(c, record.pos)\n    target = world.champions[(1 - team) * 5 + foe]\n    if RULE[target.intent].pursues or not world.watches(team, target.pos, stood):",
-     "    target = world.champions[(1 - team) * 5 + foe]\n    if RULE[target.intent].pursues:", COMBAT_TESTS),
-    ("a fighter heads for where its team saw its target before the move step", CHAMPIONS, "    if RULE[target.intent].pursues or not world.watches(team, target.pos, stood):", "    if True:", COMBAT_TESTS),
-    ("a fighter heads for the new place of a target that left its team's view on this tick", CHAMPIONS, "    if RULE[target.intent].pursues or not world.watches(team, target.pos, stood):", "    if RULE[target.intent].pursues:", COMBAT_TESTS),
     ("a fight is lost on the tick of arrival", CHAMPIONS, "    return Outcome.LOST if c.channel > 1 else Outcome.NONE", "    return Outcome.LOST if c.channel > 0 else Outcome.NONE", COMBAT_TESTS),
     ("a fighter walks onto its target instead of stopping at its range", CHAMPIONS, "    return RIFT.advance(target, pos, reach)", "    return target", COMBAT_TESTS),
     ("a tower's ramp never starts again", LANES, "        if t - tower.heat_at >= RAMP_RESET_S:\n            tower.heat = 0\n", "", COMBAT_TESTS),
@@ -253,16 +258,6 @@ MUTATIONS = [
     ("the call for help never ends", COMBAT, "    since = world.tick - world.config.ticks(CALL_S)", "    since = 0", COMBAT_TESTS),
     ("a laner's stance reads the lane's true front", CHAMPIONS, "capability_of(c).attack_range, known_front(world, seat // 5, lane), hold=hold)",
      "capability_of(c).attack_range, world.lanes[lane].front(), hold=hold)", VISION_TESTS),
-    ("a fighter heads for its target's true place", CHAMPIONS, "        return _short_of(c, record.pos)\n    target = world.champions[(1 - team) * 5 + foe]",
-     "        return _short_of(c, world.champions[(1 - team) * 5 + foe].pos)\n    target = world.champions[(1 - team) * 5 + foe]", VISION_TESTS),
-    ("a fighter follows a target that stepped out of its team's view", CHAMPIONS, "    if RULE[target.intent].pursues or not world.watches(team, target.pos, stood):",
-     "    if RULE[target.intent].pursues:", VISION_TESTS),
-    ("an observation shows every living enemy", VISION,
-     "    enemies = tuple(EnemyView(to_frame(team, record.pos), record.hp, record.level) if record.seen_tick == tick else None\n                    for record in records)",
-     "    enemies = tuple(EnemyView(to_frame(team, foe.pos), foe.hp, level_of(foe.xp)) if foe.hp > 0 else None\n                    for foe in world.champions[(1 - team) * 5:(2 - team) * 5])",
-     VISION_TESTS),
-    ("an observation shows an enemy that the team saw earlier as seen now", VISION,
-     "record.hp, record.level) if record.seen_tick == tick else None", "record.hp, record.level) if record.seen_tick >= 0 else None", VISION_TESTS),
     ("an observation lists enemy wards", VISION, "for s in world.sights if s.team == team and s.owner >= 0)", "for s in world.sights if s.owner >= 0)", VISION_TESTS),
     ("an enemy ward is a sight source for both teams", VISION, "[(s.pos, s.radius) for s in world.sights if s.team == team]",
      "[(s.pos, s.radius) for s in world.sights if s.team == team or s.owner >= 0]", VISION_TESTS),
@@ -307,6 +302,63 @@ MUTATIONS = [
     ("the digest leaves the wards out", WORLD, "state = (RULESET_ID, MAP_ID, self.seed, self.tick, self.camps, self.sights, self.memory,",
      "state = (RULESET_ID, MAP_ID, self.seed, self.tick, self.camps, [], self.memory,", VISION_TESTS),
     ("a snapshot leaves the wards out", WORLD, "camps=tuple(copy.deepcopy(self.camps)), sights=tuple(self.sights),", "camps=tuple(copy.deepcopy(self.camps)), sights=(),", VISION_TESTS),
+    # Pursuit, memory, area damage, lane caches, and ward spots (handoff 008).
+    ("champions move one by one in seat order and a follower reads moves made this tick", WORLD,
+     "        heading = [None if c.hp <= 0 or RULE[c.intent].walk is None else RULE[c.intent].walk(self, c) for c in self.champions]\n        for c, dest in zip(self.champions, heading):\n",
+     "        for c in self.champions:\n            dest = None if c.hp <= 0 or RULE[c.intent].walk is None else RULE[c.intent].walk(self, c)\n", COMBAT_TESTS),
+    ("damage on champions does not grow with the level", CHAMPIONS, '"area_dps", "camp_dps", "champion_dps", "mana_regen"))', '"area_dps", "camp_dps", "mana_regen"))', COMBAT_TESTS),
+    ("mana regeneration does not grow with the level", CHAMPIONS, '"area_dps", "camp_dps", "champion_dps", "mana_regen"))', '"area_dps", "camp_dps", "champion_dps"))', COMBAT_TESTS),
+    ("champions do not regenerate mana", WORLD, "                c.mana = min(can.max_mana, c.mana + can.mana_regen * config.tick_s)\n", "", COMBAT_TESTS),
+    ("the fountain's mana replaces the regeneration", WORLD, "                c.mana = min(can.max_mana, c.mana + can.mana_regen * config.tick_s)\n", "", RECALL_TESTS),
+    ("the observation shows an enemy that the team saw earlier", VISION, "record.level, record.upgrades) if record.seen_tick == tick else None",
+     "record.level, record.upgrades) if record.seen_tick >= 0 else None", COMBAT_TESTS),
+    ("an observation shows an enemy that the team saw earlier as seen now", VISION, "record.level, record.upgrades) if record.seen_tick == tick else None",
+     "record.level, record.upgrades) if record.seen_tick >= 0 else None", VISION_TESTS),
+    ("an observation shows every living enemy", VISION,
+     "    enemies = tuple(EnemyView(to_frame(team, record.pos), None if record.was is None else to_frame(team, record.was), record.hp,\n                              record.level, record.upgrades) if record.seen_tick == tick else None for record in records)",
+     "    enemies = tuple(EnemyView(to_frame(team, foe.pos), None, foe.hp, level_of(foe.xp), foe.upgrades) if foe.hp > 0 else None\n                    for foe in world.champions[(1 - team) * 5:(2 - team) * 5])", VISION_TESTS),
+    ("a fighter heads for its target's true place", CHAMPIONS, "    return _within(c.pos, target, capability_of(c).attack_range)\n",
+     "    return _within(c.pos, world.champions[(1 - c.seat // 5) * 5 + FOE[c.intent]].pos, capability_of(c).attack_range)\n", COMBAT_TESTS),
+    ("a fighter follows its target's true place out of its team's view", CHAMPIONS, "    return _within(c.pos, target, capability_of(c).attack_range)\n",
+     "    return _within(c.pos, world.champions[(1 - c.seat // 5) * 5 + FOE[c.intent]].pos, capability_of(c).attack_range)\n", VISION_TESTS),
+    ("a fighter heads for where a visible target that walks to a node will be", CHAMPIONS, "    return _within(c.pos, target, capability_of(c).attack_range)\n",
+     "    foe = world.champions[(1 - c.seat // 5) * 5 + FOE[c.intent]]\n    if record.seen_tick == world.tick and ACTIONS[foe.intent].kind is Kind.MOVE:\n"
+     "        target = RIFT.advance(record.pos, DEST[foe.seat // 5][foe.intent], speed_of(world, foe) * world.config.tick_s)\n"
+     "    return _within(c.pos, target, capability_of(c).attack_range)\n", f"{PURSUIT_TESTS}::test_a_fighter_moves_the_same_against_a_target_that_walks_follows_or_fights_from_equal_observations"),
+    ("a fighter's walk reads its visible target's slow", CHAMPIONS, "    return _within(c.pos, target, capability_of(c).attack_range)\n",
+     "    if world.champions[(1 - c.seat // 5) * 5 + FOE[c.intent]].slow > 0:\n        target = record.was or target\n    return _within(c.pos, target, capability_of(c).attack_range)\n",
+     PURSUIT_TESTS),
+    ("a fighter ignores where a target that walks away along a lane will be", CHAMPIONS, "        target = _ahead_on_lane(record.was, record.pos) or record.pos", "        target = record.pos", COMBAT_TESTS),
+    ("a fighter leads a target that walks toward it", CHAMPIONS, " and RIFT.distance(c.pos, record.pos) > RIFT.distance(c.pos, record.was):", ":", COMBAT_TESTS),
+    ("a fighter leads a target whose record is out of date", CHAMPIONS, "    if record.seen_tick == world.tick and record.was is not None and", "    if record.was is not None and", COMBAT_TESTS),
+    ("the team never records where it saw an enemy a tick before", VISION, "                record.was = record.pos if record.seen_tick == tick else None\n",
+     "                record.was = None\n", COMBAT_TESTS),
+    ("an enemy's earlier place survives a tick out of view", VISION, "                record.was = record.pos if record.seen_tick == tick else None\n",
+     "                record.was = record.pos\n", MEMORY_TESTS),
+    ("the team never records an enemy's upgrades", VISION, "level_of(enemy.xp), enemy.upgrades, now", "level_of(enemy.xp), 0, now", MEMORY_TESTS),
+    ("the team records every enemy tower on every tick", VISION,
+     "            if tower is not world.lanes[name].front_tower(1 - team) or _lit(lit, pos) or _minions_see(world, team, pos):", "            if True:", MEMORY_TESTS),
+    ("a fallen enemy tower is recorded only in sight", VISION, "            if tower is not world.lanes[name].front_tower(1 - team) or _lit(",
+     "            if (tower.hp > 0 and tower is not world.lanes[name].front_tower(1 - team)) or _lit(", MEMORY_TESTS),
+    ("an enemy tower behind a standing one is recorded only in sight", VISION, "            if tower is not world.lanes[name].front_tower(1 - team) or _lit(",
+     "            if tower.hp <= 0 or _lit(", MEMORY_TESTS),
+    ("the observation shows the enemy towers' true health", VISION, "tuple(record.hp for record in known),", "tuple(max(0.0, tower.hp) for tower in sim.towers[1 - team]),", ECONOMY_TESTS),
+    ("area damage costs no mana", WORLD, "                    c.mana = max(0.0, c.mana - e.seconds * capability_of(c).area_mana_s)", "                    pass", COMBAT_TESTS),
+    ("mana sets no bound on area damage", ECONOMY, "melee=can.attack_range < RANGED_FROM, aoe_s=c.mana / can.area_mana_s))", "melee=can.attack_range < RANGED_FROM))", COMBAT_TESTS),
+    ("the lane ignores the bound on area damage", LANES, "            run = min(span, inp.aoe_s - area[inp.seat])", "            run = span", LANE_TESTS),
+    ("area damage is paid for while it hits no minion", LANES, "            if hit:\n                area[inp.seat] += run", "            area[inp.seat] += run\n            if hit:", LANE_TESTS),
+    ("a copied lane keeps what it derived before the copy", LANES, "        self.__dict__.update(state)\n        self.invalidate()", "        self.__dict__.update(state)", MEMORY_TESTS),
+    ("invalidating a lane leaves its minions' map coordinates alone", LANES,
+     "            for m in self.minions[team]:\n                self._place(m)\n        self._forget()", "        self._forget()", MEMORY_TESTS),
+    ("stale map coordinates of a minion pass the check", LANES,
+     "            if self._straight and any((m.x, m.y) != self.geometry.xy(m.s) for m in self.minions[team]):", "            if False:", MEMORY_TESTS),
+    ("the invariant check ignores stale lane caches", WORLD, "        fault = sim.stale()\n", "        fault = None\n", MEMORY_TESTS),
+    ("a stale sight cache passes the check", LANES, "            if self._sighted[team] is not None and self._sighted[team] != self._sight_spans(team):", "            if False:", MEMORY_TESTS),
+    ("a stale front cache passes the check", LANES, "            if front != self._known_front(team, foe):", "            if False:", MEMORY_TESTS),
+    ("a minion marches past the enemy's standing front tower", LANES,
+     "            if self.rules.tower_blocks and tower is not None and heading == geometry.direction(m.team):", "            if False:", LANE_TESTS),
+    ("a river ward spot is the end of its edge", CHAMPIONS, "    return Pos(edge, RIFT.edges[edge].length / 2)", "    return Pos(edge, 0.0)", MEMORY_TESTS),
+    ("the river ward spots are no actions", CHAMPIONS, "WARD_SPOTS = (*CAMP_NODES, *RIVER_WARDS)", "WARD_SPOTS = CAMP_NODES", KERNEL_TESTS),
 ]
 
 
@@ -329,7 +381,7 @@ def main() -> int:
         for name in COPIED:
             source = ROOT / name
             if source.is_dir():
-                shutil.copytree(source, tree / name, ignore=shutil.ignore_patterns("__pycache__"))
+                shutil.copytree(source, tree / name, ignore=shutil.ignore_patterns("__pycache__", "results"))
             else:
                 shutil.copy(source, tree / name)
         chosen = [m for m in MUTATIONS if not sys.argv[1:] or any(word in m[0] for word in sys.argv[1:])]

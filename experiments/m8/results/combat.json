@@ -60,7 +60,7 @@
     "lockdown": false,
     "units_to_own_tower": 1000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 112,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 10.5
@@ -70,7 +70,7 @@
     "lockdown": false,
     "units_to_own_tower": 1000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 112,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 10.5
@@ -80,7 +80,7 @@
     "lockdown": false,
     "units_to_own_tower": 1000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 219,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 10.5
@@ -90,7 +90,7 @@
     "lockdown": true,
     "units_to_own_tower": 1000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 112,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 10.5
@@ -100,7 +100,7 @@
     "lockdown": true,
     "units_to_own_tower": 1000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 112,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 10.5
@@ -110,7 +110,7 @@
     "lockdown": true,
     "units_to_own_tower": 1000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 219,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 10.5
@@ -119,63 +119,63 @@
     "runner_speed_edge": -20.0,
     "lockdown": false,
     "units_to_own_tower": 2500.0,
-    "outcome": "death",
-    "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
-   },
-   {
-    "runner_speed_edge": 0.0,
-    "lockdown": false,
-    "units_to_own_tower": 2500.0,
-    "outcome": "death",
-    "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
-   },
-   {
-    "runner_speed_edge": 20.0,
-    "lockdown": false,
-    "units_to_own_tower": 2500.0,
     "outcome": "escape",
-    "runner_lowest_hp": 219,
+    "runner_lowest_hp": 117,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 14.5
    },
    {
-    "runner_speed_edge": -20.0,
-    "lockdown": true,
-    "units_to_own_tower": 2500.0,
-    "outcome": "death",
-    "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
-   },
-   {
     "runner_speed_edge": 0.0,
-    "lockdown": true,
+    "lockdown": false,
     "units_to_own_tower": 2500.0,
-    "outcome": "death",
-    "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
+    "outcome": "escape",
+    "runner_lowest_hp": 246,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 15.0
    },
    {
     "runner_speed_edge": 20.0,
+    "lockdown": false,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 246,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 15.0
+   },
+   {
+    "runner_speed_edge": -20.0,
     "lockdown": true,
     "units_to_own_tower": 2500.0,
     "outcome": "escape",
-    "runner_lowest_hp": 219,
+    "runner_lowest_hp": 117,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
     "seconds": 14.5
    },
    {
+    "runner_speed_edge": 0.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 246,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 15.0
+   },
+   {
+    "runner_speed_edge": 20.0,
+    "lockdown": true,
+    "units_to_own_tower": 2500.0,
+    "outcome": "escape",
+    "runner_lowest_hp": 246,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 15.0
+   },
+   {
     "runner_speed_edge": -20.0,
     "lockdown": false,
     "units_to_own_tower": 4000.0,
@@ -183,27 +183,27 @@
     "runner_lowest_hp": 0,
     "chaser_dead": false,
     "tower_shots_on_chaser": 0,
-    "seconds": 13.0
+    "seconds": 17.0
    },
    {
     "runner_speed_edge": 0.0,
     "lockdown": false,
     "units_to_own_tower": 4000.0,
-    "outcome": "death",
-    "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
+    "outcome": "escape",
+    "runner_lowest_hp": 246,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 19.0
    },
    {
     "runner_speed_edge": 20.0,
     "lockdown": false,
     "units_to_own_tower": 4000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 219,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
-    "seconds": 18.5
+    "seconds": 19.0
    },
    {
     "runner_speed_edge": -20.0,
@@ -211,35 +211,35 @@
     "units_to_own_tower": 4000.0,
     "outcome": "death",
     "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 19.5
    },
    {
     "runner_speed_edge": 0.0,
     "lockdown": true,
     "units_to_own_tower": 4000.0,
-    "outcome": "death",
-    "runner_lowest_hp": 0,
-    "chaser_dead": false,
-    "tower_shots_on_chaser": 0,
-    "seconds": 13.0
+    "outcome": "escape",
+    "runner_lowest_hp": 246,
+    "chaser_dead": true,
+    "tower_shots_on_chaser": 2,
+    "seconds": 19.0
    },
    {
     "runner_speed_edge": 20.0,
     "lockdown": true,
     "units_to_own_tower": 4000.0,
     "outcome": "escape",
-    "runner_lowest_hp": 219,
+    "runner_lowest_hp": 246,
     "chaser_dead": true,
     "tower_shots_on_chaser": 2,
-    "seconds": 18.5
+    "seconds": 19.0
    }
   ],
-  "escapes": 10,
-  "deaths": 8,
+  "escapes": 16,
+  "deaths": 2,
   "undecided": 0,
-  "escapes_in_which_the_chaser_died": 10
+  "escapes_in_which_the_chaser_died": 16
  },
  "reinforcement": {
   "alone": {
@@ -593,7 +593,7 @@
    "laner_survives": true,
    "laner_lowest_hp": 650,
    "jungler_survives": false,
-   "seconds": 21.0
+   "seconds": 21.5
   },
   {
    "laner_at": "own outer tower",
@@ -610,30 +610,30 @@
    "decision_interval": "1 s",
    "laner_start_hp": 650,
    "jungler_first_seen_s": 14.0,
-   "laner_survives": false,
-   "laner_lowest_hp": 0,
-   "jungler_survives": true,
-   "seconds": 25.5
+   "laner_survives": true,
+   "laner_lowest_hp": 416,
+   "jungler_survives": false,
+   "seconds": 26.5
   },
   {
    "laner_at": "enemy outer tower",
    "decision_interval": "2 s",
    "laner_start_hp": 650,
    "jungler_first_seen_s": 15.0,
-   "laner_survives": false,
-   "laner_lowest_hp": 0,
-   "jungler_survives": true,
-   "seconds": 27.0
+   "laner_survives": true,
+   "laner_lowest_hp": 416,
+   "jungler_survives": false,
+   "seconds": 28.5
   },
   {
    "laner_at": "enemy outer tower",
    "decision_interval": "5 s",
    "laner_start_hp": 650,
    "jungler_first_seen_s": 18.0,
-   "laner_survives": false,
-   "laner_lowest_hp": 0,
-   "jungler_survives": true,
-   "seconds": 30.5
+   "laner_survives": true,
+   "laner_lowest_hp": 416,
+   "jungler_survives": false,
+   "seconds": 32.5
   },
   {
    "laner_at": "own outer tower",
@@ -653,7 +653,7 @@
    "laner_survives": true,
    "laner_lowest_hp": 390,
    "jungler_survives": false,
-   "seconds": 21.0
+   "seconds": 21.5
   },
   {
    "laner_at": "own outer tower",
@@ -670,57 +670,57 @@
    "decision_interval": "1 s",
    "laner_start_hp": 390,
    "jungler_first_seen_s": 14.0,
-   "laner_survives": false,
-   "laner_lowest_hp": 0,
-   "jungler_survives": true,
-   "seconds": 21.5
+   "laner_survives": true,
+   "laner_lowest_hp": 182,
+   "jungler_survives": false,
+   "seconds": 26.5
   },
   {
    "laner_at": "enemy outer tower",
    "decision_interval": "2 s",
    "laner_start_hp": 390,
    "jungler_first_seen_s": 15.0,
-   "laner_survives": false,
-   "laner_lowest_hp": 0,
-   "jungler_survives": true,
-   "seconds": 23.0
+   "laner_survives": true,
+   "laner_lowest_hp": 185,
+   "jungler_survives": false,
+   "seconds": 28.5
   },
   {
    "laner_at": "enemy outer tower",
    "decision_interval": "5 s",
    "laner_start_hp": 390,
    "jungler_first_seen_s": 18.0,
-   "laner_survives": false,
-   "laner_lowest_hp": 0,
-   "jungler_survives": true,
-   "seconds": 26.5
+   "laner_survives": true,
+   "laner_lowest_hp": 191,
+   "jungler_survives": false,
+   "seconds": 32.5
   }
  ],
  "run": {
   "command": "python -m experiments.m8.combat",
-  "created_utc": "2026-11-12T21:52:57+00:00",
-  "git_head": "1380d0cc3471b3bd4cbdb289c4df0d1f05e9a6e1",
+  "created_utc": "2026-11-13T02:41:41+00:00",
+  "git_head": "f7e41066e02c46937e7205bf3f751f07f0e742e4",
   "git_dirty": true,
-  "code_id": "ac447759f7d52b76",
+  "code_id": "3e7991103d1f9847",
   "sources": {
    "experiments/m8/combat.py": "81928fcd61f1cb9fe51092c51b8ee8a4a0f812f7d61380cbd55c7695d242d06b",
    "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
    "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
-   "riftgame/champions.py": "84022bab0f503247b53a49925ad0792f1b383787a3cbc735b0e9deb05fbff609",
+   "riftgame/champions.py": "092280e1be8302bbb5a7b2782700e3035c189e78b7b20dbafa88211c44bbc7ba",
    "riftgame/combat.py": "f442f3b9af29eb3abb1d44198e0497d9c11c93a1c489ea9cbe9a36ef4150e396",
-   "riftgame/economy.py": "485d60986dac87b936be416644fc5014b0fc8e3d0cefb77f95a316f42bfb1a4b",
-   "riftgame/harness.py": "1ed413a5da315a0df78febf3acb33dea0e9c3659168f5b805f4fc862261769f6",
+   "riftgame/economy.py": "c1d94e4b4b27e23a95ff1a4378ebe6af1e7b88eaed8dc1a3b2493aa10d5d2cf1",
+   "riftgame/harness.py": "7651540748c9c790b6ef0ebb6f64f2ea2cd02a62101f36e7da962e60bbfbbcb5",
    "riftgame/jungle.py": "3d354420825b31672ce3371bd5ef08ffee95b510b2a144223ccac962df6c3d2a",
-   "riftgame/lanes.py": "953c27b6382b74f062f87e6c72579b9f2bb13157e42a2704959477f3e6f9e586",
+   "riftgame/lanes.py": "86346de8b7a9b0144d10e04991b1c75680300c586b3a1506c6823d9832c5e985",
    "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
    "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
    "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
    "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
    "riftgame/rulesets/map_summoners_rift_m8.toml": "f4acea380d416e62639c29c3910d3d4d97690b86cb77853bb74ad9d75a6347a0",
    "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
-   "riftgame/rulesets/patch_26_22_m8.toml": "425b77b059ef2b9213b8ed527be62e925cbc7d4cbe4f63db8e8da8bdbfbe74f6",
-   "riftgame/vision.py": "9516d436820dfd1874369acedec5667f6a1700bbf6411538c5436f550f1f2a71",
-   "riftgame/world.py": "09f9b49432234f1a6e45260c091355c57bd4cb8aefdd344f5c5a4e1c37eec77d"
+   "riftgame/rulesets/patch_26_22_m8.toml": "849559e7eb7f11e659c2b35e23b604240a000e4d54dc6ad68910a4482b3d8c6e",
+   "riftgame/vision.py": "471fcd20021e8c2a689e784d9366191ad3b00057d922ea7d4de9881b18b26dec",
+   "riftgame/world.py": "e51f570ee74df107ada364cbeb99f86417907ca4b765b7d1dbaa829d10737b08"
   },
   "python": "3.14.7",
   "platform": "Windows-11-10.0.26200-SP0",

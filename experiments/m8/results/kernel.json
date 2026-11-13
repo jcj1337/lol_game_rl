@@ -4,72 +4,142 @@
  "game_s": 600.0,
  "throughput_sim_s_per_wall_s": {
   "random legal actions": {
-   "median": 542.878,
-   "min": 498.619,
-   "max": 553.956,
+   "median": 531.459,
+   "min": 501.021,
+   "max": 553.627,
    "runs": 7,
    "work_per_run": {
-    "minion deaths": 682,
+    "minion deaths": 677,
     "camp deaths": 0,
-    "champion deaths": 25,
+    "champion deaths": 28,
+    "recalls": 0,
+    "wards placed": 2,
     "ticks": 1200
    }
   },
   "scripted farming": {
-   "median": 522.589,
-   "min": 485.85,
-   "max": 535.563,
+   "median": 518.608,
+   "min": 482.023,
+   "max": 524.724,
    "runs": 7,
    "work_per_run": {
     "minion deaths": 685,
     "camp deaths": 0,
     "champion deaths": 0,
+    "recalls": 0,
+    "wards placed": 0,
     "ticks": 1200
    }
   },
   "scripted farming and jungling": {
-   "median": 519.813,
-   "min": 481.194,
-   "max": 532.212,
+   "median": 515.523,
+   "min": 496.676,
+   "max": 521.196,
    "runs": 7,
    "work_per_run": {
     "minion deaths": 683,
     "camp deaths": 34,
     "champion deaths": 6,
+    "recalls": 0,
+    "wards placed": 0,
     "ticks": 1200
    }
   }
  },
+ "c7_gate": {
+  "game_s": 900.0,
+  "gate": 300.0,
+  "clocks": {
+   "tick 0.5 s, decide every 2 s": {
+    "median": 475.803,
+    "min": 447.316,
+    "max": 489.769,
+    "runs": 7,
+    "work_per_run": {
+     "minion deaths": 1072,
+     "camp deaths": 48,
+     "champion deaths": 28,
+     "recalls": 52,
+     "wards placed": 37,
+     "ticks": 1800
+    },
+    "passes": true
+   },
+   "tick 0.5 s, decide every 1 s": {
+    "median": 428.3,
+    "min": 373.355,
+    "max": 436.394,
+    "runs": 7,
+    "work_per_run": {
+     "minion deaths": 1067,
+     "camp deaths": 50,
+     "champion deaths": 19,
+     "recalls": 63,
+     "wards placed": 40,
+     "ticks": 1800
+    },
+    "passes": true
+   },
+   "tick 0.25 s, decide every 2 s": {
+    "median": 268.405,
+    "min": 264.081,
+    "max": 270.375,
+    "runs": 7,
+    "work_per_run": {
+     "minion deaths": 1067,
+     "camp deaths": 50,
+     "champion deaths": 26,
+     "recalls": 57,
+     "wards placed": 37,
+     "ticks": 3600
+    },
+    "passes": false
+   }
+  },
+  "profile": {
+   "lanes": 0.476,
+   "team memory": 0.235,
+   "lane inputs": 0.072,
+   "observe": 0.067,
+   "movement": 0.051,
+   "settle": 0.044,
+   "scripted policies": 0.026,
+   "camp attacks": 0.006,
+   "champion attacks": 0.005,
+   "gold and XP": 0.004,
+   "damage": 0.003,
+   "calls for help": 0.003,
+   "legal mask": 0.002
+  }
+ },
  "profile_share_of_farming_game": {
-  "lanes": 0.502,
-  "team memory": 0.19,
-  "lane inputs": 0.092,
-  "movement": 0.076,
-  "observe": 0.073,
-  "settle": 0.045,
+  "lanes": 0.483,
+  "team memory": 0.228,
+  "lane inputs": 0.088,
+  "movement": 0.07,
+  "observe": 0.069,
+  "settle": 0.044,
   "gold and XP": 0.005,
   "camp attacks": 0.004,
   "calls for help": 0.002,
   "champion attacks": 0.002,
-  "legal mask": 0.002,
+  "legal mask": 0.001,
   "damage": 0.001
  },
  "snapshot": {
   "at_s": 600.0,
-  "pickled_bytes": 24650,
-  "pickled_bytes_at_0_s": 10905,
-  "take_us": 1624.7,
-  "restore_us": 1597.95,
+  "pickled_bytes": 25412,
+  "pickled_bytes_at_0_s": 11541,
+  "take_us": 1871.35,
+  "restore_us": 1693.25,
   "minions": 35
  },
  "intents_ended_in_a_random_game": {
-  "ABSENT": 2,
-  "PLACED": 5,
-  "ARRIVED": 44,
-  "DIED": 46,
-  "RECALLED": 6,
+  "ARRIVED": 49,
+  "DIED": 43,
+  "PLACED": 8,
   "KILLED": 1,
-  "CLEARED": 1
+  "RECALLED": 8
  },
  "roam": {
   "tick 0.5 s, decision 2 s": {
@@ -79,18 +149,18 @@
    ],
    "stretch_bound_s": 92.0,
    "roaming_share_after_first_allowance": [
-    0.111,
+    0.106,
     0.144
    ],
    "share_bound": 0.203,
    "lowest_allowance_s": -1.875,
    "off_lane_share": [
-    0.36,
-    0.48
+    0.338,
+    0.445
    ],
    "largest_step_over_speed_times_tick": 1.0,
    "junglers_always_unrestricted": true,
-   "deaths": 114
+   "deaths": 116
   },
   "tick 1 s, decision 5 s": {
    "longest_stretch_s": [
@@ -247,30 +317,31 @@
  },
  "run": {
   "command": "python -m experiments.m8.kernel",
-  "created_utc": "2026-11-12T23:15:01+00:00",
-  "git_head": "1380d0cc3471b3bd4cbdb289c4df0d1f05e9a6e1",
+  "created_utc": "2026-11-13T03:48:40+00:00",
+  "git_head": "f7e41066e02c46937e7205bf3f751f07f0e742e4",
   "git_dirty": true,
-  "code_id": "131a9c59ac517c2a",
+  "code_id": "69221a9f1a103779",
   "sources": {
-   "experiments/m8/kernel.py": "a801401998c42657cf1b447d95b27562c038f9974a67f82d9edfbe839c1dc280",
+   "experiments/m8/kernel.py": "478d23e47b63dc626468c5ddf2e29d110b2aade8f31aa7f4c8af543796b27800",
    "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
    "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
-   "riftgame/champions.py": "84022bab0f503247b53a49925ad0792f1b383787a3cbc735b0e9deb05fbff609",
+   "riftgame/champions.py": "092280e1be8302bbb5a7b2782700e3035c189e78b7b20dbafa88211c44bbc7ba",
    "riftgame/combat.py": "f442f3b9af29eb3abb1d44198e0497d9c11c93a1c489ea9cbe9a36ef4150e396",
-   "riftgame/economy.py": "485d60986dac87b936be416644fc5014b0fc8e3d0cefb77f95a316f42bfb1a4b",
-   "riftgame/harness.py": "1ed413a5da315a0df78febf3acb33dea0e9c3659168f5b805f4fc862261769f6",
+   "riftgame/economy.py": "c1d94e4b4b27e23a95ff1a4378ebe6af1e7b88eaed8dc1a3b2493aa10d5d2cf1",
+   "riftgame/harness.py": "7651540748c9c790b6ef0ebb6f64f2ea2cd02a62101f36e7da962e60bbfbbcb5",
    "riftgame/jungle.py": "3d354420825b31672ce3371bd5ef08ffee95b510b2a144223ccac962df6c3d2a",
-   "riftgame/lanes.py": "953c27b6382b74f062f87e6c72579b9f2bb13157e42a2704959477f3e6f9e586",
+   "riftgame/lanes.py": "86346de8b7a9b0144d10e04991b1c75680300c586b3a1506c6823d9832c5e985",
    "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
+   "riftgame/policies.py": "c795d750f4a6e01e1cef59926d6b34a9011f0a70a7395325789b474bd37f9538",
    "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
    "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
    "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
    "riftgame/rulesets/map_summoners_rift_m8.toml": "f4acea380d416e62639c29c3910d3d4d97690b86cb77853bb74ad9d75a6347a0",
    "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
-   "riftgame/rulesets/patch_26_22_m8.toml": "425b77b059ef2b9213b8ed527be62e925cbc7d4cbe4f63db8e8da8bdbfbe74f6",
-   "riftgame/vision.py": "9516d436820dfd1874369acedec5667f6a1700bbf6411538c5436f550f1f2a71",
-   "riftgame/world.py": "09f9b49432234f1a6e45260c091355c57bd4cb8aefdd344f5c5a4e1c37eec77d",
-   "tests/test_world_roles.py": "db39eed14731904577a72b2167d9649516bddcd5d74261a53a86f4b57b4214b5",
+   "riftgame/rulesets/patch_26_22_m8.toml": "849559e7eb7f11e659c2b35e23b604240a000e4d54dc6ad68910a4482b3d8c6e",
+   "riftgame/vision.py": "471fcd20021e8c2a689e784d9366191ad3b00057d922ea7d4de9881b18b26dec",
+   "riftgame/world.py": "e51f570ee74df107ada364cbeb99f86417907ca4b765b7d1dbaa829d10737b08",
+   "tests/test_world_roles.py": "6b0558ea35579cf77fe154b9844f615227f5692466da762146b4b4428bb7d969",
    "tests/worlds.py": "47b2cd493fb107f4ba9bbe9a071d41d113464e43979e532b05cc774ea93bc6e6"
   },
   "python": "3.14.7",

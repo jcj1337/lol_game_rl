@@ -11,13 +11,16 @@ from riftgame.world import Config, InvariantError, World
 from worlds import BLUE_CARRY, BLUE_MID, BLUE_SUPPORT, BLUE_TOP, EVERY_TICK, RED_TOP, act, lane_place, move, raze, staged, submit, until
 
 TICK_S = EVERY_TICK.tick_s
+# The ruleset's ward spots in the river, besides the camps: the middle of each river edge from a Scuttler node to a
+# side-lane corner or to mid.
+RIVER_WARD_SPOTS = ("top_river>top_corner", "top_river>mid_river", "bot_river>mid_river", "bot_river>bot_corner")
 
 
 def test_the_action_table_keeps_its_layout():
     first = {kind: next(i for i, a in enumerate(ACTIONS) if a.kind is kind) for kind in Kind}
     assert first == {Kind.KEEP: 0, Kind.HOLD: 1, Kind.RECALL: 2, Kind.MOVE: 3, Kind.LANE: 42, Kind.CAMP: 66, Kind.FOLLOW: 80,
                      Kind.FIGHT: 85, Kind.SIEGE: 90, Kind.WARD: 93}
-    assert len(ACTIONS) == len(set(ACTIONS)) == 107
+    assert len(ACTIONS) == len(set(ACTIONS)) == 111
     assert [a.kind for a in ACTIONS] == sorted(a.kind for a in ACTIONS), "each kind is one block"
 
 
@@ -30,6 +33,7 @@ def test_the_action_table_is_built_from_the_map_and_the_seats():
     assert (MODES, STANDS) == (("passive", "last_hit", "thin", "push"), ("wave", "hold"))
     assert count[Kind.CAMP] == len(MAP.camps) + len(MAP.scuttlers) == 14
     assert count[Kind.FOLLOW] == count[Kind.FIGHT] == 5 and count[Kind.SIEGE] == 3
+    assert count[Kind.WARD] == len(CAMP_NODES) + len(RIVER_WARD_SPOTS) == 18
 
 
 def world_node(team: int, name: str) -> str:
@@ -217,7 +221,7 @@ def test_a_lane_waypoint_is_a_node_of_the_map_and_no_move_names_it():
 def test_ward_is_offered_to_a_champion_with_a_charge_and_to_no_other_and_the_world_accepts_it():
     world = staged({seat: lane_place(seat // 5, "mid", 7000.0) for seat in SEATS})
     indices = [i for i, a in enumerate(ACTIONS) if a.kind is Kind.WARD]
-    assert indices and {ACTIONS[i].target for i in indices} == set(CAMP_NODES)
+    assert indices and {ACTIONS[i].target for i in indices} == set(CAMP_NODES) | set(RIVER_WARD_SPOTS)
     world.champions[RED_TOP].ward_charges = 0
     for seat in SEATS:
         mask = legal_mask(observe(world, seat))
