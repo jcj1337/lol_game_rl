@@ -11,7 +11,9 @@ what the kernel does with them. They say nothing about who should win a fight.
   duel        A level 1 defender against a level 2 attacker, in open lane and under the defender's outer tower.
   gank        The enemy jungler leaves the river toward a top laner, which walks to its fountain at its first
               decision after its team sees the jungler. The enemy laner joins once its jungler is within 1,500
-              units of the target.
+              units of the target. Each case runs twice, once with a jungler that chases anywhere and once with
+              one that stays out of the range of a standing enemy tower with no minion of its own in it
+              (`harness.brawler` with its side).
 
 Each scenario stages its champions by hand before the first tick: places, levels, boot steps, health, and mana.
 After that only the policies act. Nobody sees an enemy before the first tick has run, so the first orders fall
@@ -39,7 +41,7 @@ TOP, JUNGLE = ROLES.index("top"), ROLES.index("jungle")
 FIGHT_TOP = ACTIONS.index(Action(Kind.FIGHT, TOP))
 TO_FOUNTAIN = ACTIONS.index(Action(Kind.MOVE, "own_fountain"))
 JOIN_WITHIN = 1500.0
-DECISION_S = {"1 s": 2, "2 s": 4, "5 s": 10}
+DECISION_S = {"1 s": 1.0, "2 s": 2.0, "5 s": 5.0}
 
 
 def equip(world: World, seat: int, level: int = 1, boots: int = 1, health: float = 1.0, mana: bool = True) -> None:
@@ -152,8 +154,9 @@ def second(o: Observation, noise: float) -> int:
     return KEEP
 
 
-def gank(at_own_tower: bool, decision: str, health: float) -> dict:
-    world = World(Config(decision_ticks=DECISION_S[decision]), SEED)
+def gank(at_own_tower: bool, decision: str, health: float, avoids_towers: bool) -> dict:
+    world = World(Config(decision_ticks=round(DECISION_S[decision] / Config().tick_s)), SEED)
+    jungler = brawler(side=1, decision_s=DECISION_S[decision]) if avoids_towers else brawler()
     s = tower_s(world, 0) + 600.0 if at_own_tower else tower_s(world, 1) - 900.0
     world.champions[BLUE_TOP].pos, world.champions[RED_TOP].pos = RIFT.lane_pos("top", s), RIFT.lane_pos("top", s + 1000.0)
     world.champions[RED_JUNGLE].pos = RIFT.at("top_river")
@@ -166,10 +169,10 @@ def gank(at_own_tower: bool, decision: str, health: float) -> dict:
         if seen["first"] is None and observe(world, BLUE_TOP).enemies[JUNGLE] is not None:
             seen["first"] = world.tick * world.config.tick_s
 
-    seconds = play(world, {BLUE_TOP: wary, RED_TOP: second, RED_JUNGLE: brawler()},
+    seconds = play(world, {BLUE_TOP: wary, RED_TOP: second, RED_JUNGLE: jungler},
                    lambda world: dead(world, BLUE_TOP) or dead(world, RED_JUNGLE) or laner.pos == FOUNTAIN[0], 120.0, watch)
     return {"laner_at": "own outer tower" if at_own_tower else "enemy outer tower", "decision_interval": decision,
-            "laner_start_hp": round(capability_of(laner).max_hp * health), "jungler_first_seen_s": seen["first"],
+            "jungler_avoids_towers": avoids_towers, "laner_start_hp": round(capability_of(laner).max_hp * health), "jungler_first_seen_s": seen["first"],
             "laner_survives": not dead(world, BLUE_TOP), "laner_lowest_hp": round(max(seen["lowest"], 0.0)),
             "jungler_survives": not dead(world, RED_JUNGLE), "seconds": seconds}
 
@@ -179,10 +182,10 @@ def main() -> None:
     walk_in = [reinforce(float(d)) for d in range(0, 8001, 250)]
     wins = [row["ally_start_units"] for row in walk_in if row["foe_dead"] and not (row["a_dead"] and row["ally_dead"])]
     saves = [row["ally_start_units"] for row in walk_in if row["foe_dead"] and not row["a_dead"]]
-    ganks = [gank(own, decision, health) for health in (1.0, 0.6) for own in (True, False) for decision in DECISION_S]
+    ganks = [gank(own, decision, health, avoids) for avoids in (False, True) for health in (1.0, 0.6) for own in (True, False) for decision in DECISION_S]
     fields = ("champion_dps", "attack_range", "move_speed", "max_hp", "lockdown_slow", "lockdown_s", "lockdown_cooldown_s", "lockdown_mana")
     results = {
-        "ruleset": RULESET_ID, "config": "tick 0.5 s, decision every 4 ticks, except where a gank row names its interval",
+        "ruleset": RULESET_ID, "config": f"tick {Config().tick_s:g} s, a decision every {Config().tick_s * Config().decision_ticks:g} s, except where a gank row names its interval",
         "placeholder_profiles": {role: {name: getattr(PROFILES[role], name) for name in fields} for role in ROLES},
         "retreat_at_half_health": {"cases": sweep, "escapes": sum(row["outcome"] == "escape" for row in sweep),
                                    "deaths": sum(row["outcome"] == "death" for row in sweep),
@@ -193,7 +196,7 @@ def main() -> None:
                           "outcome_is_monotone_in_distance": wins == [float(d) for d in range(0, 250 * len(wins), 250)]},
         "duel": [duel(False), duel(True)],
         "gank": ganks,
-        "run": stamp([SEED], {"tick_s": 0.5, "retreat_below": 0.5, "join_within": JOIN_WITHIN}),
+        "run": stamp([SEED], {"tick_s": Config().tick_s, "retreat_below": 0.5, "join_within": JOIN_WITHIN}),
     }
     RESULTS.parent.mkdir(exist_ok=True)
     RESULTS.write_text(json.dumps(results, indent=1), encoding="utf-8")
@@ -213,7 +216,7 @@ def main() -> None:
         print(f"duel, under the defender's tower {row['under_defender_tower']!s:<5}: winner {row['winner']}, attacker hp {row['attacker_hp']}, defender hp {row['defender_hp']}, "
               f"{row['tower_shots_on_attacker']} tower shots for {row['tower_damage_on_attacker']}, {row['seconds']} s")
     for row in ganks:
-        print(f"gank, laner at {row['laner_at']:<18} hp {row['laner_start_hp']:>3}  decision {row['decision_interval']}  jungler first seen {row['jungler_first_seen_s']} s"
+        print(f"gank, jungler avoids towers {row['jungler_avoids_towers']!s:<5}  laner at {row['laner_at']:<18} hp {row['laner_start_hp']:>3}  decision {row['decision_interval']}  jungler first seen {row['jungler_first_seen_s']} s"
               f"  laner survives {row['laner_survives']!s:<5} lowest hp {row['laner_lowest_hp']:>3}  jungler survives {row['jungler_survives']!s:<5}  {row['seconds']:>5.1f} s")
     print(f"wrote {RESULTS}")
 

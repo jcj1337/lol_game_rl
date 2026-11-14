@@ -2,7 +2,7 @@
 
 > An ongoing research project exploring whether agents can learn League of Legends macro strategy through multi-agent reinforcement learning and self-play.
 
-**Status:** Building the full-map foundation (roadmap milestone M8). Six of its eight checkpoints pass their criteria, including fog of war, wards, and scripted ten-champion games. A seventh (lanes and waves) is built but not complete, the last (scenarios and the comparison harness) has not started, and nothing is validated against the real game yet · See the [Roadmap](docs/ROADMAP.md)
+**Status:** Building the full-map foundation (roadmap milestone M8). All eight of its checkpoints are built, among them fog of war, scripted ten-champion games, and a harness that compares decisions across what a team cannot see. Lanes and waves are built but not complete, and nothing is validated against the real game yet · See the [Roadmap](docs/ROADMAP.md)
 
 ---
 

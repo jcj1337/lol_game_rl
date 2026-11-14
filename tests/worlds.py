@@ -9,7 +9,7 @@ from riftgame.rng import Stream, keyed_uniform
 from riftgame.vision import Observation, legal_mask
 from riftgame.world import Config, World
 
-EVERY_TICK = Config(decision_ticks=1)
+EVERY_TICK = Config(tick_s=0.5, decision_ticks=1)
 BLUE_TOP, BLUE_JUNGLE, BLUE_MID, BLUE_CARRY, BLUE_SUPPORT = range(5)
 RED_TOP, RED_JUNGLE, RED_MID, RED_CARRY, RED_SUPPORT = range(5, 10)
 

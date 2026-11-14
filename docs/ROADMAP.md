@@ -1,6 +1,6 @@
 # Strategic League Simulator master roadmap
 
-**Status.** Draft v0.3.3, planning document. M7 is closed and M8 has started. §10 summarizes the changes from earlier versions.
+**Status.** Draft v0.3.4, planning document. M7 is closed and M8 has started. §10 summarizes the changes from earlier versions.
 
 **Predecessor.** [Laning as a Two-Player Game](https://github.com/jcj1337/lol_laning_gt_rl)
 
@@ -152,7 +152,7 @@ These are minimal versions, not the final implementations of later subsystems. C
 
 **Open.** Exact map representation, calibration data, and how best to port existing wave rules.
 
-**Progress.** M8 runs as campaigns over M7's checkpoints. [`docs/design/M8_foundation.md`](design/M8_foundation.md) holds the phases, the acceptance criteria, and the technical detail of each campaign. The first campaign covers C1 (kernel base) and C2 (lanes and economy). The second campaign corrected C2 and built C3 (recall and purchases), C4 (jungle), and C5 (combat and death). The third campaign corrected five review findings and built C6 (vision, memory, and wards). The fourth campaign corrected what the third left open, among them a leak through pursuit, ran every wave experiment with the plan on each team, and built C7 (integrated games). C1 and C3 to C7 pass M7's criteria. C2 is built and is not complete. C8 has not started.
+**Progress.** M8 runs as campaigns over M7's checkpoints. [`docs/design/M8_foundation.md`](design/M8_foundation.md) holds the phases, the acceptance criteria, and the technical detail of each campaign. The first campaign covers C1 (kernel base) and C2 (lanes and economy). The second campaign corrected C2 and built C3 (recall and purchases), C4 (jungle), and C5 (combat and death). The third campaign corrected five review findings and built C6 (vision, memory, and wards). The fourth campaign corrected what the third left open, among them a leak through pursuit, ran every wave experiment with the plan on each team, and built C7 (integrated games). The fifth fixed a pursuit that could not recover contact, removed three places where lanes acted only at the start of a tick, moved the research clock to a 0.25 s tick with a decision every 2 s, and built C8 (scenarios and the comparison harness). C1 and C3 to C6 pass M7's criteria. C7 meets them at the research clock apart from throughput: the gate gives 267 simulated seconds per wall second there, against 300, and a 0.5 s tick passes with 467. C8 is built, and the M8 document maps each of its criteria to a test. None of C8's four scenarios names a best option. One ranking is uncertain, and three are stable trade-offs. C2 is built and is not complete.
 
 **Decisions that bind M8.** The owner settled these on 2026-11-11.
 
@@ -301,19 +301,28 @@ The purpose of validation is not to script desired strategic conclusions. It is 
 8. **Compute and scope.** What simulator throughput, training budget, and quality threshold are realistically achievable? The pilot informs the budget.
 9. **Policy and product constraints.** Review Riot's current developer and third-party tool policies before releasing a public simulator-derived coaching application or using game assets.
 10. **Reuse.** Which laning mechanics and tests carry over, and which embed two-player, one-lane, or perfect-information assumptions?
-11. **Wave fidelity.** The simulator's wave behaviour is not settled. When agents act through the action table, reinforcement accumulation and a sustained hold each appear in a minority of settings, with the plan on either team. A lane near balance amplifies small differences. Single results flip with two unsourced details of minion attack timing, with the decision interval, and with the tick length at every tick from 0.125 s to 1.0 s, so no affordable tick gives every-seed wave verdicts that hold at the others. Per case, a tick of 0.25 s comes close to 0.125 s in crash times and 0.5 s does not. In integrated ten-champion games the tick matters less. At 0.5 s every scripted outcome stays within seed noise of 0.125 s except one team's minion gold and the count of camp clears, so M8 keeps 0.5 s, which passes the throughput gate where 0.25 s fails it. An untouched side lane no longer drifts early since M8 traces its corners with the game's own waypoints. Its later drift still goes the same way in every seed, and it starts from a hundredth of a second in the flight of a minion's missile. Whether a real lane on the reference patch behaves the same is unknown, and nothing in the lane is validated against the game. Conclusions about recall timing, denial, and gank opportunities stay provisional until then. [`docs/design/M8_foundation.md`](design/M8_foundation.md) states the finding and the real-game measurements that bear on it.
+11. **Wave fidelity.** The simulator's wave behaviour is not settled. When agents act through the action table, reinforcement accumulation and a sustained hold each appear in a minority of settings, with the plan on either team. A lane near balance amplifies small differences. M8's fifth campaign found three places where a minion took a target or marched only at the start of a tick and moved them inside the tick, so an untouched first-wave fight now plays out the same at every tick from 0.125 s to 1.0 s. Single results still flip with the tick length, the decision interval, and two unsourced details of minion attack timing, because each every-seed verdict is a strict comparison on small counts. No affordable tick gives every-seed wave verdicts that hold at the others. Per case, a tick of 0.25 s stays within 0.6 s of 0.125 s in crash times on both teams. M8 now runs at a 0.25 s tick with a decision every 2 s, chosen on fidelity, and reports its throughput against the gate apart. In integrated ten-champion games every scripted outcome at 0.25 s and at 0.5 s stays within seed noise of 0.125 s. An untouched side lane no longer drifts early since M8 traces its corners with the game's own waypoints. Its later drift goes toward a side that depends on the tick, the same in nearly every seed, and at 0.5 s on the seed. Four regression pins of the fourth campaign no longer hold at the new clock. They stay as expected failures, and no threshold was lowered. Whether a real lane on the reference patch behaves the same is unknown, and nothing in the lane is validated against the game. Conclusions about recall timing, denial, and gank opportunities stay provisional until then. [`docs/design/M8_foundation.md`](design/M8_foundation.md) states the finding and the real-game measurements that bear on it.
 
 ## 9. Immediate next actions
 
-1. Review the handoff of M8's fourth campaign and the M8 document, and record any disagreements.
-2. Decide whether someone takes the real-game wave measurements that the M8 document names.
-3. Decide how C2's open wave questions are carried now that the wave results are measured per case on both teams and across ticks: as distributions at a stated tick, or into a further correction.
-4. Plan the next M8 campaign around the last checkpoint, C8.
-5. Plan the training pilot. M7 placed it after C7 and beside C8, and C7 now passes.
+1. Review the handoff of M8's fifth campaign and the M8 document, and record any disagreements.
+2. Commission the independent audit of M8, and after it the lightweight visual inspection demo, as the owner intends.
+3. Decide whether someone takes the real-game wave measurements that the M8 document names.
+4. Decide how C2's open wave questions are carried at the research clock: as shares of settings or paired medians with seed counts, or into a further correction.
+5. Answer the open questions of handoff 008 on whether a slow is observable and whether the mana placeholders hold until M9.
+6. Plan the training pilot. M7 placed it after C7 and beside C8, and the owner put the audit and the demo first.
 
 This roadmap is intentionally revisable. Write a milestone's detailed plan when that milestone begins, not months in advance.
 
 ## 10. Revision summary
+
+### v0.3.4 (2026-11-13)
+
+This version records the state after M8's fifth campaign. It changes no milestone's scope and no decision.
+
+- The M8 progress note adds C8, the pursuit and lane timing fixes, and the research clock, and says that C2 is still not complete.
+- Risk 11 states the wave finding after the in-tick lane fixes, at the research clock.
+- §9 lists the actions that follow M8's fifth campaign.
 
 ### v0.3.3 (2026-11-13)
 

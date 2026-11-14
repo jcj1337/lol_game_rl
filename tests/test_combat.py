@@ -643,10 +643,12 @@ def test_a_champion_killed_in_a_fight_returns_on_its_fountain_after_the_death_ti
     died = world.tick - 1
     assert (victim.outcome, victim.outcome_tick, victim.pos, victim.hp) == (Outcome.DIED, died, FOUNTAIN[1], 0.0)
     assert observe(world, RED_SUPPORT).me.hurt_by[CARRY] and observe(world, RED_SUPPORT).me.dead_s == DEAD_S
+    assert victim.respawned_tick == -1
     waited = until(lambda: victim.hp > 0, world.step)
     assert waited * TICK_S == DEAD_S and world.tick - 1 == died + DEAD_S / TICK_S
     can = capability_of(victim)
     assert (victim.hp, victim.mana, victim.pos, victim.intent) == (can.max_hp, can.max_mana, FOUNTAIN[1], HOLD)
+    assert (victim.respawned_tick, victim.respawned_level) == (world.tick - 1, level_of(victim.xp)), "the respawn is public"
     assert not any(observe(world, RED_SUPPORT).me.hurt_by)
 
 
@@ -788,8 +790,11 @@ def test_a_faster_melee_fighter_keeps_hitting_a_target_whose_step_is_longer_than
 
 def test_off_the_lanes_a_faster_melee_fighter_also_keeps_hitting_a_target_whose_step_is_longer_than_its_range():
     """The same chase on the jungle path from the blue Raptors to the blue Red Brambleback and on toward the Krugs,
-    which turns at the Brambleback. Off a lane the fighter heads for the node that the target walks to, so it keeps
-    the target in range on the straight stretch. Where the target turns, the fighter loses at most one tick."""
+    which turns at the Brambleback on tick 8. Off a lane the fighter leads the target along its edge as on a lane.
+    After the lost tick it closes by 12.5 a tick, also through the turn, and on tick 12 the route of 195 is within its
+    range by the straight line, which on a jungle path is the route over 1.15. From then on it hits on every tick.
+    Before campaign 5 the fighter stopped at its range of the place its team saw, the route stayed 357.5 on every
+    tick, and it hit again only once the top laner had stopped at the Krugs on tick 18."""
     start = RIFT.advance(RIFT.at("blue_raptors"), RIFT.at("blue_red"), 300.0)
     world = calm({RED_JUNGLE: start, BLUE_TOP: RIFT.advance(start, RIFT.at("blue_red"), 150.0)}, towers=False)
     me, foe = world.champions[RED_JUNGLE], world.champions[BLUE_TOP]
@@ -797,16 +802,17 @@ def test_off_the_lanes_a_faster_melee_fighter_also_keeps_hitting_a_target_whose_
     me.mana = foe.mana = 0.0
     reach = capability_of(me).attack_range
     world.step()
-    hits = []
+    hits, gaps = [], []
     for step in range(30):
         submit(world, {0: {RED_JUNGLE: fight(TOP)}, 1: {BLUE_TOP: move("own_krugs")}}.get(step, {}))
         hits.append(struck(world, RED_JUNGLE, BLUE_TOP))
+        gaps.append(RIFT.distance(me.pos, foe.pos))
         heal(world)
         me.mana = foe.mana = 0.0
     assert RIFT.lane_s("bot", foe.pos) is None and all(RIFT.lane_s(lane, start) is None for lane in RIFT.lanes), "the chase stays off the lanes"
-    assert capability_of(foe).move_speed * TICK_S > reach
-    back = hits.index(True, 1)
-    assert back < 20 and sum(hits[back:]) >= len(hits[back:]) - 1, hits
+    assert capability_of(foe).move_speed * TICK_S == 182.5 > reach
+    assert gaps[:18] == pytest.approx([150.0] + [max(reach, 332.5 - 12.5 * k) for k in range(17)])
+    assert hits == [True] + [False] * 11 + [True] * 18
 
 
 def test_a_fighter_never_leads_a_target_that_walks_toward_it_and_stops_at_its_range_of_where_its_team_saw_it():
@@ -854,25 +860,34 @@ def test_an_equally_fast_target_that_walks_away_is_not_hit_again():
 
 def test_a_lockdown_lets_a_slower_fighter_keep_hitting_a_faster_target_while_it_lasts():
     """A mid laner fights a jungler 300 units away that walks off on the first tick, 5 units a tick faster than
-    it. With its lockdown the jungler walks 138.75 a tick for four ticks and the mid laner keeps it at its range of
-    525. Without it the mid laner keeps up for one tick by the lead and then falls behind."""
-    def hits(mana: float) -> list[bool]:
+    it. On that tick its team has seen the jungler only stand, so it holds and the gap opens to 485. Without its
+    lockdown it then walks its full step of 180 after the jungler, loses 5 a tick, and stops hitting once the gap
+    passes its range of 525, after nine ticks. With it the jungler walks 138.75 a tick for four ticks. The mid laner
+    heads for 525 - 138.75 = 386.25 short of the led place and gets there, so after the slow it is 437.5 behind and
+    keeps hitting for 18 ticks more.
+
+    Campaign 5 restated the numbers. Before it a fighter stood at its full range of the led place, so the mid laner
+    gave up at once the 225 by which it started inside its range. It hit for two ticks without the lockdown and five
+    with it."""
+    def gaps(mana: float) -> tuple[list[float], list[bool]]:
         world = calm({BLUE_MID: mid(-300.0), RED_JUNGLE: mid(0.0)}, towers=False)
         world.champions[BLUE_MID].mana = mana
         world.step()
-        out = []
-        for step in range(10):
+        out, hits = [], []
+        for step in range(12):
             submit(world, {BLUE_MID: fight(JUNGLE), RED_JUNGLE: move("own_base")} if step == 0 else {})
-            out.append(struck(world, BLUE_MID, RED_JUNGLE))
+            out.append(RIFT.distance(world.champions[BLUE_MID].pos, world.champions[RED_JUNGLE].pos))
+            hits.append(struck(world, BLUE_MID, RED_JUNGLE))
             heal(world)
-        return out
+        return out, hits
 
     mid_laner, jungler = capability("mid", 1, 1), capability("jungle", 1, 1)
     assert (mid_laner.move_speed, jungler.move_speed, mid_laner.attack_range, mid_laner.lockdown_slow) == (360.0, 370.0, 525.0, 0.25)
-    # Without: 485 after the first tick, 525 after the second (it walks 145 of the 180 it has), 530, 535, ...
-    assert hits(0.0) == [True, True] + [False] * 8
-    # With: 485, 478.75, 525, 525, 525, and 571.25 once the jungler walks at full speed again.
-    assert hits(mid_laner.max_mana) == [True] * 5 + [False] * 5
+    without, hits = gaps(0.0)
+    assert without == pytest.approx([485.0 + 5.0 * k for k in range(12)]) and hits == [True] * 9 + [False] * 3
+    with_lockdown, hits = gaps(mid_laner.max_mana)
+    assert with_lockdown == pytest.approx([485.0, 443.75, 402.5, 386.25, 386.25, 432.5] + [437.5 + 5.0 * k for k in range(6)])
+    assert hits == [True] * 12
 
 
 def test_a_target_seen_again_before_the_fighter_arrives_is_fought_again_and_no_outcome_is_recorded():
@@ -912,7 +927,7 @@ def test_the_mask_offers_a_fight_only_against_a_living_enemy_in_view_and_keeps_a
 @pytest.mark.parametrize("restricted", [True, False])
 def test_a_laner_with_no_allowance_may_fight_the_enemy_that_damaged_it_and_keeps_its_ways_home(leash, restricted):
     spot = off_the_mid_lane(800.0) if leash == "off its lane" else mid(-300.0)
-    config = Config(decision_ticks=1, roam_restricted=restricted)
+    config = Config(tick_s=0.5, decision_ticks=1, roam_restricted=restricted)
     world = calm({BLUE_MID: spot, RED_JUNGLE: spot, RED_TOP: RIFT.advance(spot, RIFT.at("mid_river"), 300.0)}, config)
     me = world.champions[BLUE_MID]
     me.allowance = -6.0
@@ -968,9 +983,14 @@ def test_a_fight_started_in_self_defence_may_be_kept_until_the_attacker_has_stop
 
 def test_a_lockdown_slows_the_target_for_its_duration_costs_mana_and_comes_back_after_its_cooldown():
     """The jungler hits the carry, which holds, and the carry walks off from the next tick on. The jungler walks
-    185 a tick and the carry 175, or 105 while slowed. It keeps the carry in range while the slow lasts, falls
-    behind by a full carry step when the slow ends, closes by 10 a tick, and is back in range for the second
-    lockdown."""
+    185 a tick and the carry 175, or 105 while slowed. It loses the tick on which the carry first walks, as its team
+    saw it stand, and has it in range again on the next. While the slow lasts it ends 2 * 105 - 175 = 35 past the
+    place where its team saw the carry, from where any next step up to 210 stays in range, so it keeps the carry in
+    range when the slow ends, and through the second lockdown and its end.
+
+    Campaign 5 restated the hits. Before it the jungler stood at its full range of the led place, fell behind by a
+    full carry step when the slow ended, and closed by 10 a tick. It missed seven ticks after the first slow and
+    five after the second."""
     world = calm({BLUE_JUNGLE: mid(-150.0), RED_CARRY: mid(0.0)}, towers=False)
     me, foe = world.champions[BLUE_JUNGLE], world.champions[RED_CARRY]
     can = capability_of(me)
@@ -979,13 +999,14 @@ def test_a_lockdown_slows_the_target_for_its_duration_costs_mana_and_comes_back_
     world.step()
     full_step = capability_of(foe).move_speed * TICK_S
     assert (can.move_speed * TICK_S, full_step) == (185.0, 175.0)
-    slows, steps, mana, hits = [], [], [], []
+    slows, steps, mana, hits, gaps = [], [], [], [], []
     orders = {0: {BLUE_JUNGLE: fight(CARRY)}, 1: {RED_CARRY: move("own_base")}}
     for step in range(30):
         was = foe.pos
         submit(world, orders.get(step, {}))
         slows += [(step, hit.slow) for hit in events(world, Hit) if hit.attacker == BLUE_JUNGLE and hit.slow]
         hits.append(struck(world, BLUE_JUNGLE, RED_CARRY))
+        gaps.append(RIFT.distance(me.pos, foe.pos))
         steps.append(RIFT.distance(was, foe.pos))
         mana.append(me.mana)
         if step == 2:
@@ -993,8 +1014,8 @@ def test_a_lockdown_slows_the_target_for_its_duration_costs_mana_and_comes_back_
         heal(world)
     assert slows == [(0, 0.40), (20, 0.40)], "ready again 10 s after its use"
     assert steps == pytest.approx([0.0] + [full_step * 0.6] * 4 + [full_step] * 16 + [full_step * 0.6] * 4 + [full_step] * 5), "2 s from the move after the hit"
-    # Gaps after each tick: 150, 255, 175, 175, 175, 245, 235, 225, ..., 185, 175, and 175 from then on until the second slow ends.
-    assert hits == [True, False] + [True] * 3 + [False] * 7 + [True] * 13 + [False] * 5
+    assert gaps == pytest.approx([150.0, 255.0, 175.0, 95.0, 70.0, 140.0] + [175.0] * 15 + [105.0, 70.0, 70.0, 70.0, 140.0] + [175.0] * 4)
+    assert hits == [True, False] + [True] * 28
     uses = [1] * 20 + [2] * 10
     assert mana == pytest.approx([can.max_mana - can.lockdown_mana * used + can.mana_regen * TICK_S * (step + 1) for step, used in enumerate(uses)]), \
         "the cost of each lockdown, and the regeneration of every tick after the first use"
@@ -1348,7 +1369,7 @@ def test_dealing_damage_to_a_champion_takes_homeguard_away_like_taking_it():
 
 @pytest.mark.parametrize("team", [0, 1])
 def test_changing_every_field_of_every_enemy_that_a_team_does_not_see_changes_no_observation_and_no_mask(team):
-    world = World(Config(), seed=1)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=1)
     # At tick 112 each team sees some enemies and not others.
     for _ in range(112):
         tick(world, patient)
@@ -1367,7 +1388,7 @@ def test_changing_every_field_of_every_enemy_that_a_team_does_not_see_changes_no
 
 @pytest.mark.parametrize("team", [0, 1])
 def test_an_enemy_that_moves_where_a_team_does_not_see_changes_nothing_the_team_knows_until_it_is_seen(team):
-    world = World(Config(), seed=1)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=1)
     # At tick 112 each team sees some enemies and not others.
     for _ in range(112):
         tick(world, patient)
@@ -1406,9 +1427,11 @@ DUELS = {
     "both die on one tick": [("a", 0, TOP, -50.0, ("fight", "b")), ("b", 1, MID, 50.0, ("fight", "a"))],
     "two die on one tick": [("a", 0, TOP, -50.0, ("fight", "c")), ("b", 0, JUNGLE, -60.0, ("fight", "c")), ("c", 1, MID, 50.0, ("fight", "a")),
                             ("d", 1, CARRY, 60.0, ("fight", "a"))],
-    # Out of range at the start, so that every one of them walks: two that chase each other, and a follower of each.
-    "ring": [("a", 0, TOP, -450.0, ("fight", "b")), ("b", 1, JUNGLE, 450.0, ("fight", "a")), ("c", 0, MID, -1000.0, ("follow", "a")),
-             ("d", 1, CARRY, 1000.0, ("follow", "b"))],
+    # Out of range at the start, so that every one of them walks: two that chase each other, and a follower of each
+    # close behind, which walks onto its leader and then keeps to where it stands, so a follower that read its
+    # leader's move of the same tick would stand elsewhere.
+    "ring": [("a", 0, TOP, -450.0, ("fight", "b")), ("b", 1, JUNGLE, 450.0, ("fight", "a")), ("c", 0, MID, -550.0, ("follow", "a")),
+             ("d", 1, CARRY, 550.0, ("follow", "b"))],
     # A fighter chases a target that walks off, its ally follows it, and an enemy fights the fighter.
     "chain": [("a", 0, JUNGLE, -700.0, ("fight", "b")), ("b", 1, TOP, 200.0, ("move", "top_river")), ("c", 0, MID, -1000.0, ("follow", "a")),
               ("d", 1, CARRY, 1000.0, ("fight", "a"))],
@@ -1482,7 +1505,7 @@ def test_when_one_champion_of_each_team_dies_on_one_tick_both_kills_and_both_ass
 
 
 def test_new_combat_state_is_in_the_digest_and_a_snapshot_taken_in_a_fight_replays_every_digest():
-    world = World(Config(), seed=3)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=3)
     for _ in range(96):
         tick(world, random_legal)
     while not events(world, Hit) or world.tick % 4:
@@ -1505,20 +1528,22 @@ def test_new_combat_state_is_in_the_digest_and_a_snapshot_taken_in_a_fight_repla
 
 
 def test_a_game_of_random_legal_actions_fights_sieges_kills_and_loses_targets_with_no_invariant_failure():
-    # Seed 1 gives no KILLED in 2,400 ticks: a fighter loses a tick to every turn of its target, and random targets
-    # turn often. Seed 4 kills a fighter's target by tick 451.
-    world = World(Config(), seed=4)
-    chosen, happened, ended = Counter(), Counter(), Counter()
-    for _ in range(1200):
-        actions = tick(world, random_legal, check=True)
-        chosen.update(ACTIONS[action].kind for action in actions or ())
-        happened.update(type(e).__name__ for _, e in world.events)
-        ended += ended_now(world)
+    # A fight ends with KILLED only when the fighter's own target dies, and random targets turn and wander off, so it
+    # is rare: in campaign 5, 0 to 2 times in 1,200 ticks, and in 4 of seeds 0 to 7. The claim is over four seeds.
+    chosen, happened, ended, kills = Counter(), Counter(), Counter(), 0
+    for seed in range(4):
+        world = World(Config(tick_s=0.5, decision_ticks=4), seed=seed)
+        for _ in range(1200):
+            actions = tick(world, random_legal, check=True)
+            chosen.update(ACTIONS[action].kind for action in actions or ())
+            happened.update(type(e).__name__ for _, e in world.events)
+            ended += ended_now(world)
+        kills += sum(c.earned[Income.KILL] > 0 for c in world.champions)
+        assert all(c.gold >= 0 for c in world.champions)
     assert chosen[Kind.FIGHT] > 20 and chosen[Kind.SIEGE] > 20
     assert all(happened[name] > 0 for name in ("Hit", "Kill", "TowerShot", "TowerDamage"))
     assert {"KILLED", "DIED"} <= set(ended)
-    kills = sum(c.earned[Income.KILL] > 0 for c in world.champions)
-    assert kills > 0 and all(c.gold >= 0 for c in world.champions)
+    assert kills > 0
 
 
 # The intents that the switching schedule draws from, for a mid laner at the mid river crossing.

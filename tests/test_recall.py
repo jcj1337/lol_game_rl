@@ -150,7 +150,7 @@ def test_the_fountain_restores_nothing_to_a_dead_champion():
 
 
 def test_a_champion_starts_with_boots_bought_from_its_starting_gold():
-    for c in World().champions:
+    for c in World(Config(tick_s=0.5, decision_ticks=4)).champions:
         assert (c.upgrades, c.gold, c.earned[Income.STARTING]) == (1, 500.0 - BOOTS_PRICES[0], 500.0)
         assert capability_of(c) == with_upgrades(c.role, 1)
         assert capability_of(c).move_speed == PROFILES[ROLES[c.role]].move_speed + 25
@@ -272,7 +272,7 @@ def lost_ledger_entry(c):
 
 @pytest.mark.parametrize("change", [unpaid_upgrade, gold_from_nowhere, lost_ledger_entry])
 def test_the_checker_raises_when_gold_is_not_the_ledger_less_the_price_of_the_upgrades(change):
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     check_invariants(world)
     change(world.champions[RED_MID])
     with pytest.raises(InvariantError):

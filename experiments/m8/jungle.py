@@ -139,7 +139,7 @@ def rounded(value):
 
 
 def main() -> None:
-    results = {"ruleset": RULESET_ID, "config": "tick 0.5 s, decision every 4 ticks", "first_clear": {f"seed {seed}": first_clear(seed) for seed in SEEDS},
+    results = {"ruleset": RULESET_ID, "config": f"tick {Config().tick_s:g} s, a decision every {Config().tick_s * Config().decision_ticks:g} s", "first_clear": {f"seed {seed}": first_clear(seed) for seed in SEEDS},
                "sweep": {"at_s": SWEEP_AT_S, "horizon_s": SWEEP_HORIZON_S, "team": "blue", "states": sweep()}}
     results["run"] = stamp(SEEDS, {"clear_horizon_s": CLEAR_HORIZON_S, "sweep_at_s": SWEEP_AT_S, "sweep_horizon_s": SWEEP_HORIZON_S})
     RESULTS.parent.mkdir(exist_ok=True)

@@ -75,6 +75,7 @@ def test_a_hard_push_in_mid_crashes_before_the_next_enemy_wave_can_reach_its_tow
 
 # A regression pin on blue's side, chosen after the results. With the plan on red no plan accumulates in this setting
 # (capabilities.json, sides), so it says nothing about how often accumulation appears.
+@pytest.mark.xfail(strict=True, reason="a regression pin of campaign 4 that held at the 0.5 s tick; after campaign 5's in-tick lane fixes, at the research tick of 0.25 s, no plan accumulates reinforcements in this setting (handoff 009)")
 def test_a_thinning_plan_brings_three_minions_from_each_of_two_waves_and_more_than_a_push_an_empty_lane_or_a_laner_under_its_tower(stacks):
     setting, plan = f"{CARRY_3}, from own tower, opponent absent", "thin 3, then last hit"
     assert plan in stacks["accumulates"][setting] and plan in stacks["delays"][setting]
@@ -94,6 +95,7 @@ def test_reinforcements_also_accumulate_against_an_opponent_that_last_hits(stack
     assert any(plans for setting, plans in stacks["accumulates"].items() if setting.endswith("opponent last hits"))
 
 
+@pytest.mark.xfail(strict=True, reason="a regression pin of campaign 4 that held at the 0.5 s tick; after campaign 5's in-tick lane fixes, at the research tick of 0.25 s, this hold no longer sustains control in this setting (handoff 009)")
 def test_a_champion_that_holds_and_thins_keeps_a_larger_wave_out_of_its_towers_range_for_three_wave_cycles(holds):
     setting, plan = f"{MID_1}, 2 surplus casters, opponent last hits", "hold, thin over 1"
     held = holds["sustains"][setting][plan]
@@ -115,12 +117,14 @@ def test_some_plan_sustains_control_for_a_level_6_mid_laner():
     assert any(late["sustains"].values())
 
 
+@pytest.mark.xfail(strict=True, reason="a regression pin of campaign 4 that held at the 0.5 s tick; after campaign 5's in-tick lane fixes, at the research tick of 0.25 s, this hold no longer sustains control from the third wave (handoff 009)")
 def test_a_hold_is_also_sustained_when_the_surplus_arrives_with_the_third_wave():
     later = capabilities.holding((MID_3,), surpluses=(3,), reds=(True,), seeds=SEEDS, workers=WORKERS, wave=capabilities.LATER_WAVE)
     assert "hold, thin" in later["sustains"][f"{MID_3}, 3 surplus casters, opponent last hits"]
 
 
-@pytest.mark.parametrize("champion", [MID_1, MID_3])
+@pytest.mark.parametrize("champion", [MID_1, pytest.param(MID_3, marks=pytest.mark.xfail(strict=True, reason=(
+    "a regression pin of campaign 4 that held at the 0.5 s tick; after campaign 5's in-tick lane fixes, at the research tick of 0.25 s, the untouched mid lane at level 3 gets back past the centre first in some run (handoff 009)")))])
 def test_after_a_crash_of_a_thinned_wave_mid_lane_comes_back_past_the_centre_before_an_untouched_lane_does(bounces, champion):
     row = bounces[f"{champion}, thin 3, then last hit"]
     assert bounced(row, len(SEEDS))

@@ -114,7 +114,7 @@ def river_alive(world: World) -> list[int]:
 
 @pytest.mark.parametrize("policy", [None, scripted], ids=["nobody acts", "scripted junglers and laners"])
 def test_every_camp_first_appears_at_its_ruleset_clock_time_whatever_the_champions_do(policy):
-    world = World(Config(), seed=3)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=3)
     spawned, alive_from, cleared = {}, {}, 0
     while now(world) <= 176.0:
         world.step() if policy is None else tick(world, policy)
@@ -597,7 +597,7 @@ def test_the_team_that_sees_the_death_that_starts_the_rivers_timer_knows_the_nex
 
 
 def test_the_first_spawn_of_every_camp_is_known_to_both_teams_from_the_start():
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     for seat in SEATS:
         camps = observe(world, seat).camps
         assert [camp.spawn_s for camp in camps] == [67.0, 55.0, 55.0, 55.0, 55.0, 67.0] * 2 + [175.0, 175.0]
@@ -607,7 +607,7 @@ def test_the_first_spawn_of_every_camp_is_known_to_both_teams_from_the_start():
 
 
 def test_the_camps_of_an_observation_are_in_the_order_of_the_camp_actions_with_the_walk_from_the_champion():
-    world = World(Config(), seed=4)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=4)
     run(world, scripted, 300)
     first = next(i for i, a in enumerate(ACTIONS) if a.kind is Kind.CAMP)
     for seat in SEATS:
@@ -670,7 +670,7 @@ def test_a_team_sees_a_position_exactly_when_one_of_its_living_champions_its_sta
 
 @pytest.mark.parametrize("seed", [3, 4])
 def test_a_teams_memory_takes_in_a_camp_on_exactly_the_ticks_on_which_the_team_sees_its_location(seed):
-    world = World(Config(), seed)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed)
     seen = Counter()
     for _ in range(700):
         tick(world, busy)
@@ -685,7 +685,7 @@ def test_a_teams_memory_takes_in_a_camp_on_exactly_the_ticks_on_which_the_team_s
 
 def mid_game(seed: int = 7) -> World:
     """A scripted game at a moment when a jungler is fighting a camp and a shrine stands."""
-    world = World(Config(), seed)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed)
     run(world, scripted, 380)
     until(lambda: world.sights and any(camp.engaged >= 0 for camp in world.camps), lambda: tick(world, scripted), limit=600)
     assert any(memory.hp > 0 for memory in world.memory[0].camps) and any(memory.spawn_tick > world.tick for memory in world.memory[1].camps)
@@ -771,7 +771,7 @@ def test_the_checker_raises_on(change):
 
 @pytest.mark.parametrize("seed", [0, 1])
 def test_a_scripted_game_runs_ten_minutes_with_the_invariant_checker_on_every_tick_and_both_junglers_clear_camps(seed):
-    world = World(Config(), seed)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed)
     ended, most_on_river = Counter(), 0
     for _ in range(1200):
         tick(world, scripted, check=True)

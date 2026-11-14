@@ -134,16 +134,19 @@ def advance(world: World, policies) -> None:
 ENEMIES = {"scripted": scripted, "busy": busy, "varied": varied}
 GAMES = [(3, "busy"), (5, "scripted"), (8, "varied"), (11, "busy")]
 SNAPSHOTS = (600, 800, 1200, 1400)
+# A fifth moment of the scramble test, at which every game hides a living enemy from each team. Without it the four
+# snapshots of team 1 in game (5, scripted) hide three in all, under the test's floor of four.
+LATE = 1600
 
 
 @cache
 def _snapshots(seed: int, enemy: str, team: int) -> dict:
-    world = World(Config(), seed)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed)
     policies = (varied, ENEMIES[enemy]) if team == 0 else (ENEMIES[enemy], varied)
     taken = {}
-    while world.tick < SNAPSHOTS[-1]:
+    while world.tick < LATE:
         advance(world, policies)
-        if world.tick in SNAPSHOTS:
+        if world.tick in SNAPSHOTS or world.tick == LATE:
             taken[world.tick] = world.snapshot()
     return taken
 
@@ -157,7 +160,8 @@ def game(seed: int, enemy: str, team: int, ticks: int) -> World:
 CHAMPION_HIDDEN = ("pos", "hp", "mana", "xp", "gold", "earned", "upgrades", "intent", "intent_tick", "channel", "outcome",
                    "outcome_tick", "allowance", "attack_credit", "item_charges", "homeguard_tick", "homeguard_block", "slow",
                    "slow_until", "lockdown_tick", "ward_charges", "ward_tick")
-CHAMPION_KNOWN = {"seat": "who it is", "respawn_tick": "the death timer is public",
+CHAMPION_KNOWN = {"seat": "who it is", "respawn_tick": "the death timer is public", "respawned_tick": "respawns are public",
+                  "respawned_level": "the level is public",
                   "hurt_tick": "it records the hits of the observing team's own champions"}
 # A dead champion's health is its death, which is public. It holds by the invariant and stands on its fountain.
 DEAD_KEPT = ("pos", "hp", "intent")
@@ -320,7 +324,7 @@ def test_the_scramble_changes_every_hidden_field_and_names_the_ones_it_leaves():
     assert {f.name for f in fields(EnemyMemory)} == {"pos", "was", "hp", "level", "upgrades", "seen_tick"}
     assert {f.name for f in fields(WaveMemory)} == {"lead", "near", "seen_tick"}
     assert {f.name for f in fields(TowerMemory)} == {"hp", "seen_tick"}
-    assert {f.name for f in fields(type(World().camps[0]))} == set(CAMP_HIDDEN)
+    assert {f.name for f in fields(type(World(Config(tick_s=0.5, decision_ticks=4)).camps[0]))} == set(CAMP_HIDDEN)
     for seed, enemy in GAMES:
         world = game(seed, enemy, 0, 800)
         twin = World.restore(world.snapshot())
@@ -354,7 +358,7 @@ def test_the_scramble_changes_every_hidden_field_and_names_the_ones_it_leaves():
 @pytest.mark.parametrize("team", [0, 1])
 def test_changing_every_field_hidden_from_a_team_changes_none_of_its_observations_encodings_or_masks(team, seed, enemy):
     total = {"champions": 0, "dead": 0, "minions": 0, "camps": 0, "wards": 0, "towers": 0}
-    for ticks in SNAPSHOTS:
+    for ticks in (*SNAPSHOTS, LATE):
         world = game(seed, enemy, team, ticks)
         twin = World.restore(world.snapshot())
         changed = scramble(twin, team, random.Random(seed + ticks))
@@ -911,7 +915,7 @@ def test_a_returning_laner_may_not_ward_and_keeps_its_self_defence_its_ways_home
 
 
 def test_a_laner_with_allowance_and_one_under_no_restriction_keep_every_ward_and_every_fight_in_view():
-    for world in (brawl(EVERY_TICK, allowance=30.0), brawl(Config(decision_ticks=1, roam_restricted=False), allowance=0.0)):
+    for world in (brawl(EVERY_TICK, allowance=30.0), brawl(Config(tick_s=0.5, decision_ticks=1, roam_restricted=False), allowance=0.0)):
         o = observe(world, BLUE_MID)
         mask = legal_mask(o)
         assert all(mask[i] for i in WARDS) and mask[FIGHT[JUNGLE]] and mask[FIGHT[TOP]]
@@ -1026,10 +1030,10 @@ def test_the_lane_fields_of_an_observation_are_the_lanes_truth_while_the_team_se
     world = game(seed, enemy, 0, 600)
     policies = (varied, ENEMIES[enemy])
     counts = {"seen": 0, "unseen": 0, "contact": 0, "apart": 0, "edge": 0, "hidden rival": 0, "dead rival": 0, "tower known": 0, "tower unseen": 0}
+    # Every tick is checked. After campaign 5 every third tick of game 8 gave only 10 lane views with no enemy minion
+    # in sight, short of the bound below. Checking each tick keeps the bound and the 240 ticks.
     for step in range(240):
         advance(world, policies)
-        if step % 3:
-            continue
         for team in (0, 1):
             o = observe(world, team * 5 + step % 5)
             foes = team_of(world, 1 - team)
@@ -1068,7 +1072,7 @@ def test_the_lane_fields_of_an_observation_are_the_lanes_truth_while_the_team_se
 
 
 def test_an_encoding_has_one_length_holds_finite_numbers_and_is_equal_exactly_when_the_observation_is():
-    world = World(Config(), seed=4)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=4)
     by_code, by_observation, lengths = {}, {}, set()
     for _ in range(1000):
         if world.tick % world.config.decision_ticks == 0:
@@ -1162,7 +1166,7 @@ WAVE_CHANGES = {"lead": 4321.0, "near": (1, 0, 0), "seen_tick": 5}
 @pytest.mark.parametrize("field", WARD_CHANGES)
 def test_the_digest_changes_with_every_field_of_a_ward(field):
     assert set(WARD_CHANGES) == {f.name for f in fields(Sight)}
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     world.ward(BLUE_JUNGLE, RIFT.at("blue_gromp"), WARD_SIGHT, 90.0, MAX_WARDS)
     before = world.digest()
     world.sights[0] = replace(world.sights[0], **{field: WARD_CHANGES[field]})
@@ -1172,7 +1176,7 @@ def test_the_digest_changes_with_every_field_of_a_ward(field):
 @pytest.mark.parametrize("field", WAVE_CHANGES)
 def test_the_digest_changes_with_every_field_of_a_wave_memory(field):
     assert set(WAVE_CHANGES) == {f.name for f in fields(WaveMemory)}
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     before = world.digest()
     setattr(world.memory[1].waves[2], field, WAVE_CHANGES[field])
     assert world.digest() != before

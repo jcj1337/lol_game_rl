@@ -5,6 +5,9 @@ intends or how its last intent ended, its XP within the level, its gold, mana, a
 cooldown, item charges, Homeguard, or slow. Every champion picks where it heads from the state at the start of the
 move step, by its team's memory alone, so two worlds that differ only in those fields of visible enemies give the
 team the same observations and the same moves on that tick (handoff 007, F14).
+
+Within that limit a faster fighter keeps or regains contact. On a lane, a jungle path, and a base edge it closes by
+its speed edge, keeps a slowed target in range when the slow ends, and keeps a target that stops or turns back.
 """
 
 import random
@@ -13,14 +16,16 @@ from functools import cache
 import pytest
 
 from riftgame import combat
-from riftgame.champions import ACTIONS, FOE, KEEP, LANES, NO_HOMEGUARD, RIFT, Champion, Income, Kind, Outcome, capability_of, lane_post, level_of
+from riftgame.champions import (ACTIONS, FOE, HOLD, KEEP, LANES, NO_HOMEGUARD, RIFT, Champion, Income, Kind, Outcome, capability, capability_of,
+                                lane_post, level_of)
 from riftgame.economy import lane_inputs
 from riftgame.harness import random_legal
 from riftgame.rng import Stream, keyed_uniform
 from riftgame.vision import observe_team
-from riftgame.world import World, check_invariants
+from riftgame.world import Config, World, check_invariants
+from test_combat import calm, grow, heal, struck
 from test_vision import ENEMIES, GAMES, advance, game, knowledge, mid, quiet_world, team_of, varied
-from worlds import BLUE_CARRY, BLUE_TOP, RED_JUNGLE, RED_MID, act, move, submit
+from worlds import BLUE_CARRY, BLUE_JUNGLE, BLUE_TOP, RED_JUNGLE, RED_MID, act, move, submit
 
 TOP, JUNGLE, MID = 0, 1, 2
 # The fields of a visible enemy champion that its place, health, level, and upgrades do not show.
@@ -110,8 +115,13 @@ def test_changing_the_private_fields_of_the_enemies_a_team_sees_changes_none_of_
         living = [c.seat for c in team_of(probe, team) if c.hp > 0]
         for world in (probe, twin):
             world.step(actions)
-        assert all(world.champions[seat].hp > 0 for world in (probe, twin) for seat in living), "nobody of the team was moved by a death"
+        # A full tower ramp kills a healed support in one shot, so a death can fall on the step. It must fall in both
+        # worlds alike, and a moment with one does not count, as a death sends the champion to its fountain in both.
+        died = [[seat for seat in living if world.champions[seat].hp <= 0] for world in (probe, twin)]
+        assert died[0] == died[1], f"tick {probe.tick - 1}"
         assert [c.pos for c in team_of(twin, team)] == [c.pos for c in team_of(probe, team)], f"tick {probe.tick - 1}"
+        if died[0]:
+            continue
         compared += 1
         changed += visible
     assert compared >= 15 and changed >= 25, (compared, changed)
@@ -186,7 +196,7 @@ def test_a_fighter_moves_the_same_against_a_target_that_walks_follows_or_fights_
 def test_random_legal_games_give_both_teams_moves_that_no_private_field_of_a_visible_enemy_changes(seed):
     """Random legal actions for every seat: every intent kind, rings of fights and chains of followers. On every
     16th tick each team's visible enemies get new private fields in a copy, and the team's moves are compared."""
-    world = World(seed=seed)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=seed)
     rng, compared = random.Random(seed), 0
     for _ in range(600):
         if world.tick % 16 == 0:
@@ -213,3 +223,193 @@ def test_random_legal_games_give_both_teams_moves_that_no_private_field_of_a_vis
                        enumerate((*observe_team(world, 0), *observe_team(world, 1)))]
         world.step(actions)
     assert compared >= 20, compared
+
+
+# Three ways a chase runs along, each from its first node toward its second, with the node that a blue target walks to
+# on it, and the way's detour, its route length over its straight length, from [detour] of map_summoners_rift_m8.toml.
+WAYS = {"mid lane": ("mid_river", "blue_base", "own_base", 1.0), "jungle path": ("blue_raptors", "blue_red", "own_krugs", 1.15),
+        "base edge": ("blue_base", "blue_fountain", "own_fountain", 1.0)}
+
+
+def along(way: str, units: float):
+    start, toward, _, _ = WAYS[way]
+    return RIFT.advance(RIFT.at(start), RIFT.at(toward), units)
+
+
+def pursue(way: str, fighter: int, fighter_boots: int, target: int, target_boots: int, at: float, gap: float, ticks: int,
+           fight_from: int = 0, walk_from: int = 0, goal: str | None = None, then: dict | None = None, mana: bool = False) -> tuple:
+    """A red level 1 `fighter` fights a blue level 1 `target` on `way`, with every tower down. The target stands `at`
+    units along the way and the fighter `gap` units behind it. The target walks on toward `goal`, by default the
+    way's node, from tick `walk_from`, and the fighter fights from tick `fight_from`. `then` gives the target other
+    orders by tick. Only the fighter may have mana, and only with `mana`. Returns per tick whether the fighter hit the
+    target, the route between them after the tick, the target's step, and the fighter's place."""
+    _, _, node, detour = WAYS[way]
+    near, far = along(way, at - gap), along(way, at)
+    assert RIFT.distance(near, far) == pytest.approx(gap) and RIFT.separation(near, far) == pytest.approx(gap / detour), "one edge"
+    world = calm({fighter: near, target: far}, towers=False)
+    grow(world, fighter, 1, fighter_boots)
+    grow(world, target, 1, target_boots)
+    me, foe = world.champions[fighter], world.champions[target]
+    foe.mana = 0.0
+    if not mana:
+        me.mana = 0.0
+    world.step()
+    script = {walk_from: {target: move(goal or node)}}
+    script.setdefault(fight_from, {})[fighter] = act(Kind.FIGHT, target % 5)
+    for tick, order in (then or {}).items():
+        script.setdefault(tick, {})[target] = order
+    hits, gaps, steps, places = [], [], [], []
+    for tick in range(ticks):
+        stood = foe.pos
+        submit(world, script.get(tick, {}))
+        hits.append(struck(world, fighter, target))
+        gaps.append(RIFT.distance(me.pos, foe.pos))
+        steps.append(RIFT.distance(stood, foe.pos))
+        places.append(me.pos)
+        heal(world)
+    return hits, gaps, steps, places
+
+
+@pytest.mark.parametrize("way", WAYS)
+def test_a_faster_fighter_closes_by_its_speed_edge_on_every_tick_and_then_hits_on_every_tick(way):
+    """A red jungler with both boot steps walks 195 a tick and chases a blue carry without boots, which walks 162.5,
+    from 380 units behind, more than its step outside its range of 175. Its team sees the carry step away, so it
+    heads past the place where it saw the carry and walks its full step on every tick, gaining its edge of 32.5. It
+    is in range once the route is at most its range times the way's detour, and it hits on every tick from then on,
+    on the jungle path across the fork at the Red Brambleback, and on the base edge after the carry has reached its
+    fountain. Before campaign 5 a fighter off the lanes stopped at its range of the place it saw, so the carry's step
+    kept it 337.5 behind on the jungle path and on the base edge for good."""
+    jungler, carry = capability("jungle", 1, 2), capability("carry", 1, 0)
+    mine, theirs, reach = jungler.move_speed / 2, carry.move_speed / 2, jungler.attack_range
+    assert (mine, theirs, reach) == (195.0, 162.5, 175.0)
+    hits, gaps, _, _ = pursue(way, RED_JUNGLE, 2, BLUE_CARRY, 0, at=400.0, gap=380.0, ticks=12)
+    closing = [380.0 - (mine - theirs) * (tick + 1) for tick in range(12)]
+    contact = next(tick for tick, route in enumerate(closing) if route <= reach * WAYS[way][3])
+    assert contact == (5 if way == "jungle path" else 6)
+    assert gaps[:contact + 1] == pytest.approx(closing[:contact + 1])
+    assert hits == [False] * contact + [True] * (12 - contact)
+
+
+def test_a_fighter_heads_for_its_range_of_where_its_team_saw_a_target_that_walks_toward_it():
+    """A red jungler that walks 195 a tick fights a blue carry that walks 162.5 toward it down mid lane from 600
+    units. Its team sees the carry come nearer, so it leads nothing: it heads for its range of 175 from where its team
+    saw the carry. The route closes by both steps on the first tick, to 242.5, and on the second the jungler walks the
+    67.5 to its range of that place while the carry walks its step, which leaves 12.5. A fighter that led the carry
+    one more step would stand still on the second tick and stay 80 away."""
+    hits, gaps, _, _ = pursue("mid lane", RED_JUNGLE, 2, BLUE_CARRY, 0, at=700.0, gap=600.0, ticks=2, goal="mid_river")
+    assert gaps == pytest.approx([600.0 - 195.0 - 162.5, 12.5])
+    assert hits == [False, True]
+
+
+@pytest.mark.parametrize("way, gap", [("mid lane", 300.0), ("jungle path", 400.0), ("base edge", 300.0)])
+def test_a_slower_fighter_falls_behind_by_its_speed_deficit_on_every_tick_and_stops_hitting(way, gap):
+    """A red mid laner without boots walks 167.5 a tick and fights a blue jungler with its first boots, which walks
+    185, from inside its range of 525. On the first tick its team has seen the jungler only stand, so it holds, and
+    the jungler's step opens the route by 185. From then on it walks its full step after the jungler and loses 17.5 on
+    every tick. It hits while the straight line, the route over the way's detour, is within its range."""
+    reach = capability("mid", 1, 0).attack_range
+    hits, gaps, _, _ = pursue(way, RED_MID, 0, BLUE_JUNGLE, 1, at=gap + 20.0, gap=gap, ticks=6)
+    expected = [gap + 185.0 + 17.5 * tick for tick in range(6)]
+    assert gaps == pytest.approx(expected)
+    assert hits == [route <= reach * WAYS[way][3] for route in expected]
+    assert hits[:2] == [True, True] and hits[-1] is False
+
+
+@pytest.mark.parametrize("way, at, ticks", [("mid lane", 400.0, 14), ("jungle path", 300.0, 13), ("base edge", 200.0, 10)])
+def test_a_faster_fighter_keeps_a_slowed_target_in_range_on_every_tick_after_the_slow_ends(way, at, ticks):
+    """The pair of the gank of experiments/m8/combat.py. A red jungler that walks 185 a tick hits a blue top laner
+    that walks 182.5 from 150 units, and its lockdown slows the top laner by 0.4 for four ticks. The top laner walks
+    off on the next tick, which costs the jungler that tick, as its team saw the top laner stand. While slowed the
+    top laner steps 109.5, and the jungler ends 2 * 109.5 - 175 = 44 past the place where its team saw it, 65.5
+    behind it. From there any next step up to 219 stays in range, so the first full step of 182.5 after the slow
+    leaves the top laner 138.5 away. From then on its step is longer than the range, the jungler heads for its range
+    of the led place, and its edge of 2.5 a tick covers the rest. So from the third tick on it hits on every tick,
+    across the end of the slow and, on the jungle path, across the fork at the Red Brambleback on tick 11. Before
+    campaign 5 the jungler stood at its range of the led place, and the end of the slow left it 248 behind."""
+    jungler = capability("jungle", 1, 1)
+    assert (jungler.move_speed / 2, capability("top", 1, 1).move_speed / 2, jungler.lockdown_slow, jungler.lockdown_s) == (185.0, 182.5, 0.4, 2.0)
+    hits, gaps, steps, _ = pursue(way, RED_JUNGLE, 1, BLUE_TOP, 1, at=at, gap=150.0, ticks=ticks, walk_from=1, mana=True)
+    assert steps == pytest.approx([0.0] + [109.5] * 4 + [182.5] * (ticks - 5))
+    assert gaps == pytest.approx([150.0, 259.5, 184.0, 108.5, 65.5, 138.5] + [175.0] * (ticks - 6))
+    assert hits == [True, False, 184.0 <= 175.0 * WAYS[way][3]] + [True] * (ticks - 3)
+
+
+@pytest.mark.parametrize("then", ["stops", "turns back"])
+@pytest.mark.parametrize("target, boots, step", [(BLUE_CARRY, 0, 162.5), (BLUE_TOP, 1, 182.5)], ids=["step 162.5", "step 182.5"])
+def test_a_led_target_that_stops_or_turns_back_stays_in_range_unless_its_step_is_longer_than_the_range(target, boots, step, then):
+    """A red jungler with both boot steps, 195 a tick and a range of 175, stands on a blue champion that walks off
+    down mid lane, and fights it from the next tick. On tick 6 the target stops or turns back.
+
+    A carry without boots steps 162.5. The jungler ends 175 - 162.5 = 12.5 past the place where its team saw it, 150
+    behind it, from where a target that stops is 12.5 away and one that turns back by its step is 175 away. Both are
+    in range, and the jungler leads the turned target from the next tick. A top laner with its first boots steps
+    182.5, longer than the range. The jungler ends 7.5 past the seen place, 175 behind it, which keeps a stop in
+    range. No place keeps both one more step and a step back in range, as they are 365 apart and the range spans 350,
+    so the turn leaves the top laner 190 away. The jungler then closes by its edge of 12.5 and is in range again on
+    tick 8."""
+    assert capability("carry" if target == BLUE_CARRY else "top", 1, boots).move_speed / 2 == step
+    orders = {6: HOLD if then == "stops" else move("enemy_base")}
+    hits, gaps, _, _ = pursue("mid lane", RED_JUNGLE, 2, target, boots, at=400.0, gap=0.0, ticks=10, fight_from=1, then=orders)
+    steady, after = {("stops", 162.5): (150.0, [12.5] * 4), ("turns back", 162.5): (150.0, [175.0] + [150.0] * 3),
+                     ("stops", 182.5): (175.0, [7.5] * 4), ("turns back", 182.5): (175.0, [190.0, 177.5, 175.0, 175.0])}[then, step]
+    assert gaps == pytest.approx([step] + [steady] * 5 + after)
+    assert hits == [False] + [True] * 5 + [route <= 175.0 for route in after]
+
+
+# Two forks. One is where a jungle path meets two others, the other the end of a lane, where the other lanes and the
+# path to the fountain meet. Per fork the way to it, the node, the target's start, and the three places it may walk on to.
+FORKS = {"Red Brambleback": ("jungle path", "blue_red", 1300.0, ("own_krugs", "bot_river", "own_mid_t2")),
+         "blue base": ("mid lane", "blue_base", None, ("own_fountain", "own_top_exit", "own_bot_exit"))}
+
+
+@pytest.mark.parametrize("fork", FORKS)
+def test_at_a_fork_a_fighter_keeps_the_target_in_range_on_any_branch_and_walks_the_same_until_its_team_sees_which(fork):
+    """A red jungler with both boot steps chases a blue top laner to a fork, along the jungle path from the blue
+    Raptors to the Red Brambleback, and down mid lane to the blue base. The top laner steps 182.5, longer than the
+    range, so the jungler keeps it 175 away. On tick 3 the next step would carry the top laner past the fork, and the
+    jungler heads no further than the fork, as its team cannot tell which branch the top laner takes.
+
+    At the Brambleback the top laner is 6.5 short of the fork and ends about 176 past it. The jungler heads for the
+    fork itself, about 176 from the top laner on any branch, which the path's detour of 1.15 puts in range. At the
+    base the top laner is 50 short and ends 132.5 past it. The jungler heads for 175 - 132.5 = 42.5 short of the
+    base, 175 from the top laner on any branch. From the next tick it leads the top laner along its branch. Heading
+    for its range of the fork instead would leave it about 351 and 307.5 behind."""
+    way, node, at, branches = FORKS[fork]
+    to_node = RIFT.distance(RIFT.at(WAYS[way][0]), RIFT.at(node))
+    at = to_node - 50.0 - 3 * 182.5 if at is None else at
+    runs = [pursue(way, RED_JUNGLE, 2, BLUE_TOP, 1, at=at, gap=0.0, ticks=8, fight_from=1, goal=goal) for goal in branches]
+    short = to_node - (at + 3 * 182.5)
+    assert short == pytest.approx(50.0 if fork == "blue base" else 6.54, abs=0.01)
+    for hits, gaps, steps, _ in runs:
+        assert steps == pytest.approx([182.5] * 8)
+        assert gaps == pytest.approx([182.5, 175.0, 175.0, max(175.0, 182.5 - short)] + [175.0] * 4)
+        assert hits == [False] + [True] * 7
+    assert len({tuple(run[3][:4]) for run in runs}) == 1, "the same walk until the team sees the branch"
+    assert len({run[3][4] for run in runs}) == 3, "and three walks after"
+    assert RIFT.distance(runs[0][3][3], RIFT.at(node)) == pytest.approx(max(0.0, 175.0 - (182.5 - short)))
+
+
+@pytest.mark.parametrize("way", WAYS)
+@pytest.mark.parametrize("step", [60.0, 100.0, 116.0, 350.0 / 3.0, 116.7, 117.0, 140.0, 175.0])
+def test_a_faster_fighter_in_contact_keeps_a_target_that_steps_steadily_away_in_range_on_every_tick(way, step):
+    """A red jungler with both boot steps, 195 a tick and a range of 175, stands on a blue carry that walks off
+    along the way with a lasting slow that sets its step. For every step up to the range the fighter is at least as
+    fast, so after the first tick, which it loses because its team has seen the carry only stand, it hits on every
+    tick. Around 2/3 of the range the fighter's own place decides whether its team's record still shows the carry
+    walking away from it. At exactly 2/3 the fighter ends half a step behind, the record ties, and the fighter stands
+    for a tick, which the carry's next step turns into exactly the range, so it still hits."""
+    carry = capability("carry", 1, 0)
+    slow = 1.0 - step / (carry.move_speed / 2)
+    world = calm({RED_JUNGLE: along(way, 400.0), BLUE_CARRY: along(way, 400.0)}, towers=False)
+    grow(world, RED_JUNGLE, 1, 2)
+    grow(world, BLUE_CARRY, 1, 0)
+    fighter, target = world.champions[RED_JUNGLE], world.champions[BLUE_CARRY]
+    fighter.mana = target.mana = 0.0
+    target.slow, target.slow_until = slow, 10 ** 6
+    world.step()
+    hits = []
+    for tick in range(10):
+        submit(world, {0: {BLUE_CARRY: move(WAYS[way][2])}, 1: {RED_JUNGLE: act(Kind.FIGHT, BLUE_CARRY % 5)}}.get(tick, {}))
+        hits.append(struck(world, RED_JUNGLE, BLUE_CARRY))
+        heal(world)
+    assert hits[2:] == [True] * 8, hits

@@ -10,7 +10,7 @@ from riftgame.world import Config, InvariantError, World, check_invariants
 from worlds import BLUE_MID, act, ended_now, hazard, move, patient
 
 GAME_S = 600.0
-GAMES = [(seed, random_legal if seed % 2 == 0 else patient, Config() if seed % 4 < 2 else Config(tick_s=1.0, decision_ticks=5))
+GAMES = [(seed, random_legal if seed % 2 == 0 else patient, Config(tick_s=0.5, decision_ticks=4) if seed % 4 < 2 else Config(tick_s=1.0, decision_ticks=5))
          for seed in range(10)]
 
 
@@ -46,7 +46,7 @@ def test_no_position_changes_by_more_than_speed_times_the_tick_except_on_death_a
 
 
 def broken(change) -> World:
-    world = World(Config(decision_ticks=1), seed=1)
+    world = World(Config(tick_s=0.5, decision_ticks=1), seed=1)
     run(world, patient, 20)
     change(world.champions[BLUE_MID], world)
     return world
@@ -77,7 +77,7 @@ def test_the_checker_raises_on(change):
 
 
 def test_the_checker_raises_on_a_clock_that_did_not_advance_by_exactly_one_tick():
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     world.step()
     check_invariants(world, previous_tick=0)
     for previous in (1, -1):
@@ -86,7 +86,7 @@ def test_the_checker_raises_on_a_clock_that_did_not_advance_by_exactly_one_tick(
 
 
 def test_the_checker_raises_on_an_empty_legal_mask(monkeypatch):
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     monkeypatch.setattr(riftgame.world, "legal_mask", lambda o: (False,) * len(ACTIONS))
     with pytest.raises(InvariantError):
         check_invariants(world)
@@ -95,10 +95,10 @@ def test_the_checker_raises_on_an_empty_legal_mask(monkeypatch):
 def test_a_checked_tick_raises_when_a_policy_chooses_an_action_its_mask_forbids():
     fight = act(Kind.FIGHT, 0)
     with pytest.raises(InvariantError):
-        tick(World(), lambda o, noise: fight, check=True)
+        tick(World(Config(tick_s=0.5, decision_ticks=4)), lambda o, noise: fight, check=True)
     lane_elsewhere = act(Kind.LANE, ("bot", "push", "wave"))
     with pytest.raises(InvariantError):
-        tick(World(), lambda o, noise: lane_elsewhere if o.me.role == 0 else KEEP, check=True)
-    world = World()
+        tick(World(Config(tick_s=0.5, decision_ticks=4)), lambda o, noise: lane_elsewhere if o.me.role == 0 else KEEP, check=True)
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     tick(world, lambda o, noise: HOLD, check=True)
     assert world.tick == 1 and all(c.pos == FOUNTAIN[c.team] for c in world.champions) and len(SEATS) == 10

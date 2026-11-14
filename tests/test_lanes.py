@@ -419,7 +419,8 @@ def test_a_champion_that_comes_back_to_a_lane_has_its_attack_ready():
 
 def test_the_m7_rule_set_is_the_m8_lane_without_the_rules_m7_left_out_and_with_m7s_resolution():
     assert replace(M8_LANE, side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
-                   first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True, tower_blocks=False) == M7_LANE
+                   first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True, tower_blocks=False,
+                   acquire_on_arrival=False, walk_on_loss=False, march_to_standing=False) == M7_LANE
     assert (M8_LANE.melee_cap, M8_LANE.minion_damage_scale, M8_LANE.current_hp_damage) == (0, 1.0, True)
 
 
@@ -469,14 +470,13 @@ def test_minions_on_two_sides_of_a_bend_acquire_each_other_by_the_straight_line(
     gap = top.gap(corner - half, corner + half)
     assert gap == pytest.approx(math.dist(toward(second, first, half), toward(second, third, half)))
     assert gap + 2.0 < ACQUIRE < 2 * half - 2.0
-    for rules, engaged in ((M8_LANE, True), (replace(M8_LANE, straight_ranges=False), False)):
+    for rules, closed in ((M8_LANE, 0.0), (replace(M8_LANE, straight_ranges=False), (2 * half - ACQUIRE) / 2)):
         sim = quiet_lane("top", rules)
         sim.add_minion(BLUE, Kind.CASTER, corner - half)
         sim.add_minion(RED, Kind.CASTER, corner + half)
         sim.step(sim.tick)
         blue, red = sim.minions[BLUE][0], sim.minions[RED][0]
-        assert (blue.target is red) is engaged
-        closed = 0.0 if engaged else (2 * half - ACQUIRE) / 2
+        assert blue.target is red, "a minion takes a target in range at once, or when it stops in range"
         assert (blue.s, red.s) == (pytest.approx(corner - half + closed), pytest.approx(corner + half - closed)), "minions in reach stand still"
 
 
@@ -643,7 +643,7 @@ def test_the_lanes_values_hold_when_the_dead_target_of_a_pending_cast_died_and_t
     cancelled on a later tick, and the cast that replaces it starts from the moment the target died."""
     sim = LaneSim("mid", 0, DT)
     cast_states, flight_states, diverged = 0, 0, 0
-    while sim.time < 130.0:
+    while sim.time < 260.0:
         sim.step(sim.tick)
         casts, flights = dead_targets(sim)
         cast_states += bool(casts)
@@ -674,6 +674,112 @@ def test_the_lanes_values_hold_how_long_a_placed_minion_still_waits():
     one.add_minion(RED, Kind.MELEE, one.geometry.centre, delay=0.2)
     other.add_minion(RED, Kind.MELEE, other.geometry.centre, delay=0.3)
     assert one.values() != other.values()
+
+
+def lane_at(dt, rules=M8_LANE):
+    sim = LaneSim("mid", 0, dt, rules, start_s=LATE)
+    sim.clock.next_wave = math.inf
+    return sim
+
+
+@pytest.mark.parametrize("dt", [0.1, 0.5])
+def test_a_minion_that_stops_in_reach_inside_a_tick_attacks_from_the_moment_it_stops(dt):
+    """A siege minion walks 0.8 s to the edge of the enemy tower's reach. Its first blow lands one cast time and one
+    flight after it stops, whatever the tick."""
+    sim = lane_at(dt)
+    tower, reach = sim.towers[RED][0], MINIONS["siege"]["attack_range"]
+    sim.add_minion(BLUE, Kind.SIEGE, tower.s - reach - SPEED * 0.8)
+    siege = sim.minions[BLUE][0]
+    first = of(run(sim, LATE + 3.0), TowerDamage)[0].t - LATE
+    assert siege.s == pytest.approx(tower.s - reach)
+    flight = math.hypot(siege.x - tower.x, siege.y - tower.y) / TIMING[Kind.SIEGE]["missile_speed"]
+    assert first == pytest.approx(0.8 + TIMING[Kind.SIEGE]["cast_s"] + flight)
+
+
+@pytest.mark.parametrize("dt", [0.1, 0.5])
+def test_a_caster_that_comes_upon_a_champion_in_its_path_stops_where_it_takes_it(dt):
+    """A red caster 800 units from a blue champion in its path, with nothing else near, takes the champion 500 units
+    from it and stops there, whatever the tick."""
+    gap, timing = 800.0, TIMING[Kind.CASTER]
+    sim = lane_at(dt)
+    centre = sim.geometry.centre
+    sim.add_minion(RED, Kind.CASTER, centre + gap)
+    caster = sim.minions[RED][0]
+    champion = ChampionInput(0, BLUE, centre, Mode.PASSIVE, in_path=True)
+    blows = of(run(sim, LATE + 3.0, lambda sim: [champion]), ChampionDamage)
+    assert caster.s == pytest.approx(centre + ACQUIRE)
+    assert blows[0].t - LATE == pytest.approx((gap - ACQUIRE) / SPEED + timing["cast_s"] + ACQUIRE / timing["missile_speed"])
+
+
+@pytest.mark.parametrize("dt", [0.1, 0.5])
+def test_a_minion_whose_target_dies_inside_a_tick_walks_on_from_that_moment(dt):
+    """A blue melee minion kills a red one with its first blow, one cast time in, and walks on toward red's tower."""
+    sim = lane_at(dt)
+    centre, cast = sim.geometry.centre, TIMING[Kind.MELEE]["cast_s"]
+    sim.add_minion(BLUE, Kind.MELEE, centre - 50.0)
+    sim.add_minion(RED, Kind.MELEE, centre + 50.0)
+    blue = sim.minions[BLUE][0]
+    sim.minions[RED][0].hp = 1.0
+    deaths = of(run(sim, LATE + 2.0), MinionDeath)
+    assert [e.t - LATE for e in deaths] == pytest.approx([cast])
+    assert blue.s == pytest.approx(centre - 50.0 + SPEED * (2.0 - cast)), "it walks for all the time since the kill"
+
+
+@pytest.mark.parametrize("dt", [0.05, 0.125, 0.25, 0.5])
+def test_a_minion_still_walking_toward_its_target_when_the_target_dies_walks_no_faster_than_its_speed(dt):
+    """A blue melee minion kills a red one with its first blow. A second blue melee minion, 400 units behind the red
+    one, has taken it as its target and is still walking toward it when it dies, and then walks on with no enemy in
+    the lane. It covers its speed times the time, at every tick."""
+    sim = lane_at(dt)
+    centre = sim.geometry.centre
+    sim.add_minion(RED, Kind.MELEE, centre)
+    sim.minions[RED][0].hp = 1.0
+    sim.add_minion(BLUE, Kind.MELEE, centre - 90.0)
+    sim.add_minion(BLUE, Kind.MELEE, centre - 400.0)
+    red, walker = sim.minions[RED][0], sim.minions[BLUE][1]
+    start = walker.s
+    sim._acquire()
+    assert walker.target is red, "the walker takes the red minion as its target"
+    deaths = of(run(sim, LATE + 2.0), MinionDeath)
+    assert len(deaths) == 1 and deaths[0].t - LATE < 0.5 < (400.0 - walker.rules.stop_range) / SPEED, "it dies before the walker could stop"
+    assert walker.s - start == pytest.approx(SPEED * 2.0)
+
+
+@pytest.mark.parametrize("dt", [0.1, 0.5])
+def test_a_minion_walks_all_the_way_to_a_standing_enemy_while_another_enemy_walks_up_behind_that_one(dt):
+    """A blue caster walks toward a red melee minion that fights a blue one and stands. A second red melee minion
+    walks up behind the first and can come no nearer to the caster than it. The caster reaches its stop range of the
+    standing minion 0.9 s after it starts, whatever the tick."""
+    sim = lane_at(dt)
+    centre, stop = sim.geometry.centre, min(MINIONS["caster"]["attack_range"], ACQUIRE)
+    sim.add_minion(BLUE, Kind.MELEE, centre - 55.0)
+    sim.add_minion(RED, Kind.MELEE, centre + 55.0)
+    sim.add_minion(RED, Kind.MELEE, centre + 355.0)
+    sim.add_minion(BLUE, Kind.CASTER, centre + 55.0 - stop - SPEED * 0.9)
+    caster = sim.minions[BLUE][1]
+    run(sim, LATE + 1.0)
+    assert caster.s == pytest.approx(centre + 55.0 - stop)
+
+
+def first_wave_deaths(name, dt):
+    """The times of the minion deaths of an untouched lane's first waves, with every later wave removed."""
+    sim, deaths = LaneSim(name, 0, dt), []
+    while sim.time < 150.0:
+        deaths += [e.t for e in of(sim.step(sim.tick), MinionDeath)]
+        for team in Team:
+            sim.minions[team][:] = [m for m in sim.minions[team] if m.wave == 1]
+        sim.invalidate()
+    return deaths
+
+
+@pytest.mark.parametrize("name, within", [("mid", 1e-6), ("top", 0.02)])
+def test_the_first_wave_fight_of_an_untouched_lane_kills_the_same_minions_at_the_same_times_at_every_tick(name, within):
+    """The lane times blows inside a tick, and a minion takes a target, walks on, and stops inside a tick too, so
+    the tick only samples the fight. Top's bends leave differences of hundredths of a second."""
+    reference = first_wave_deaths(name, 0.125)
+    assert len(reference) == 12
+    for dt in (0.25, 0.5, 1.0):
+        assert first_wave_deaths(name, dt) == pytest.approx(reference, abs=within), f"tick {dt}"
 
 
 def turns(geometry) -> list[float]:

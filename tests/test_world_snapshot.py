@@ -16,7 +16,7 @@ REPO = Path(__file__).parents[1]
 
 
 def test_a_restored_snapshot_replays_the_same_digest_at_every_tick_for_1000_ticks():
-    game = World(Config(), seed=5)
+    game = World(Config(tick_s=0.5, decision_ticks=4), seed=5)
     run(game, busy, 300)
     snapshot = game.snapshot()
     first, ended = play(game, busy, 1000)
@@ -26,7 +26,7 @@ def test_a_restored_snapshot_replays_the_same_digest_at_every_tick_for_1000_tick
 
 
 def test_a_snapshot_survives_whatever_happens_to_the_world_it_came_from_and_to_its_restored_copies():
-    game = World(Config(), seed=6)
+    game = World(Config(tick_s=0.5, decision_ticks=4), seed=6)
     run(game, patient, 200)
     snapshot = game.snapshot()
     expected, _ = play(World.restore(snapshot), patient, 100)
@@ -40,7 +40,7 @@ def test_a_snapshot_survives_whatever_happens_to_the_world_it_came_from_and_to_i
 
 
 def test_a_snapshot_restores_in_another_process_to_the_same_digests(tmp_path):
-    game = World(Config(), seed=7)
+    game = World(Config(tick_s=0.5, decision_ticks=4), seed=7)
     run(game, patient, 200)
     file = tmp_path / "snapshot.pickle"
     file.write_bytes(pickle.dumps(game.snapshot()))
@@ -58,7 +58,7 @@ def test_a_snapshot_restores_in_another_process_to_the_same_digests(tmp_path):
 
 @pytest.mark.parametrize("change", [{"ruleset_id": "another-ruleset"}, {"map_id": "another-map"}])
 def test_restoring_into_a_different_ruleset_or_map_is_an_error(change):
-    snapshot = World().snapshot()
+    snapshot = World(Config(tick_s=0.5, decision_ticks=4)).snapshot()
     World.restore(snapshot)
     with pytest.raises(ValueError):
         World.restore(replace(snapshot, **change))
@@ -75,16 +75,16 @@ def test_a_snapshot_names_what_it_takes_to_restore_and_replay():
 
 
 def test_two_worlds_built_apart_with_equal_state_have_equal_digests():
-    a, b = World(Config(), seed=4), World(Config(), seed=4)
+    a, b = World(Config(tick_s=0.5, decision_ticks=4), seed=4), World(Config(tick_s=0.5, decision_ticks=4), seed=4)
     assert a is not b and a.digest() == b.digest()
-    assert a.digest() != World(Config(), seed=5).digest()
+    assert a.digest() != World(Config(tick_s=0.5, decision_ticks=4), seed=5).digest()
 
 
 CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "xp": 300.0, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
            "upgrades": 2, "intent": move("mid_river"), "intent_tick": 3, "channel": 4, "outcome": Outcome.INTERRUPTED,
            "outcome_tick": 5, "allowance": 12.0, "attack_credit": 0.25, "item_charges": 1, "respawn_tick": 44,
-           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11,
-           "ward_charges": 2, "ward_tick": 12345}
+           "respawned_tick": 46, "respawned_level": 3, "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7],
+           "slow": 0.5, "slow_until": 9, "lockdown_tick": 11, "ward_charges": 2, "ward_tick": 12345}
 
 
 def test_the_test_changes_every_champion_field():
@@ -93,40 +93,40 @@ def test_the_test_changes_every_champion_field():
 
 @pytest.mark.parametrize("field", CHANGED)
 def test_the_digest_changes_with_every_champion_field(field):
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     before = world.digest()
     setattr(world.champions[RED_CARRY], field, CHANGED[field])
     assert world.digest() != before
 
 
 def test_the_digest_changes_with_the_tick_and_with_what_a_lane_reports():
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     before = world.digest()
     world.lanes["bot"] = StubLane(values=(1, 2.5))
     one = world.digest()
     world.lanes["bot"] = StubLane(values=(1, 3.5))
     assert len({before, one, world.digest()}) == 3
-    stepped = World()
+    stepped = World(Config(tick_s=0.5, decision_ticks=4))
     stepped.step()
     assert stepped.digest() != before
 
 
 def test_the_digest_refuses_state_that_is_not_plain_values():
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     world.lanes["mid"] = StubLane(values=({"a": 1}, object()))
     with pytest.raises(TypeError):
         world.digest()
 
 
 def test_a_replay_reproduces_every_digest():
-    replay, digests = record(Config(), 21, patient, 600)
+    replay, digests = record(Config(tick_s=0.5, decision_ticks=4), 21, patient, 600)
     assert rerun(replay) == digests and len(digests) == 600
-    assert (replay.config, replay.seed, len(replay.log)) == (Config(), 21, 600)
+    assert (replay.config, replay.seed, len(replay.log)) == (Config(tick_s=0.5, decision_ticks=4), 21, 600)
     assert [actions is not None for actions in replay.log[:5]] == [True, False, False, False, True]
 
 
 def test_a_replay_with_one_changed_action_gives_other_digests():
-    replay, digests = record(Config(), 21, patient, 200)
+    replay, digests = record(Config(tick_s=0.5, decision_ticks=4), 21, patient, 200)
     first = list(replay.log[0])
     assert first[BLUE_MID] != move("enemy_base")
     first[BLUE_MID] = move("enemy_base")
@@ -134,8 +134,8 @@ def test_a_replay_with_one_changed_action_gives_other_digests():
     assert rerun(changed)[0] != digests[0]
 
 
-PIN = {"config": Config(), "seed": 2026, "ticks": 600,
-       "digest": "80c69ca8a4e6ab0c5e875aa48219c1dc083c9964118aa62a58e3dbacec801a8b"}
+PIN = {"config": Config(tick_s=0.5, decision_ticks=4), "seed": 2026, "ticks": 600,
+       "digest": "55f53858205ecd31c4ac5ec290f55c7fbbc28a57b5b7c7a4a23711e7a4257c13"}
 
 
 def test_the_pinned_replay_digest_changes_only_with_a_deliberate_update_of_the_pin():

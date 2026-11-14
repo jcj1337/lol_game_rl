@@ -7,9 +7,11 @@ a policy holds no generator and a replay needs only the actions.
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from riftgame.champions import ACTIONS, CAMP_OF, HOLD, HOME, KEEP, RECALL, RETURNS, ROLES, SEATS, Action, Kind, capability
+from riftgame.champions import (ACTIONS, CAMP_OF, HOLD, HOME, KEEP, LANES, MAP, RECALL, RETURNS, RIFT, ROLES, SEATS, TEAMS, Action, Kind,
+                                capability)
 from riftgame.economy import JUNGLE_ITEM
 from riftgame.jungle import SITES
+from riftgame.lanes import TOWER_RANGE
 from riftgame.rng import Stream, keyed_uniform
 from riftgame.vision import Observation, Place, legal_mask, observe_team
 from riftgame.world import Config, InvariantError, World, check_invariants
@@ -120,18 +122,51 @@ _FIGHT = tuple(i for i, a in enumerate(ACTIONS) if a.kind is Kind.FIGHT)
 _TO_FOUNTAIN = ACTIONS.index(Action(Kind.MOVE, "own_fountain"))
 
 
-def brawler(retreat_below: float = 0.0) -> Policy:
+def _enemy_towers(side: int) -> dict[str, tuple[float, ...]]:
+    """Per lane, where the enemy towers stand in the frame of the team `side`, from the outer one inward."""
+    def framed(t) -> float:
+        return t.s if side == 0 else RIFT.lanes[t.lane].length - t.s
+    return {lane: tuple(framed(t) for t in sorted((t for t in MAP.towers if t.lane == lane and t.team != TEAMS[side]),
+                                                  key=lambda t: ("outer", "inner", "inhibitor").index(t.tier))) for lane in LANES}
+
+
+def _by_open_tower(o: Observation, towers: dict[str, tuple[float, ...]], decision_s: float) -> bool:
+    """Whether the champion could walk into the range of a standing enemy tower of its lane before its next
+    decision while no minion of its own stands in that range. Distances run along the lane, which is never shorter
+    than the straight line to a tower beside a straight stretch of lane."""
+    lane = o.me.place.route
+    if lane not in towers:
+        return False
+    view = o.lanes[LANES.index(lane)]
+    walk = capability(ROLES[o.me.role], o.me.level, o.me.upgrades).move_speed * (1.0 + o.me.homeguard) * decision_s
+    for s, hp in zip(towers[lane], view.enemy_towers):
+        covered = view.own_lead is not None and abs(view.own_lead - s) <= TOWER_RANGE
+        if hp > 0 and not covered and abs(o.me.place.s - s) <= TOWER_RANGE + walk:
+            return True
+    return False
+
+
+def brawler(retreat_below: float = 0.0, side: int | None = None, decision_s: float = 2.0) -> Policy:
     """A policy that fights what it sees: the enemy champion with the least health in its team's view.
 
     It keeps a fight that it has started, also after the target has left the view. Below the share
     `retreat_below` of its health it walks to its own fountain instead. It chooses nothing that its mask forbids.
+
+    With `side`, the team it plays on, it also stays out of enemy tower range (Assumed). At a decision on a lane
+    from which it could walk into the range of a standing enemy tower within `decision_s`, the time to its next
+    decision, while no minion of its own stands in that range, it drops its fight, starts none, and holds. It reads
+    only its observation and where the towers stand.
     """
+    towers = None if side is None else _enemy_towers(side)
+
     def act(o: Observation, noise: float) -> int:
         me, mask = o.me, legal_mask(o)
         if me.hp <= 0:
             return KEEP
         if me.hp < retreat_below * me.max_hp:
             return KEEP if me.intent == _TO_FOUNTAIN else _TO_FOUNTAIN
+        if towers is not None and mask[HOLD] and _by_open_tower(o, towers, decision_s):
+            return KEEP if me.intent == HOLD else HOLD
         if ACTIONS[me.intent].kind is Kind.FIGHT and mask[KEEP]:
             return KEEP
         seen = [(enemy.hp, role) for role, enemy in enumerate(o.enemies) if enemy is not None and mask[_FIGHT[role]]]

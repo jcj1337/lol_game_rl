@@ -23,7 +23,7 @@ def at_towers(*seats):
 
 def played(orders, seconds=300.0, seed=0, world=None):
     """A game in which the given seats start at their outer towers with their orders. Returns it with every lane event."""
-    world = staged(at_towers(*orders), Config(decision_ticks=1), seed) if world is None else world
+    world = staged(at_towers(*orders), Config(tick_s=0.5, decision_ticks=1), seed) if world is None else world
     events = []
     submit(world, orders)
     events += world.events
@@ -141,7 +141,7 @@ def test_xp_range_is_a_straight_line_and_not_a_walk():
 
 
 def test_a_jungler_keeps_30_percent_of_lane_minion_xp_at_the_start_and_all_of_it_from_20_minutes():
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     jungler, laner = world.champions[BLUE_JUNGLE], world.champions[BLUE_MID]
     assert economy.jungle_share(jungler, 0.0) == pytest.approx(0.30)
     assert economy.jungle_share(jungler, 600.0) == pytest.approx(0.65)
@@ -150,7 +150,7 @@ def test_a_jungler_keeps_30_percent_of_lane_minion_xp_at_the_start_and_all_of_it
 
 
 def test_the_lanes_get_the_teams_level_lead():
-    world = World(Config(decision_ticks=1))
+    world = World(Config(tick_s=0.5, decision_ticks=1))
     assert economy.level_lead(world) == 0
     world.champions[BLUE_TOP].xp = 280.0 + 380.0
     assert level_of(world.champions[BLUE_TOP].xp) == 3
@@ -160,7 +160,7 @@ def test_the_lanes_get_the_teams_level_lead():
 
 
 def test_minions_hurt_a_champion_that_holds_them_and_its_health_then_comes_back_at_its_regeneration_rate():
-    world = staged(at_towers(BLUE_MID), Config(decision_ticks=1))
+    world = staged(at_towers(BLUE_MID), Config(tick_s=0.5, decision_ticks=1))
     tower = world.lanes["mid"].geometry.towers[BLUE][0]
     world.lanes["mid"].add_minion(RED, Minion.CASTER, tower + TOWER_RANGE + 900.0, count=2)
     submit(world, {BLUE_MID: lane("mid", "last_hit", "hold")})

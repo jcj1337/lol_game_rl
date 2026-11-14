@@ -1,0 +1,25 @@
+# M7 section 9.5, row 4. Blue's jungler walks top to gank, clears an own camp, invades an enemy camp, or moves to
+# the mid river. The red jungler was last seen at its red buff 14 s ago. Hidden: enemy camps cleared unseen, enemy
+# wards, the enemy jungler's position.
+ruleset = "ref-26.22-r1+m8.3"
+seed = 64
+base = { policy = "scripted_v0", seed = 5, until_s = 490, tick_s = 0.5 }
+
+[[champion]]
+seat = "blue_jungle"
+health = 0.9
+
+[knowledge.blue]
+red_jungle = { last_seen = "enemy_red", at_s = 476, health = 0.7 }
+
+[decision]
+seat = "blue_jungle"
+kind = "individual"
+horizon_s = 90
+commit_s = 25
+rollouts = 16
+hidden = "activity_v0"
+focus = ["red_jungle"]
+places = ["top_corner", "enemy_raptors", "mid_river"]
+continuation = [{ blue = "standard", red = "standard" }, { blue = "aggressive", red = "aggressive" }]
+alternatives = ["MOVE top_corner", "CAMP own_raptors", "CAMP enemy_raptors", "MOVE mid_river"]

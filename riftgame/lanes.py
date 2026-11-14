@@ -125,6 +125,18 @@ class LaneRules:
     attack at the same instant are served in input order. A champion that leaves the lane keeps its attack credit.
     The M8 lane keeps the target priority on every retarget, orders such champions by a keyed draw, and gives a
     returning champion a ready attack.
+    acquire_on_arrival: a minion that stops walking inside a tick with nothing in reach takes a target at the moment
+    it stops, and a minion with no target stops where a champion in its path ahead comes within its stop range.
+    Without the rule it waits for the next tick, up to a tick per stop, and a caster walks past the point where it
+    would take the champion by up to a tick's walk.
+    walk_on_loss: a minion whose target dies inside a tick, and that finds no other in reach, walks from that moment,
+    or from the moment it stopped walking if it was still walking then, so its next march is longer by the rest of
+    the tick. Without the rule it stands until the next tick.
+    march_to_standing: a minion whose nearest enemy stands still this tick walks all the way to it. Without the rule
+    it also takes at most half its gap to the enemy's lead walker, even when that walker is behind the nearest enemy
+    and cannot come nearer than it, so the walk takes more ticks the longer the tick.
+    tie_by_set: a minion that draws between equally near enemies keys the draw on them, so the same tie gives the
+    same choice however many ticks it lasts. A diagnostic of how runs at two ticks pair, not a rule of the M8 lane.
     """
 
     champion_aggro: bool = True
@@ -145,11 +157,16 @@ class LaneRules:
     m7_map: bool = False
     m7_resolution: bool = False
     tower_blocks: bool = True
+    acquire_on_arrival: bool = True
+    walk_on_loss: bool = True
+    march_to_standing: bool = True
+    tie_by_set: bool = False
 
 
 M8_LANE = LaneRules()
 M7_LANE = LaneRules(side_lane_speed=False, call_for_help=False, pushing_advantage=False, straight_ranges=False, tower_shelter=False,
-                    first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True, tower_blocks=False)
+                    first_wave_call=False, attack_timing=False, m7_map=True, m7_resolution=True, tower_blocks=False,
+                    acquire_on_arrival=False, walk_on_loss=False, march_to_standing=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -558,7 +575,7 @@ class LaneSim:
         return self.towers[team][TIERS.index(tier)].hp > 0
 
     def front_tower(self, team: int) -> Tower | None:
-        """The team's outermost standing tower, the only one that can fight or take damage."""
+        """The team's outermost standing tower, the only one that takes damage. Every standing tower shoots."""
         return next((tower for tower in self.towers[team] if tower.hp > 0), None)
 
     def front(self) -> Front:
@@ -674,11 +691,23 @@ class LaneSim:
         self._acquire()
         self._march()
         self._fight(inputs)
+        if self.rules.walk_on_loss:
+            self._free_to_walk()
         for team in Team:
             self.minions[team][:] = [m for m in self.minions[team] if m.hp > 0]
         self._forget()
         self.tick = tick + 1
         return self._events
+
+    def _free_to_walk(self) -> None:
+        """A minion whose target died in this tick and that took no other has been free since the death, or since it
+        stopped walking if it was still walking toward the target then. A negative delay hands that time to its next
+        march."""
+        for team in Team:
+            for m in self.minions[team]:
+                target = m.target
+                if m.hp > 0 and type(target) is Minion and target.hp <= 0 and target.died_at >= self._t0:
+                    m.delay = max(target.died_at - self._t0, m.free_at) - self.tick_s
 
     def _span(self, tower: Tower) -> None:
         """Set the stretch of lane coordinates outside which no point of the lane is within the tower's range."""
@@ -737,7 +766,10 @@ class LaneSim:
     def _pick(self, m: Minion, tied: list) -> Minion:
         m.draws += 1
         # without the tick in the key, runs at different tick lengths draw the same numbers
-        key = (m.uid, m.draws) if self.rules.lateral_slots else (self.tick, m.uid, m.draws)
+        if self.rules.tie_by_set:
+            key = (m.uid, *sorted(foe.uid for foe in tied))
+        else:
+            key = (m.uid, m.draws) if self.rules.lateral_slots else (self.tick, m.uid, m.draws)
         return tied[int(keyed_uniform(self.seed, Stream.MINION_TARGET, self.lane_id, *key) * len(tied))]
 
     def _nearest(self, m: Minion, limit: float, foes: list | None = None):
@@ -842,7 +874,7 @@ class LaneSim:
                 continue
             if m.near is not None:
                 room = min(room, m.near_walk - stop)
-            if lead_walker[1 - m.team] is not None:
+            if lead_walker[1 - m.team] is not None and not (self.rules.march_to_standing and m.near is not None and m.near.anchored):
                 # two walkers closing on each other each take half the gap, so they meet instead of crossing within a tick
                 room = min(room, (abs(lead_walker[1 - m.team] - m.s) - stop) / 2)
             if type(m.target) is ChampionTarget:
@@ -853,6 +885,12 @@ class LaneSim:
                     room = min(room, ahead - stop)
             elif (m.target is None or type(m.target) is Tower) and tower is not None and heading * (tower.s - m.s) > 0:
                 room = min(room, abs(tower.s - m.s) - stop)
+            if m.target is None and self.rules.acquire_on_arrival:
+                # a champion in the path ahead is acquired where it comes within the stop range, so the walk ends there
+                for spot in self._prey[m.team]:
+                    ahead = heading * (spot.s - m.s)
+                    if ahead > 0:
+                        room = min(room, ahead - stop)
             if self.rules.tower_blocks and tower is not None and heading == geometry.direction(m.team):
                 room = min(room, heading * (tower.s - m.s))
             speed = self._speed(m)
@@ -882,9 +920,13 @@ class LaneSim:
             when, what = m.swing - self._t0, RELEASE
         else:
             target = m.target
-            if target is None or self._range(m, target) > m.rules.attack_range + EPS:
+            if target is not None and self._range(m, target) <= m.rules.attack_range + EPS:
+                when = max(m.free_at, target.free_at, m.ready - self._t0)
+            elif self.rules.acquire_on_arrival and not m.anchored and m.free_at < self.tick_s - SAME_INSTANT:
+                when = max(m.free_at, m.ready - self._t0)
+            else:
                 return
-            when, what = max(m.free_at, target.free_at, m.ready - self._t0), START
+            what = START
         if when < self.tick_s:
             self._push(queue, max(when, 0.0), m.uid, what, m)
 

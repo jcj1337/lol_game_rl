@@ -80,7 +80,7 @@ def roam_soak(config: Config, seconds: float, deaths_per_game: float = 3.0, seed
     return rows
 
 
-CLOCKS = {"tick 0.5 s, decision 2 s": Config(), "tick 1 s, decision 5 s": Config(tick_s=1.0, decision_ticks=5)}
+CLOCKS = {"tick 0.5 s, decision 2 s": Config(tick_s=0.5, decision_ticks=4), "tick 1 s, decision 5 s": Config(tick_s=1.0, decision_ticks=5)}
 GAME_S = 840.0
 
 
@@ -125,8 +125,8 @@ def test_no_champion_moves_faster_than_its_speed_except_when_it_dies(soak):
 
 
 def test_with_the_restriction_switched_off_the_same_policy_is_never_restricted():
-    config = Config(roam_restricted=False)
-    rows, restricted = roam_soak(config, 420.0), roam_soak(Config(), 420.0)
+    config = Config(tick_s=0.5, decision_ticks=4, roam_restricted=False)
+    rows, restricted = roam_soak(config, 420.0), roam_soak(Config(tick_s=0.5, decision_ticks=4), 420.0)
     for seat in LANERS:
         row = rows[seat]
         assert row["always_open"] and row["sent_home"] == 0 and row["lowest_allowance_s"] == config.roam_cap_s
@@ -135,7 +135,7 @@ def test_with_the_restriction_switched_off_the_same_policy_is_never_restricted()
 
 
 def test_with_the_restriction_switched_off_a_laner_keeps_its_open_mask_however_long_it_stays_away():
-    world = staged({BLUE_MID: RIFT.at("top_river")}, Config(decision_ticks=1, roam_restricted=False))
+    world = staged({BLUE_MID: RIFT.at("top_river")}, Config(tick_s=0.5, decision_ticks=1, roam_restricted=False))
     for _ in range(400):
         world.step()
     seen = observe(world, BLUE_MID).me
@@ -144,7 +144,7 @@ def test_with_the_restriction_switched_off_a_laner_keeps_its_open_mask_however_l
 
 
 def test_the_bound_follows_the_configured_cap_and_refill():
-    config = Config(roam_cap_s=30.0, roam_refill=0.5)
+    config = Config(tick_s=0.5, decision_ticks=4, roam_cap_s=30.0, roam_refill=0.5)
     decision_s = config.decision_ticks * config.tick_s
     # With the minions stopped at the enemy front tower, seed 8 sends no laner past the default refill and seed 1 does.
     rows = roam_soak(config, 600.0, seed=1)
@@ -159,12 +159,12 @@ def test_the_bound_follows_the_configured_cap_and_refill():
 
 @pytest.mark.parametrize("seat", LANERS)
 def test_a_laner_with_allowance_may_do_anything_except_lane_elsewhere(seat):
-    assert legal(World(), seat) == open_actions(seat % 5, [HOME[seat % 5]])
+    assert legal(World(Config(tick_s=0.5, decision_ticks=4)), seat) == open_actions(seat % 5, [HOME[seat % 5]])
 
 
 @pytest.mark.parametrize("seat", JUNGLERS)
 def test_a_jungler_may_lane_anywhere(seat):
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     world.champions[seat].allowance = -50.0
     assert legal(world, seat) == open_actions(seat % 5, LANES)
     assert observe(world, seat).me.home is None and observe(world, seat).me.duty is None
@@ -258,7 +258,7 @@ def test_the_allowance_runs_below_zero_until_the_next_decision():
 
 
 def test_assignments_end_at_the_configured_time_and_then_every_lane_is_open():
-    world = staged({BLUE_TOP: off_the_mid_lane()}, Config(decision_ticks=1, assignments_end_s=20.0))
+    world = staged({BLUE_TOP: off_the_mid_lane()}, Config(tick_s=0.5, decision_ticks=1, assignments_end_s=20.0))
     me = world.champions[BLUE_TOP]
     me.allowance = -3.0
     for _ in range(39):
@@ -277,7 +277,7 @@ def test_assignments_end_at_the_configured_time_and_then_every_lane_is_open():
 
 @pytest.mark.parametrize("fallen_team", [0, 1])
 def test_a_fallen_outer_tower_ends_the_assignments_of_that_lane_alone(fallen_team):
-    world = World()
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     world.lanes["bot"].towers[fallen_team][0].hp = 0.0
     for seat in (BLUE_CARRY, BLUE_SUPPORT, RED_CARRY, RED_SUPPORT):
         world.champions[seat].allowance = -5.0
@@ -289,7 +289,7 @@ def test_a_fallen_outer_tower_ends_the_assignments_of_that_lane_alone(fallen_tea
 
 
 def test_a_fallen_outer_tower_ends_no_assignment_when_the_config_says_so():
-    world = World(Config(outer_tower_ends_assignment=False))
+    world = World(Config(tick_s=0.5, decision_ticks=4, outer_tower_ends_assignment=False))
     world.lanes["bot"].towers[0][0].hp = 0.0
     assert observe(world, BLUE_CARRY).me.home == "bot"
     assert legal(world, BLUE_CARRY) == open_actions(BLUE_CARRY % 5, ["bot"])
@@ -297,5 +297,5 @@ def test_a_fallen_outer_tower_ends_no_assignment_when_the_config_says_so():
 
 def test_roles_and_home_lanes_are_fixed_by_the_seat():
     assert ROLES == ("top", "jungle", "mid", "carry", "support")
-    assert [observe(World(), seat).me.home for seat in SEATS] == ["top", None, "mid", "bot", "bot"] * 2
-    assert [observe(World(), seat).me.role for seat in SEATS] == [0, 1, 2, 3, 4] * 2
+    assert [observe(World(Config(tick_s=0.5, decision_ticks=4)), seat).me.home for seat in SEATS] == ["top", None, "mid", "bot", "bot"] * 2
+    assert [observe(World(Config(tick_s=0.5, decision_ticks=4)), seat).me.role for seat in SEATS] == [0, 1, 2, 3, 4] * 2

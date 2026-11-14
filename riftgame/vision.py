@@ -269,7 +269,20 @@ _SLACK = 1e-9
 
 
 def remember(world: "World") -> None:
-    """Step 7 of the tick: sight sources that have run out go, and each team's memory takes in what the team sees.
+    """Step 7 of the tick. Sight sources that have run out go, and each team's memory takes in what the team sees
+    (`remember_team`)."""
+    tick = world.tick
+    if any(s.expires <= tick for s in world.sights):
+        world.sights[:] = [s for s in world.sights if s.expires > tick]
+    deaths = [e for _, e in world.events if type(e) is CampDeath]
+    for team in range(2):
+        remember_team(world, team, tick, deaths)
+
+
+def remember_team(world: "World", team: int, tick: int, deaths: Sequence[CampDeath] = ()) -> None:
+    """One team's part of step 7 of tick `tick`. Its memory takes in what its sight sources see now. `deaths` are
+    the camp deaths of that tick. It writes that team's memory and nothing else, so one team's memory can be rebuilt
+    from a world on its own.
 
     A team that sees a camp's location records the camp's health and level. It learns the camp's next spawn by the
     reference rule (M7 section 3.3): it sees the location on the tick the camp dies, or it sees the empty camp
@@ -288,57 +301,53 @@ def remember(world: "World") -> None:
     With none in its view the record freezes, unless the team sees the place of the remembered lead: then it knows
     that the wave is gone. Lane minions see no camp: no place on a lane is in a minion's sight of one (Tested).
     """
-    tick, config = world.tick, world.config
+    config = world.config
     # A policy reads the memory from the next tick on, so ages and windows count from there.
     now = tick + 1
-    if any(s.expires <= tick for s in world.sights):
-        world.sights[:] = [s for s in world.sights if s.expires > tick]
-    deaths = [e for _, e in world.events if type(e) is CampDeath]
-    for team in range(2):
-        lit = sources(world, team)
-        allies = world.champions[team * 5:team * 5 + 5]
-        for enemy, record in zip(world.champions[(1 - team) * 5:(2 - team) * 5], world.memory[team].enemies):
-            if enemy.hp > 0 and (any(ally.hurt_tick[enemy.seat % 5] == tick for ally in allies) or _lit(lit, enemy.pos)
-                                 or _minions_see(world, team, enemy.pos)):
-                record.was = record.pos if record.seen_tick == tick else None
-                record.pos, record.hp, record.level, record.upgrades, record.seen_tick = enemy.pos, enemy.hp, level_of(enemy.xp), enemy.upgrades, now
-        towers = world.memory[team].towers
-        for name, tier, pos in TOWER_SITES[1 - team]:
-            tower = world.lanes[name].towers[1 - team][TIERS.index(tier)]
-            if tower is not world.lanes[name].front_tower(1 - team) or _lit(lit, pos) or _minions_see(world, team, pos):
-                record = towers[LANES.index(name) * len(TIERS) + TIERS.index(tier)]
-                record.hp, record.seen_tick = max(0.0, tower.hp), now
-        for name, wave in zip(LANES, world.memory[team].waves):
-            if wave.lead is None and not world.lanes[name].minions[1 - team]:
-                continue
-            seen, spans = _wave_seen(world, team, name)
-            if seen:
-                ahead = world.lanes[name].geometry.direction(1 - team)
-                lead = max(m.s for m in seen) if ahead > 0 else min(m.s for m in seen)
-                near = [0, 0, 0]
-                for m in seen:
-                    if abs(m.s - lead) <= WAVE_SPAN:
-                        near[m.rules.kind] += 1
-                wave.lead, wave.near, wave.seen_tick = lead, tuple(near), now
-            elif wave.lead is not None and any(lo <= wave.lead <= hi for lo, hi in spans):
-                wave.lead, wave.near, wave.seen_tick = None, NO_WAVE, now
-        seen = {i for at, radius in lit for i, lo, hi in _camps_in_reach(at.edge, radius)
-                if lo <= at.offset <= hi and RIFT.sees(at, SITES[i].pos, radius)}
-        known = world.memory[team].camps
-        for i in seen:
-            camp, mine = world.camps[i], known[i]
-            mine.hp, mine.seen_tick = camp.hp, now
-            if camp.hp > 0:
-                mine.level, mine.spawn_tick = camp.level, -1
-                continue
-            mine.level = 0
-            if 0 <= camp.spawn_tick <= now + config.ticks(SITES[i].kind.timer_window_s):
-                mine.spawn_tick = camp.spawn_tick
-            elif mine.spawn_tick < now:
-                mine.spawn_tick = -1
-        for death in deaths:
-            if death.camp in seen and death.respawn >= 0:
-                known[death.respawn].spawn_tick = world.camps[death.respawn].spawn_tick
+    lit = sources(world, team)
+    allies = world.champions[team * 5:team * 5 + 5]
+    for enemy, record in zip(world.champions[(1 - team) * 5:(2 - team) * 5], world.memory[team].enemies):
+        if enemy.hp > 0 and (any(ally.hurt_tick[enemy.seat % 5] == tick for ally in allies) or _lit(lit, enemy.pos)
+                             or _minions_see(world, team, enemy.pos)):
+            record.was = record.pos if record.seen_tick == tick else None
+            record.pos, record.hp, record.level, record.upgrades, record.seen_tick = enemy.pos, enemy.hp, level_of(enemy.xp), enemy.upgrades, now
+    towers = world.memory[team].towers
+    for name, tier, pos in TOWER_SITES[1 - team]:
+        tower = world.lanes[name].towers[1 - team][TIERS.index(tier)]
+        if tower is not world.lanes[name].front_tower(1 - team) or _lit(lit, pos) or _minions_see(world, team, pos):
+            record = towers[LANES.index(name) * len(TIERS) + TIERS.index(tier)]
+            record.hp, record.seen_tick = max(0.0, tower.hp), now
+    for name, wave in zip(LANES, world.memory[team].waves):
+        if wave.lead is None and not world.lanes[name].minions[1 - team]:
+            continue
+        seen, spans = _wave_seen(world, team, name)
+        if seen:
+            ahead = world.lanes[name].geometry.direction(1 - team)
+            lead = max(m.s for m in seen) if ahead > 0 else min(m.s for m in seen)
+            near = [0, 0, 0]
+            for m in seen:
+                if abs(m.s - lead) <= WAVE_SPAN:
+                    near[m.rules.kind] += 1
+            wave.lead, wave.near, wave.seen_tick = lead, tuple(near), now
+        elif wave.lead is not None and any(lo <= wave.lead <= hi for lo, hi in spans):
+            wave.lead, wave.near, wave.seen_tick = None, NO_WAVE, now
+    seen = {i for at, radius in lit for i, lo, hi in _camps_in_reach(at.edge, radius)
+            if lo <= at.offset <= hi and RIFT.sees(at, SITES[i].pos, radius)}
+    known = world.memory[team].camps
+    for i in seen:
+        camp, mine = world.camps[i], known[i]
+        mine.hp, mine.seen_tick = camp.hp, now
+        if camp.hp > 0:
+            mine.level, mine.spawn_tick = camp.level, -1
+            continue
+        mine.level = 0
+        if 0 <= camp.spawn_tick <= now + config.ticks(SITES[i].kind.timer_window_s):
+            mine.spawn_tick = camp.spawn_tick
+        elif mine.spawn_tick < now:
+            mine.spawn_tick = -1
+    for death in deaths:
+        if death.camp in seen and death.respawn >= 0:
+            known[death.respawn].spawn_tick = world.camps[death.respawn].spawn_tick
 
 
 @dataclass(frozen=True, slots=True)

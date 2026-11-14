@@ -12,8 +12,8 @@ it gains XP there and may be hit.
 
 Every section runs with the plan on blue and, mirrored, with the plan on red. `between_sides` gives blue's value less
 red's per seed, and `sides` the verdict counts per side and for both. The diagnostics run with the plan on blue. The
-sweeps run both sides at four tick lengths with a decision every 2 s, and at three decision intervals with a tick of
-0.5 s, and `sensitivity` compares each case across the clocks of a sweep with its spread across seeds.
+sweeps run both sides at four tick lengths with a decision every 2 s, and at three decision intervals at the research
+tick of `Config()`, and `sensitivity` compares each case across the clocks of a sweep with its spread across seeds.
 
 Run: python -m experiments.m8.waves.capabilities
 Print the summary of the results file again: python -m experiments.m8.waves.capabilities --report
@@ -150,6 +150,12 @@ class Unseen:
 def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE) -> dict:
     """`team` plays a plan from first contact, from the moment an enemy push reaches its outer tower, or from the
     meeting of the third waves after both laners last-hit the first two."""
+    return stacking_run(args, rules, config, team)[0]
+
+
+def stacking_run(args, rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE):
+    """`stacking_case` with what a probe reads beside its metrics: the lane's trace, when the plan began, and the
+    largest crash."""
     champion, start, foe_last_hits, plan, seed = args
     foe = 1 - team
     roles, level, start_s = CHAMPIONS[champion]
@@ -208,7 +214,7 @@ def stacking_case(args, rules: LaneRules = M8_LANE, config: Config = Config(), t
         "enemy_lead_unseen_share": unseen.share(),
         **crowding.report(),
         **laners[0].report(world),
-    }
+    }, trace, (began[0] if began else None), biggest
 
 
 def holding_case(args, rules: LaneRules = M8_LANE, config: Config = Config(), team: int = BLUE) -> dict:
@@ -533,12 +539,12 @@ def diagnostics(variants=VARIANTS, seeds=range(3), workers=WORKERS) -> dict:
 TICKS = (0.125, 0.25, 0.5, 1.0)
 DECISION_S = 2.0
 DECISIONS_S = (1.0, 2.0, 5.0)
-DECISION_SWEEP_TICK_S = 0.5
+DECISION_SWEEP_TICK_S = Config().tick_s
 
 
 def sweeps(ticks=TICKS, decisions=DECISIONS_S, seeds=range(3), workers=WORKERS, sides=tuple(SIDES)) -> dict:
     """The verdict counts and the numbers behind them, per side, at four tick lengths with a decision every 2 s,
-    and at three decision intervals with a tick of 0.5 s. A clock that both sweeps share runs once."""
+    and at three decision intervals at the research tick. A clock that both sweeps share runs once."""
     clocks = {("tick_sweep", str(tick_s)): (tick_s, round(DECISION_S / tick_s)) for tick_s in ticks}
     clocks |= {("decision_sweep", str(every)): (DECISION_SWEEP_TICK_S, round(every / DECISION_SWEEP_TICK_S)) for every in decisions}
     done, out = {}, {"tick_sweep": {}, "decision_sweep": {}}

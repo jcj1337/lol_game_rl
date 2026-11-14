@@ -10,7 +10,7 @@
              that lane in the 120 s before the fall and the 120 s after.
   replays    Three replays and their digests, which `tests/test_integrated.py` pins.
   sweep      Scripted outcomes at ticks of 0.125, 0.25, 0.5, and 1.0 s with a decision every 2 s, and at
-             decisions every 1, 2, and 5 s with a tick of 0.5 s, 20 seeds, per seed and paired.
+             decisions every 1, 2, and 5 s at the research tick of `Config()`, 20 seeds, per seed and paired.
 
 The referee reads the world, which no policy does. Its expected ticks come from the ruleset's numbers, not from
 the functions of `riftgame` that schedule the events.
@@ -433,13 +433,14 @@ def compare(settings: dict[str, list[dict]], reference: str) -> dict:
 
 def sweep() -> dict:
     configs = {f"tick {t} s, decide every 2 s": Config(tick_s=t, decision_ticks=round(2.0 / t)) for t in TICKS}
-    configs |= {f"tick 0.5 s, decide every {d:g} s": Config(tick_s=0.5, decision_ticks=round(d / 0.5)) for d in DECISIONS}
+    research = Config().tick_s
+    configs |= {f"tick {research:g} s, decide every {d:g} s": Config(tick_s=research, decision_ticks=round(d / research)) for d in DECISIONS}
     runs = {name: games([(seed, config, "scripted", "scripted", GAME_S, False) for seed in SWEEP_SEEDS]) for name, config in configs.items()}
     ticks = {f"tick {t} s, decide every 2 s": runs[f"tick {t} s, decide every 2 s"] for t in TICKS}
-    decisions = {f"tick 0.5 s, decide every {d:g} s": runs[f"tick 0.5 s, decide every {d:g} s"] for d in DECISIONS}
+    decisions = {f"tick {research:g} s, decide every {d:g} s": runs[f"tick {research:g} s, decide every {d:g} s"] for d in DECISIONS}
     return {"seeds": len(SWEEP_SEEDS), "game_s": GAME_S,
             "tick_with_decision_every_2_s": compare(ticks, "tick 0.125 s, decide every 2 s"),
-            "decision_with_tick_0.5_s": compare(decisions, "tick 0.5 s, decide every 2 s"),
+            "decision_at_the_research_tick": compare(decisions, f"tick {research:g} s, decide every 2 s"),
             "wall_s_per_game": {name: statistics.median(run["wall_s"] for run in rows) for name, rows in runs.items()},
             "faults": [(name, run["seed"], fault) for name, rows in runs.items() for run in rows for fault in run["faults"]]}
 

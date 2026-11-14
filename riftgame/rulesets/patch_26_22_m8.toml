@@ -189,3 +189,22 @@ backdoor_minion_range = 750.0  # A
 # Damage on a tower is multiplied by armor_halving / (armor_halving + armor), the game's usual armor formula. No
 # reference row states it.
 armor_halving = 100.0          # M
+
+# The hidden-state generator activity_v0 of C8 (M7 section 9.3). Every value is a simulator guess with no source.
+[hypotheses]
+# The weight of each activity. A hypothesis weighs the product over its focus enemies, and the weights are normalised.
+weights = {stay = 1.0, farm = 2.0, clear = 2.0, recall = 1.0, move = 1.0}   # A
+# Gold and XP per second that an enemy earns from minions or camps from farm_from_s on, by role. Rounded from the
+# scripted policies of C7 over four games of 900 s.
+farm_gold_per_s = {top = 0.5, jungle = 2.5, mid = 0.75, carry = 0.5, support = 2.0}   # A
+farm_xp_per_s = {top = 5.0, jungle = 6.0, mid = 7.0, carry = 2.5, support = 8.0}   # A
+farm_from_s = {top = 90.0, jungle = 55.0, mid = 90.0, carry = 90.0, support = 90.0}   # A
+# The share of its full mana that an enemy is given. The state keeps no record of an enemy's mana.
+mana_share = 1.0               # A
+# Where an enemy walks to after a recall, a node in its own frame.
+recall_return = {top = "own_top_t1", jungle = "own_raptors", mid = "own_mid_t1", carry = "own_bot_t1", support = "own_bot_t1"}   # A
+# The places to which activity_v0 sends a focus enemy that moves.
+move_to = ["top_river", "mid_river", "bot_river"]   # A
+# How long before the team saw a camp empty, without learning its spawn, the camp died at the latest: two ticks of
+# M7's clock of 0.5 s, on which decision states are built. In seconds, so that a refined state keeps the game second.
+unseen_death_s = 1.0           # A

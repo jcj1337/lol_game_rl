@@ -73,8 +73,9 @@ def throughput() -> dict:
     return out
 
 
-GATE_CLOCKS = {"tick 0.5 s, decide every 2 s": Config(), "tick 0.5 s, decide every 1 s": Config(decision_ticks=2),
-               "tick 0.25 s, decide every 2 s": Config(tick_s=0.25, decision_ticks=8)}
+GATE_CLOCKS = {"tick 0.25 s, decide every 2 s": Config(tick_s=0.25, decision_ticks=8),
+               "tick 0.5 s, decide every 2 s": Config(tick_s=0.5, decision_ticks=4),
+               "tick 0.5 s, decide every 1 s": Config(tick_s=0.5, decision_ticks=2)}
 
 
 def gate() -> dict:
@@ -171,7 +172,7 @@ def rounded(value):
 
 
 def main() -> None:
-    results = {"ruleset": RULESET_ID, "config": "tick 0.5 s, decision every 4 ticks", "game_s": PLAY_S, "throughput_sim_s_per_wall_s": throughput(),
+    results = {"ruleset": RULESET_ID, "config": f"tick {Config().tick_s:g} s, a decision every {Config().tick_s * Config().decision_ticks:g} s", "game_s": PLAY_S, "throughput_sim_s_per_wall_s": throughput(),
                "c7_gate": gate(),
                "profile_share_of_farming_game": profile(), "snapshot": snapshot(), "intents_ended_in_a_random_game": intents(), "roam": roam(),
                "after_600_s_of_scripted_farming": farming()}

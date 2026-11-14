@@ -45,13 +45,17 @@ class Attacks(NamedTuple):
 class Config:
     """Clock and role settings of one game. All are starting values (M7 sections 5.2 and 5.10).
 
+    The clock is the research default: a tick of 0.25 s and a decision every 2 s. M8's fifth campaign revised M7's
+    starting tick of 0.5 s, because after the lane's in-tick fixes wave timings at 0.25 s stay near those at 0.125 s
+    and at 0.5 s they do not. The kernel tests state their own clock, mostly M7's 0.5 s.
+
     The roam allowance is an experimental restriction. `roam_restricted` switches it off. Lanes stay fixed
     either way, until `assignments_end_s` or, with `outer_tower_ends_assignment`, until an outer tower of the
     lane falls.
     """
 
-    tick_s: float = 0.5
-    decision_ticks: int = 4
+    tick_s: float = 0.25
+    decision_ticks: int = 8
     roam_restricted: bool = True
     roam_cap_s: float = 90.0
     roam_refill: float = 0.25
@@ -167,6 +171,7 @@ class World:
             if 0 <= c.respawn_tick <= self.tick:
                 can = capability_of(c)
                 c.hp, c.mana, c.respawn_tick = can.max_hp, can.max_mana, -1
+                c.respawned_tick, c.respawned_level = self.tick, level_of(c.xp)
 
     def _move(self) -> None:
         """Step 3. Every champion picks where it heads from the state at the start of the step, and then all move

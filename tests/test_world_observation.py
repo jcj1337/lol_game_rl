@@ -12,7 +12,7 @@ from worlds import EVERY_TICK, act, busy, lane_place, move, patient, staged
 CHANGED = {"pos": RIFT.at("mid_river"), "hp": 1.5, "mana": 2.5, "gold": 77.0, "earned": [1.0, 2.0, 3.0, 4.0],
            "upgrades": 2, "intent": move("mid_river"), "intent_tick": 3, "channel": 4, "outcome": Outcome.INTERRUPTED,
            "outcome_tick": 5, "allowance": -12.0, "attack_credit": 0.25, "item_charges": 1,
-           "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11,
+           "respawned_tick": 6, "respawned_level": 3, "homeguard_tick": 7, "homeguard_block": 9, "hurt_tick": [3, 4, 5, 6, 7], "slow": 0.5, "slow_until": 9, "lockdown_tick": 11,
            "ward_charges": 2, "ward_tick": 12345}
 # A champion's level and its death timer are public. What is hidden of these two fields is the XP inside the level
 # and nothing of the respawn tick.
@@ -41,7 +41,7 @@ def team_knowledge(world: World, team: int) -> list:
 @pytest.mark.parametrize("team", [0, 1])
 def test_changing_every_hidden_field_of_every_enemy_champion_changes_no_observation_and_no_mask(team):
     assert set(CHANGED) | PARTLY_PUBLIC == {f.name for f in fields(Champion)} - {"seat"}
-    world = World(Config(), seed=8)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=8)
     run(world, patient, 240)
     before = team_knowledge(world, team)
     enemy_before = team_knowledge(world, 1 - team)
@@ -60,7 +60,7 @@ def test_changing_every_hidden_field_of_every_enemy_champion_changes_no_observat
 
 @pytest.mark.parametrize("team", [0, 1])
 def test_changing_every_camp_fact_a_team_has_not_seen_changes_no_observation_and_no_mask_now_or_while_it_stays_unseen(team):
-    world = World(Config(), seed=8)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=8)
     run(world, busy, 420)
     hidden = [i for i, site in enumerate(SITES) if not sees(world, team, site.pos)]
     assert 0 < len(hidden) < len(SITES), "the team must see some camps and not others"
@@ -89,7 +89,7 @@ def test_changing_every_camp_fact_a_team_has_not_seen_changes_no_observation_and
 
 
 def test_an_observation_holds_the_champion_its_four_teammates_the_camps_and_the_clock():
-    world = World(Config(), seed=8)
+    world = World(Config(tick_s=0.5, decision_ticks=4), seed=8)
     run(world, patient, 30)
     for seat in SEATS:
         o = observe(world, seat)

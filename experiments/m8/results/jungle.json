@@ -1,263 +1,263 @@
 {
  "ruleset": "ref-26.22-r1+m8.3",
- "config": "tick 0.5 s, decision every 4 ticks",
+ "config": "tick 0.25 s, a decision every 2 s",
  "first_clear": {
   "seed 0": {
    "blue": {
-    "first_clear_s": 168.5,
+    "first_clear_s": 170.75,
     "level": 4,
     "xp": 1211.0,
-    "gold": 941.16,
+    "gold": 945.24,
     "camp_gold": 529.0,
-    "hp": 321.812,
+    "hp": 320.078,
     "max_hp": 744.0,
     "route": [
      {
       "camp": "blue_blue",
       "t_s": 66.5,
-      "hp_after": 543.364
+      "hp_after": 543.332
      },
      {
       "camp": "blue_gromp",
       "t_s": 82.0,
-      "hp_after": 502.148
+      "hp_after": 502.116
      },
      {
       "camp": "blue_wolves",
-      "t_s": 105.5,
-      "hp_after": 470.82
+      "t_s": 106.0,
+      "hp_after": 470.12
      },
      {
       "camp": "blue_red",
-      "t_s": 129.0,
-      "hp_after": 446.436
+      "t_s": 131.5,
+      "hp_after": 447.448
      },
      {
       "camp": "blue_krugs",
-      "t_s": 143.5,
-      "hp_after": 410.348
+      "t_s": 145.5,
+      "hp_after": 410.432
      },
      {
       "camp": "blue_raptors",
-      "t_s": 168.5,
-      "hp_after": 321.812
+      "t_s": 170.75,
+      "hp_after": 320.078
      }
     ],
-    "own_six_camps_all_dead_once_s": 168.5
+    "own_six_camps_all_dead_once_s": 170.75
    },
    "red": {
-    "first_clear_s": 167.5,
+    "first_clear_s": 167.75,
     "level": 4,
     "xp": 1211.0,
     "gold": 939.12,
     "camp_gold": 529.0,
-    "hp": 320.276,
+    "hp": 314.83,
     "max_hp": 744.0,
     "route": [
      {
       "camp": "red_blue",
       "t_s": 66.5,
-      "hp_after": 543.364
+      "hp_after": 543.332
      },
      {
       "camp": "red_gromp",
       "t_s": 81.5,
-      "hp_after": 501.284
+      "hp_after": 501.252
      },
      {
       "camp": "red_wolves",
-      "t_s": 103.0,
-      "hp_after": 466.5
+      "t_s": 103.5,
+      "hp_after": 465.8
      },
      {
       "camp": "red_krugs",
-      "t_s": 133.0,
-      "hp_after": 459.18
+      "t_s": 133.25,
+      "hp_after": 458.016
      },
      {
       "camp": "red_red",
-      "t_s": 147.0,
-      "hp_after": 417.164
+      "t_s": 147.25,
+      "hp_after": 414.0
      },
      {
       "camp": "red_raptors",
-      "t_s": 167.5,
-      "hp_after": 320.276
+      "t_s": 167.75,
+      "hp_after": 314.83
      }
     ],
-    "own_six_camps_all_dead_once_s": 167.5
+    "own_six_camps_all_dead_once_s": 167.75
    }
   },
   "seed 1": {
    "blue": {
-    "first_clear_s": 168.5,
+    "first_clear_s": 170.75,
     "level": 4,
     "xp": 1211.0,
-    "gold": 941.16,
+    "gold": 945.24,
     "camp_gold": 529.0,
-    "hp": 321.812,
+    "hp": 320.078,
     "max_hp": 744.0,
     "route": [
      {
       "camp": "blue_blue",
       "t_s": 66.5,
-      "hp_after": 543.364
+      "hp_after": 543.332
      },
      {
       "camp": "blue_gromp",
       "t_s": 82.0,
-      "hp_after": 502.148
+      "hp_after": 502.116
      },
      {
       "camp": "blue_wolves",
-      "t_s": 105.5,
-      "hp_after": 470.82
+      "t_s": 106.0,
+      "hp_after": 470.12
      },
      {
       "camp": "blue_red",
-      "t_s": 129.0,
-      "hp_after": 446.436
+      "t_s": 131.5,
+      "hp_after": 447.448
      },
      {
       "camp": "blue_krugs",
-      "t_s": 143.5,
-      "hp_after": 410.348
+      "t_s": 145.5,
+      "hp_after": 410.432
      },
      {
       "camp": "blue_raptors",
-      "t_s": 168.5,
-      "hp_after": 321.812
+      "t_s": 170.75,
+      "hp_after": 320.078
      }
     ],
-    "own_six_camps_all_dead_once_s": 168.5
+    "own_six_camps_all_dead_once_s": 170.75
    },
    "red": {
-    "first_clear_s": 167.5,
+    "first_clear_s": 167.75,
     "level": 4,
     "xp": 1211.0,
     "gold": 939.12,
     "camp_gold": 529.0,
-    "hp": 320.276,
+    "hp": 314.83,
     "max_hp": 744.0,
     "route": [
      {
       "camp": "red_blue",
       "t_s": 66.5,
-      "hp_after": 543.364
+      "hp_after": 543.332
      },
      {
       "camp": "red_gromp",
       "t_s": 81.5,
-      "hp_after": 501.284
+      "hp_after": 501.252
      },
      {
       "camp": "red_wolves",
-      "t_s": 103.0,
-      "hp_after": 466.5
+      "t_s": 103.5,
+      "hp_after": 465.8
      },
      {
       "camp": "red_krugs",
-      "t_s": 133.0,
-      "hp_after": 459.18
+      "t_s": 133.25,
+      "hp_after": 458.016
      },
      {
       "camp": "red_red",
-      "t_s": 147.0,
-      "hp_after": 417.164
+      "t_s": 147.25,
+      "hp_after": 414.0
      },
      {
       "camp": "red_raptors",
-      "t_s": 167.5,
-      "hp_after": 320.276
+      "t_s": 167.75,
+      "hp_after": 314.83
      }
     ],
-    "own_six_camps_all_dead_once_s": 167.5
+    "own_six_camps_all_dead_once_s": 167.75
    }
   },
   "seed 2": {
    "blue": {
-    "first_clear_s": 168.5,
+    "first_clear_s": 170.75,
     "level": 4,
     "xp": 1211.0,
-    "gold": 941.16,
+    "gold": 945.24,
     "camp_gold": 529.0,
-    "hp": 321.812,
+    "hp": 320.078,
     "max_hp": 744.0,
     "route": [
      {
       "camp": "blue_blue",
       "t_s": 66.5,
-      "hp_after": 543.364
+      "hp_after": 543.332
      },
      {
       "camp": "blue_gromp",
       "t_s": 82.0,
-      "hp_after": 502.148
+      "hp_after": 502.116
      },
      {
       "camp": "blue_wolves",
-      "t_s": 105.5,
-      "hp_after": 470.82
+      "t_s": 106.0,
+      "hp_after": 470.12
      },
      {
       "camp": "blue_red",
-      "t_s": 129.0,
-      "hp_after": 446.436
+      "t_s": 131.5,
+      "hp_after": 447.448
      },
      {
       "camp": "blue_krugs",
-      "t_s": 143.5,
-      "hp_after": 410.348
+      "t_s": 145.5,
+      "hp_after": 410.432
      },
      {
       "camp": "blue_raptors",
-      "t_s": 168.5,
-      "hp_after": 321.812
+      "t_s": 170.75,
+      "hp_after": 320.078
      }
     ],
-    "own_six_camps_all_dead_once_s": 168.5
+    "own_six_camps_all_dead_once_s": 170.75
    },
    "red": {
-    "first_clear_s": 167.5,
+    "first_clear_s": 167.75,
     "level": 4,
     "xp": 1211.0,
     "gold": 939.12,
     "camp_gold": 529.0,
-    "hp": 320.276,
+    "hp": 314.83,
     "max_hp": 744.0,
     "route": [
      {
       "camp": "red_blue",
       "t_s": 66.5,
-      "hp_after": 543.364
+      "hp_after": 543.332
      },
      {
       "camp": "red_gromp",
       "t_s": 81.5,
-      "hp_after": 501.284
+      "hp_after": 501.252
      },
      {
       "camp": "red_wolves",
-      "t_s": 103.0,
-      "hp_after": 466.5
+      "t_s": 103.5,
+      "hp_after": 465.8
      },
      {
       "camp": "red_krugs",
-      "t_s": 133.0,
-      "hp_after": 459.18
+      "t_s": 133.25,
+      "hp_after": 458.016
      },
      {
       "camp": "red_red",
-      "t_s": 147.0,
-      "hp_after": 417.164
+      "t_s": 147.25,
+      "hp_after": 414.0
      },
      {
       "camp": "red_raptors",
-      "t_s": 167.5,
-      "hp_after": 320.276
+      "t_s": 167.75,
+      "hp_after": 314.83
      }
     ],
-    "own_six_camps_all_dead_once_s": 167.5
+    "own_six_camps_all_dead_once_s": 167.75
    }
   }
  },
@@ -273,11 +273,11 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 26.5,
-       "finish_s": 35.5,
+       "finish_s": 35.75,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
        "reach_s": 21.0,
@@ -285,15 +285,15 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 16.5,
-       "finish_s": 30.0,
+       "reach_s": 16.75,
+       "finish_s": 30.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 19.0,
@@ -301,7 +301,7 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 21.0,
@@ -309,23 +309,23 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 41.0,
-       "finish_s": 50.0,
+       "reach_s": 41.25,
+       "finish_s": 50.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
        "reach_s": 36.0,
@@ -333,7 +333,7 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -369,19 +369,19 @@
       },
       "top_river": {
        "reach_s": 26.5,
-       "finish_s": 30.0,
+       "finish_s": 30.25,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 30.0,
-       "finish_s": 33.5,
+       "reach_s": 30.25,
+       "finish_s": 34.0,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -391,27 +391,27 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 0.0,
-       "finish_s": 9.0,
+       "finish_s": 9.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 5.0,
-       "finish_s": 15.5,
+       "reach_s": 5.25,
+       "finish_s": 15.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 9.5,
-       "finish_s": 23.0,
+       "reach_s": 9.75,
+       "finish_s": 23.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 23.5,
@@ -419,39 +419,39 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 24.0,
-       "finish_s": 34.5,
+       "reach_s": 24.5,
+       "finish_s": 35.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 29.0,
-       "finish_s": 39.5,
+       "reach_s": 29.25,
+       "finish_s": 40.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 44.5,
-       "finish_s": 53.5,
+       "reach_s": 45.0,
+       "finish_s": 54.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 39.5,
-       "finish_s": 50.0,
+       "reach_s": 39.75,
+       "finish_s": 50.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -462,44 +462,44 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 24.5,
-       "finish_s": 42.5,
+       "reach_s": 25.0,
+       "finish_s": 43.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "enemy_red": {
-       "reach_s": 20.0,
-       "finish_s": 30.5,
+       "reach_s": 20.25,
+       "finish_s": 30.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 24.5,
-       "finish_s": 35.0,
+       "reach_s": 24.75,
+       "finish_s": 35.5,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 10.5,
-       "finish_s": 14.0,
+       "reach_s": 11.0,
+       "finish_s": 14.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 33.5,
-       "finish_s": 37.0,
+       "reach_s": 33.75,
+       "finish_s": 37.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -508,12 +508,12 @@
      "most_gold_plus_xp_per_second": "top_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 5.0,
-       "finish_s": 14.0,
+       "reach_s": 5.25,
+       "finish_s": 14.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
        "reach_s": 0.0,
@@ -521,47 +521,47 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 3.5,
-       "finish_s": 17.0,
+       "reach_s": 4.0,
+       "finish_s": 17.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 17.5,
-       "finish_s": 35.5,
+       "reach_s": 18.0,
+       "finish_s": 36.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 23.0,
-       "finish_s": 33.5,
+       "reach_s": 23.5,
+       "finish_s": 34.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 39.0,
-       "finish_s": 48.0,
+       "reach_s": 39.25,
+       "finish_s": 48.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
        "reach_s": 34.0,
@@ -569,7 +569,7 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -580,12 +580,12 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 19.0,
-       "finish_s": 37.0,
+       "reach_s": 19.25,
+       "finish_s": 37.25,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "enemy_red": {
        "reach_s": 14.5,
@@ -593,53 +593,53 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
        "reach_s": 19.0,
-       "finish_s": 29.5,
+       "finish_s": 29.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 5.0,
-       "finish_s": 8.5,
+       "reach_s": 5.25,
+       "finish_s": 9.0,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 28.0,
-       "finish_s": 31.5,
+       "reach_s": 28.25,
+       "finish_s": 32.0,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
     "own_wolves": {
      "scripted_jungler_picks": "CAMP own_wolves",
-     "most_gold_plus_xp_per_second": "own_blue",
+     "most_gold_plus_xp_per_second": "own_wolves",
      "destinations": {
       "own_gromp": {
-       "reach_s": 9.5,
-       "finish_s": 18.5,
+       "reach_s": 9.75,
+       "finish_s": 19.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 3.5,
-       "finish_s": 14.0,
+       "reach_s": 4.0,
+       "finish_s": 14.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 0.0,
@@ -647,7 +647,7 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 13.5,
@@ -655,7 +655,7 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 14.5,
@@ -663,31 +663,31 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 19.0,
-       "finish_s": 29.5,
+       "reach_s": 19.25,
+       "finish_s": 30.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 34.5,
-       "finish_s": 43.5,
+       "reach_s": 35.0,
+       "finish_s": 44.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 29.5,
-       "finish_s": 40.0,
+       "reach_s": 29.75,
+       "finish_s": 40.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -706,36 +706,36 @@
        "hp_left": null
       },
       "enemy_red": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 23.0,
-       "finish_s": 33.5,
+       "reach_s": 23.5,
+       "finish_s": 34.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 9.5,
-       "finish_s": 13.0,
+       "reach_s": 9.75,
+       "finish_s": 13.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 23.5,
-       "finish_s": 27.0,
+       "reach_s": 23.75,
+       "finish_s": 27.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -745,19 +745,19 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 23.5,
-       "finish_s": 32.5,
+       "finish_s": 32.75,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 17.5,
-       "finish_s": 28.0,
+       "reach_s": 18.0,
+       "finish_s": 28.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 13.5,
@@ -765,7 +765,7 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 0.0,
@@ -773,39 +773,39 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 4.5,
-       "finish_s": 15.0,
+       "reach_s": 4.75,
+       "finish_s": 15.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 9.0,
-       "finish_s": 19.5,
+       "reach_s": 9.25,
+       "finish_s": 20.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 24.5,
-       "finish_s": 33.5,
+       "reach_s": 25.0,
+       "finish_s": 34.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 19.5,
-       "finish_s": 30.0,
+       "reach_s": 19.75,
+       "finish_s": 30.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -840,20 +840,20 @@
        "hp_left": null
       },
       "top_river": {
-       "reach_s": 18.5,
-       "finish_s": 22.0,
+       "reach_s": 19.0,
+       "finish_s": 22.75,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 13.5,
-       "finish_s": 17.0,
+       "reach_s": 14.0,
+       "finish_s": 17.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -862,20 +862,20 @@
      "most_gold_plus_xp_per_second": "own_red",
      "destinations": {
       "own_gromp": {
-       "reach_s": 24.0,
-       "finish_s": 33.0,
+       "reach_s": 24.5,
+       "finish_s": 33.75,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 14.5,
@@ -883,15 +883,15 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 4.5,
-       "finish_s": 22.5,
+       "reach_s": 4.75,
+       "finish_s": 22.75,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 0.0,
@@ -899,39 +899,39 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 4.0,
-       "finish_s": 14.5,
+       "reach_s": 4.25,
+       "finish_s": 15.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 19.5,
-       "finish_s": 28.5,
+       "reach_s": 20.0,
+       "finish_s": 29.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 14.5,
-       "finish_s": 25.0,
+       "reach_s": 14.75,
+       "finish_s": 25.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 18.5,
-       "finish_s": 32.0,
+       "reach_s": 19.0,
+       "finish_s": 32.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -959,19 +959,19 @@
       },
       "top_river": {
        "reach_s": 24.0,
-       "finish_s": 27.5,
+       "finish_s": 27.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 8.5,
-       "finish_s": 12.0,
+       "reach_s": 9.0,
+       "finish_s": 12.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -980,76 +980,76 @@
      "most_gold_plus_xp_per_second": "own_krugs",
      "destinations": {
       "own_gromp": {
-       "reach_s": 29.0,
-       "finish_s": 38.0,
+       "reach_s": 29.25,
+       "finish_s": 38.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 23.0,
-       "finish_s": 33.5,
+       "reach_s": 23.5,
+       "finish_s": 34.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 19.0,
-       "finish_s": 32.5,
+       "reach_s": 19.25,
+       "finish_s": 32.75,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 9.0,
-       "finish_s": 27.0,
+       "reach_s": 9.25,
+       "finish_s": 27.25,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 4.0,
-       "finish_s": 14.5,
+       "reach_s": 4.25,
+       "finish_s": 14.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
        "reach_s": 0.0,
-       "finish_s": 10.5,
+       "finish_s": 10.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 24.5,
-       "finish_s": 33.5,
+       "reach_s": 24.75,
+       "finish_s": 34.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 19.0,
-       "finish_s": 29.5,
+       "reach_s": 19.5,
+       "finish_s": 30.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 23.5,
-       "finish_s": 37.0,
+       "reach_s": 23.75,
+       "finish_s": 37.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -1076,20 +1076,20 @@
        "hp_left": null
       },
       "top_river": {
-       "reach_s": 28.5,
-       "finish_s": 32.0,
+       "reach_s": 28.75,
+       "finish_s": 32.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 13.0,
-       "finish_s": 16.5,
+       "reach_s": 13.5,
+       "finish_s": 17.25,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -1098,52 +1098,52 @@
      "most_gold_plus_xp_per_second": "top_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 10.5,
-       "finish_s": 19.5,
+       "reach_s": 11.0,
+       "finish_s": 20.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 5.0,
-       "finish_s": 15.5,
+       "reach_s": 5.25,
+       "finish_s": 15.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 9.5,
-       "finish_s": 23.0,
+       "reach_s": 9.75,
+       "finish_s": 23.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 18.5,
-       "finish_s": 36.5,
+       "reach_s": 19.0,
+       "finish_s": 37.0,
        "gold": 75.0,
        "xp": 300.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 466.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 24.0,
        "finish_s": 34.5,
        "gold": 90.0,
        "xp": 325.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 532.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 28.5,
-       "finish_s": 39.0,
+       "reach_s": 28.75,
+       "finish_s": 39.5,
        "gold": 109.0,
        "xp": 351.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 543.364
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 541.982
       },
       "enemy_gromp": {
        "reach_s": null,
@@ -1170,44 +1170,44 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 13.5,
-       "finish_s": 31.5,
+       "reach_s": 13.75,
+       "finish_s": 31.75,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "enemy_red": {
-       "reach_s": 8.5,
-       "finish_s": 19.0,
+       "reach_s": 9.0,
+       "finish_s": 19.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 13.0,
-       "finish_s": 23.5,
+       "reach_s": 13.5,
+       "finish_s": 24.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
        "reach_s": 0.0,
-       "finish_s": 3.5,
+       "finish_s": 3.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
        "reach_s": 23.0,
-       "finish_s": 26.5,
+       "finish_s": 26.75,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       }
      }
     },
@@ -1216,76 +1216,76 @@
      "most_gold_plus_xp_per_second": "bot_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 33.5,
-       "finish_s": 42.5,
+       "reach_s": 33.75,
+       "finish_s": 43.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 28.0,
-       "finish_s": 38.5,
+       "reach_s": 28.25,
+       "finish_s": 38.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 23.5,
-       "finish_s": 37.0,
+       "reach_s": 23.75,
+       "finish_s": 37.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 13.5,
-       "finish_s": 31.5,
+       "reach_s": 14.0,
+       "finish_s": 32.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 8.5,
-       "finish_s": 19.0,
+       "reach_s": 9.0,
+       "finish_s": 19.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 13.0,
-       "finish_s": 23.5,
+       "reach_s": 13.5,
+       "finish_s": 24.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 10.5,
-       "finish_s": 19.5,
+       "reach_s": 10.75,
+       "finish_s": 20.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 5.0,
-       "finish_s": 15.5,
+       "reach_s": 5.5,
+       "finish_s": 16.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 9.5,
-       "finish_s": 23.0,
+       "reach_s": 9.75,
+       "finish_s": 23.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -1313,19 +1313,19 @@
       },
       "top_river": {
        "reach_s": 23.0,
-       "finish_s": 26.5,
+       "finish_s": 26.75,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       },
       "bot_river": {
        "reach_s": 0.0,
-       "finish_s": 3.5,
+       "finish_s": 3.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     }
@@ -1337,11 +1337,11 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 26.5,
-       "finish_s": 145.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
        "reach_s": 21.0,
@@ -1349,15 +1349,15 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 16.5,
+       "reach_s": 16.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 19.0,
@@ -1365,7 +1365,7 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 21.0,
@@ -1373,23 +1373,23 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 41.0,
-       "finish_s": 50.0,
+       "reach_s": 41.25,
+       "finish_s": 50.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
        "reach_s": 36.0,
@@ -1397,7 +1397,7 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -1433,19 +1433,19 @@
       },
       "top_river": {
        "reach_s": 26.5,
-       "finish_s": 30.0,
+       "finish_s": 30.25,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 30.0,
-       "finish_s": 33.5,
+       "reach_s": 30.25,
+       "finish_s": 34.0,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -1455,27 +1455,27 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 0.0,
-       "finish_s": 145.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 5.0,
+       "reach_s": 5.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 9.5,
+       "reach_s": 9.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 23.5,
@@ -1483,39 +1483,39 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 24.0,
-       "finish_s": 34.5,
+       "reach_s": 24.5,
+       "finish_s": 35.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 29.0,
-       "finish_s": 39.5,
+       "reach_s": 29.25,
+       "finish_s": 40.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 44.5,
-       "finish_s": 53.5,
+       "reach_s": 45.0,
+       "finish_s": 54.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 39.5,
-       "finish_s": 50.0,
+       "reach_s": 39.75,
+       "finish_s": 50.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -1526,44 +1526,44 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 24.5,
-       "finish_s": 42.5,
+       "reach_s": 25.0,
+       "finish_s": 43.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "enemy_red": {
-       "reach_s": 20.0,
-       "finish_s": 30.5,
+       "reach_s": 20.25,
+       "finish_s": 30.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 24.5,
-       "finish_s": 35.0,
+       "reach_s": 24.75,
+       "finish_s": 35.5,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 10.5,
-       "finish_s": 14.0,
+       "reach_s": 11.0,
+       "finish_s": 14.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 33.5,
-       "finish_s": 37.0,
+       "reach_s": 33.75,
+       "finish_s": 37.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -1572,12 +1572,12 @@
      "most_gold_plus_xp_per_second": "top_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 5.0,
-       "finish_s": 145.0,
+       "reach_s": 5.25,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
        "reach_s": 0.0,
@@ -1585,47 +1585,47 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 3.5,
+       "reach_s": 4.0,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 17.5,
-       "finish_s": 35.5,
+       "reach_s": 18.0,
+       "finish_s": 36.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 23.0,
-       "finish_s": 33.5,
+       "reach_s": 23.5,
+       "finish_s": 34.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 39.0,
-       "finish_s": 48.0,
+       "reach_s": 39.25,
+       "finish_s": 48.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
        "reach_s": 34.0,
@@ -1633,7 +1633,7 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -1644,12 +1644,12 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 19.0,
-       "finish_s": 37.0,
+       "reach_s": 19.25,
+       "finish_s": 37.25,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "enemy_red": {
        "reach_s": 14.5,
@@ -1657,31 +1657,31 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
        "reach_s": 19.0,
-       "finish_s": 29.5,
+       "finish_s": 29.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 5.0,
-       "finish_s": 8.5,
+       "reach_s": 5.25,
+       "finish_s": 9.0,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 28.0,
-       "finish_s": 31.5,
+       "reach_s": 28.25,
+       "finish_s": 32.0,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -1690,20 +1690,20 @@
      "most_gold_plus_xp_per_second": "top_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 9.5,
-       "finish_s": 145.0,
+       "reach_s": 9.75,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 3.5,
+       "reach_s": 4.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 0.0,
@@ -1711,7 +1711,7 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 13.5,
@@ -1719,7 +1719,7 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 14.5,
@@ -1727,31 +1727,31 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 19.0,
-       "finish_s": 29.5,
+       "reach_s": 19.25,
+       "finish_s": 30.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 34.5,
-       "finish_s": 43.5,
+       "reach_s": 35.0,
+       "finish_s": 44.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 29.5,
-       "finish_s": 40.0,
+       "reach_s": 29.75,
+       "finish_s": 40.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -1770,36 +1770,36 @@
        "hp_left": null
       },
       "enemy_red": {
-       "reach_s": 18.5,
-       "finish_s": 29.0,
+       "reach_s": 19.0,
+       "finish_s": 29.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 23.0,
-       "finish_s": 33.5,
+       "reach_s": 23.5,
+       "finish_s": 34.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 9.5,
-       "finish_s": 13.0,
+       "reach_s": 9.75,
+       "finish_s": 13.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 23.5,
-       "finish_s": 27.0,
+       "reach_s": 23.75,
+       "finish_s": 27.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -1809,19 +1809,19 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 23.5,
-       "finish_s": 145.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 17.5,
+       "reach_s": 18.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 13.5,
@@ -1829,7 +1829,7 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 0.0,
@@ -1837,39 +1837,39 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 4.5,
-       "finish_s": 15.0,
+       "reach_s": 4.75,
+       "finish_s": 15.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 9.0,
-       "finish_s": 19.5,
+       "reach_s": 9.25,
+       "finish_s": 20.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 24.5,
-       "finish_s": 33.5,
+       "reach_s": 25.0,
+       "finish_s": 34.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 19.5,
-       "finish_s": 30.0,
+       "reach_s": 19.75,
+       "finish_s": 30.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -1904,20 +1904,20 @@
        "hp_left": null
       },
       "top_river": {
-       "reach_s": 18.5,
-       "finish_s": 22.0,
+       "reach_s": 19.0,
+       "finish_s": 22.75,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 13.5,
-       "finish_s": 17.0,
+       "reach_s": 14.0,
+       "finish_s": 17.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -1926,20 +1926,20 @@
      "most_gold_plus_xp_per_second": "own_red",
      "destinations": {
       "own_gromp": {
-       "reach_s": 24.0,
-       "finish_s": 145.0,
+       "reach_s": 24.5,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 14.5,
@@ -1947,15 +1947,15 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 4.5,
-       "finish_s": 22.5,
+       "reach_s": 4.75,
+       "finish_s": 22.75,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 0.0,
@@ -1963,39 +1963,39 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 4.0,
-       "finish_s": 14.5,
+       "reach_s": 4.25,
+       "finish_s": 15.0,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 19.5,
-       "finish_s": 28.5,
+       "reach_s": 20.0,
+       "finish_s": 29.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 14.5,
-       "finish_s": 25.0,
+       "reach_s": 14.75,
+       "finish_s": 25.25,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 18.5,
-       "finish_s": 32.0,
+       "reach_s": 19.0,
+       "finish_s": 32.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -2023,19 +2023,19 @@
       },
       "top_river": {
        "reach_s": 24.0,
-       "finish_s": 27.5,
+       "finish_s": 27.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 8.5,
-       "finish_s": 12.0,
+       "reach_s": 9.0,
+       "finish_s": 12.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -2044,76 +2044,76 @@
      "most_gold_plus_xp_per_second": "own_krugs",
      "destinations": {
       "own_gromp": {
-       "reach_s": 29.0,
-       "finish_s": 145.0,
+       "reach_s": 29.25,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 23.0,
+       "reach_s": 23.5,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 19.0,
+       "reach_s": 19.25,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 9.0,
-       "finish_s": 27.0,
+       "reach_s": 9.25,
+       "finish_s": 27.25,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 4.0,
-       "finish_s": 14.5,
+       "reach_s": 4.25,
+       "finish_s": 14.75,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
        "reach_s": 0.0,
-       "finish_s": 10.5,
+       "finish_s": 10.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 24.5,
-       "finish_s": 33.5,
+       "reach_s": 24.75,
+       "finish_s": 34.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 19.0,
-       "finish_s": 29.5,
+       "reach_s": 19.5,
+       "finish_s": 30.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 23.5,
-       "finish_s": 37.0,
+       "reach_s": 23.75,
+       "finish_s": 37.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -2140,20 +2140,20 @@
        "hp_left": null
       },
       "top_river": {
-       "reach_s": 28.5,
-       "finish_s": 32.0,
+       "reach_s": 28.75,
+       "finish_s": 32.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 13.0,
-       "finish_s": 16.5,
+       "reach_s": 13.5,
+       "finish_s": 17.25,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     },
@@ -2162,52 +2162,52 @@
      "most_gold_plus_xp_per_second": "top_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 10.5,
-       "finish_s": 145.0,
+       "reach_s": 11.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 5.0,
+       "reach_s": 5.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 9.5,
+       "reach_s": 9.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 18.5,
-       "finish_s": 36.5,
+       "reach_s": 19.0,
+       "finish_s": 37.0,
        "gold": 75.0,
        "xp": 300.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 466.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 24.0,
        "finish_s": 34.5,
        "gold": 90.0,
        "xp": 325.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 532.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 28.5,
-       "finish_s": 39.0,
+       "reach_s": 28.75,
+       "finish_s": 39.5,
        "gold": 109.0,
        "xp": 351.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 543.364
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 541.982
       },
       "enemy_gromp": {
        "reach_s": null,
@@ -2234,44 +2234,44 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 13.5,
-       "finish_s": 31.5,
+       "reach_s": 13.75,
+       "finish_s": 31.75,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "enemy_red": {
-       "reach_s": 8.5,
-       "finish_s": 19.0,
+       "reach_s": 9.0,
+       "finish_s": 19.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 13.0,
-       "finish_s": 23.5,
+       "reach_s": 13.5,
+       "finish_s": 24.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
        "reach_s": 0.0,
-       "finish_s": 3.5,
+       "finish_s": 3.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
        "reach_s": 23.0,
-       "finish_s": 26.5,
+       "finish_s": 26.75,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       }
      }
     },
@@ -2280,76 +2280,76 @@
      "most_gold_plus_xp_per_second": "bot_river",
      "destinations": {
       "own_gromp": {
-       "reach_s": 33.5,
-       "finish_s": 145.0,
+       "reach_s": 33.75,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 28.0,
+       "reach_s": 28.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 23.5,
+       "reach_s": 23.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 13.5,
-       "finish_s": 31.5,
+       "reach_s": 14.0,
+       "finish_s": 32.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 8.5,
-       "finish_s": 19.0,
+       "reach_s": 9.0,
+       "finish_s": 19.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 13.0,
-       "finish_s": 23.5,
+       "reach_s": 13.5,
+       "finish_s": 24.25,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 10.5,
-       "finish_s": 19.5,
+       "reach_s": 10.75,
+       "finish_s": 20.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 5.0,
-       "finish_s": 15.5,
+       "reach_s": 5.5,
+       "finish_s": 16.0,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 9.5,
-       "finish_s": 23.0,
+       "reach_s": 9.75,
+       "finish_s": 23.25,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -2377,19 +2377,19 @@
       },
       "top_river": {
        "reach_s": 23.0,
-       "finish_s": 26.5,
+       "finish_s": 26.75,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       },
       "bot_river": {
        "reach_s": 0.0,
-       "finish_s": 3.5,
+       "finish_s": 3.75,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       }
      }
     }
@@ -2401,11 +2401,11 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 26.5,
-       "finish_s": 145.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
        "reach_s": 21.0,
@@ -2413,15 +2413,15 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 16.5,
+       "reach_s": 16.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 19.0,
@@ -2429,7 +2429,7 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 21.0,
@@ -2437,23 +2437,23 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 18.5,
-       "finish_s": 146.5,
+       "reach_s": 19.0,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 41.0,
-       "finish_s": 50.0,
+       "reach_s": 41.25,
+       "finish_s": 50.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
        "reach_s": 36.0,
@@ -2461,7 +2461,7 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -2501,10 +2501,10 @@
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 30.0,
+       "reach_s": 30.25,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -2519,27 +2519,27 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 0.0,
-       "finish_s": 145.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 5.0,
+       "reach_s": 5.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 9.5,
+       "reach_s": 9.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 23.5,
@@ -2547,39 +2547,39 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 24.0,
+       "reach_s": 24.5,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 29.0,
-       "finish_s": 146.5,
+       "reach_s": 29.25,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 44.5,
-       "finish_s": 53.5,
+       "reach_s": 45.0,
+       "finish_s": 54.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 39.5,
+       "reach_s": 39.75,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -2590,39 +2590,39 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 24.5,
+       "reach_s": 25.0,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
-       "lane_xp_on_the_way": 43.117,
-       "hp_left": 466.864
+       "lane_xp_on_the_way": 0.0,
+       "hp_left": 466.832
       },
       "enemy_red": {
-       "reach_s": 20.0,
+       "reach_s": 20.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 24.5,
-       "finish_s": 146.5,
+       "reach_s": 24.75,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 10.5,
+       "reach_s": 11.0,
        "finish_s": 156.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 33.5,
+       "reach_s": 33.75,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -2636,12 +2636,12 @@
      "most_gold_plus_xp_per_second": "enemy_gromp",
      "destinations": {
       "own_gromp": {
-       "reach_s": 5.0,
-       "finish_s": 145.0,
+       "reach_s": 5.25,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
        "reach_s": 0.0,
@@ -2649,47 +2649,47 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 3.5,
+       "reach_s": 4.0,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 17.5,
+       "reach_s": 18.0,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 23.0,
-       "finish_s": 146.5,
+       "reach_s": 23.5,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 39.0,
-       "finish_s": 48.0,
+       "reach_s": 39.25,
+       "finish_s": 48.5,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
        "reach_s": 34.0,
@@ -2697,7 +2697,7 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -2708,12 +2708,12 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 19.0,
+       "reach_s": 19.25,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
-       "lane_xp_on_the_way": 43.117,
-       "hp_left": 466.864
+       "lane_xp_on_the_way": 0.0,
+       "hp_left": 466.832
       },
       "enemy_red": {
        "reach_s": 14.5,
@@ -2721,26 +2721,26 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
        "reach_s": 19.0,
-       "finish_s": 146.5,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 5.0,
+       "reach_s": 5.25,
        "finish_s": 156.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 28.0,
+       "reach_s": 28.25,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -2754,20 +2754,20 @@
      "most_gold_plus_xp_per_second": "enemy_gromp",
      "destinations": {
       "own_gromp": {
-       "reach_s": 9.5,
-       "finish_s": 145.0,
+       "reach_s": 9.75,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 3.5,
+       "reach_s": 4.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 0.0,
@@ -2775,7 +2775,7 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 13.5,
@@ -2783,7 +2783,7 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 14.5,
@@ -2791,31 +2791,31 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 19.0,
-       "finish_s": 146.5,
+       "reach_s": 19.25,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 34.5,
-       "finish_s": 43.5,
+       "reach_s": 35.0,
+       "finish_s": 44.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 29.5,
+       "reach_s": 29.75,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -2834,31 +2834,31 @@
        "hp_left": null
       },
       "enemy_red": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 23.0,
-       "finish_s": 146.5,
+       "reach_s": 23.5,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
-       "reach_s": 9.5,
+       "reach_s": 9.75,
        "finish_s": 156.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 23.5,
+       "reach_s": 23.75,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -2873,19 +2873,19 @@
      "destinations": {
       "own_gromp": {
        "reach_s": 23.5,
-       "finish_s": 145.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 17.5,
+       "reach_s": 18.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 13.5,
@@ -2893,7 +2893,7 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
        "reach_s": 0.0,
@@ -2901,39 +2901,39 @@
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 4.5,
+       "reach_s": 4.75,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 9.0,
-       "finish_s": 146.5,
+       "reach_s": 9.25,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 24.5,
-       "finish_s": 33.5,
+       "reach_s": 25.0,
+       "finish_s": 34.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 19.5,
+       "reach_s": 19.75,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
        "reach_s": null,
@@ -2968,15 +2968,15 @@
        "hp_left": null
       },
       "top_river": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 156.5,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 13.5,
+       "reach_s": 14.0,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -2990,20 +2990,20 @@
      "most_gold_plus_xp_per_second": "enemy_gromp",
      "destinations": {
       "own_gromp": {
-       "reach_s": 24.0,
-       "finish_s": 145.0,
+       "reach_s": 24.5,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
        "reach_s": 14.5,
@@ -3011,15 +3011,15 @@
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 4.5,
+       "reach_s": 4.75,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 0.0,
@@ -3027,39 +3027,39 @@
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 4.0,
-       "finish_s": 146.5,
+       "reach_s": 4.25,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 19.5,
-       "finish_s": 28.5,
+       "reach_s": 20.0,
+       "finish_s": 29.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 14.5,
+       "reach_s": 14.75,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -3091,10 +3091,10 @@
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 8.5,
+       "reach_s": 9.0,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -3108,76 +3108,76 @@
      "most_gold_plus_xp_per_second": "enemy_gromp",
      "destinations": {
       "own_gromp": {
-       "reach_s": 29.0,
-       "finish_s": 145.0,
+       "reach_s": 29.25,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 23.0,
+       "reach_s": 23.5,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 19.0,
+       "reach_s": 19.25,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 9.0,
+       "reach_s": 9.25,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 4.0,
+       "reach_s": 4.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
        "reach_s": 0.0,
-       "finish_s": 146.5,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 24.5,
-       "finish_s": 33.5,
+       "reach_s": 24.75,
+       "finish_s": 34.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 19.0,
+       "reach_s": 19.5,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 23.5,
+       "reach_s": 23.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -3204,15 +3204,15 @@
        "hp_left": null
       },
       "top_river": {
-       "reach_s": 28.5,
+       "reach_s": 28.75,
        "finish_s": 156.5,
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
-       "reach_s": 13.0,
+       "reach_s": 13.5,
        "finish_s": null,
        "gold": 0.0,
        "xp": 0.0,
@@ -3226,52 +3226,52 @@
      "most_gold_plus_xp_per_second": "own_krugs",
      "destinations": {
       "own_gromp": {
-       "reach_s": 10.5,
-       "finish_s": 145.0,
+       "reach_s": 11.0,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 5.0,
+       "reach_s": 5.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 9.5,
+       "reach_s": 9.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 18.5,
+       "reach_s": 19.0,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 466.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 466.832
       },
       "own_red": {
        "reach_s": 24.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 532.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 28.5,
-       "finish_s": 146.5,
+       "reach_s": 28.75,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 543.364
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 541.982
       },
       "enemy_gromp": {
        "reach_s": null,
@@ -3298,28 +3298,28 @@
        "hp_left": null
       },
       "enemy_raptors": {
-       "reach_s": 13.5,
+       "reach_s": 13.75,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
-       "lane_xp_on_the_way": 43.117,
-       "hp_left": 466.864
+       "lane_xp_on_the_way": 0.0,
+       "hp_left": 466.832
       },
       "enemy_red": {
-       "reach_s": 8.5,
+       "reach_s": 9.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "enemy_krugs": {
-       "reach_s": 13.0,
-       "finish_s": 146.5,
+       "reach_s": 13.5,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "top_river": {
        "reach_s": 0.0,
@@ -3327,7 +3327,7 @@
        "gold": 55.0,
        "xp": 330.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 600.864
+       "hp_left": 600.432
       },
       "bot_river": {
        "reach_s": 23.0,
@@ -3344,76 +3344,76 @@
      "most_gold_plus_xp_per_second": "enemy_gromp",
      "destinations": {
       "own_gromp": {
-       "reach_s": 33.5,
-       "finish_s": 145.0,
+       "reach_s": 33.75,
+       "finish_s": 145.25,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "own_blue": {
-       "reach_s": 28.0,
+       "reach_s": 28.25,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "own_wolves": {
-       "reach_s": 23.5,
+       "reach_s": 23.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "own_raptors": {
-       "reach_s": 13.5,
+       "reach_s": 14.0,
        "finish_s": 154.0,
        "gold": 75.0,
        "xp": 300.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 466.864
+       "hp_left": 466.832
       },
       "own_red": {
-       "reach_s": 8.5,
+       "reach_s": 9.0,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 532.864
+       "hp_left": 532.832
       },
       "own_krugs": {
-       "reach_s": 13.0,
-       "finish_s": 146.5,
+       "reach_s": 13.5,
+       "finish_s": 146.75,
        "gold": 109.0,
        "xp": 351.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 541.982
       },
       "enemy_gromp": {
-       "reach_s": 10.5,
-       "finish_s": 19.5,
+       "reach_s": 10.75,
+       "finish_s": 20.0,
        "gold": 80.0,
        "xp": 350.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 542.464
+       "hp_left": 540.832
       },
       "enemy_blue": {
-       "reach_s": 5.0,
+       "reach_s": 5.5,
        "finish_s": 310.5,
        "gold": 90.0,
        "xp": 325.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 543.364
+       "hp_left": 543.332
       },
       "enemy_wolves": {
-       "reach_s": 9.5,
+       "reach_s": 9.75,
        "finish_s": 149.5,
        "gold": 85.0,
        "xp": 310.0,
        "lane_xp_on_the_way": 0.0,
-       "hp_left": 540.664
+       "hp_left": 540.632
       },
       "enemy_raptors": {
        "reach_s": null,
@@ -3444,8 +3444,8 @@
        "finish_s": 156.5,
        "gold": 55.0,
        "xp": 330.0,
-       "lane_xp_on_the_way": 25.363,
-       "hp_left": 600.864
+       "lane_xp_on_the_way": 25.354,
+       "hp_left": 600.432
       },
       "bot_river": {
        "reach_s": 0.0,
@@ -3462,29 +3462,29 @@
  },
  "run": {
   "command": "python -m experiments.m8.jungle",
-  "created_utc": "2026-11-13T02:42:38+00:00",
-  "git_head": "f7e41066e02c46937e7205bf3f751f07f0e742e4",
+  "created_utc": "2026-11-14T00:45:51+00:00",
+  "git_head": "2a503e2903b97ba2713d661f76f53ab56199facc",
   "git_dirty": true,
-  "code_id": "cad52c64526372b7",
+  "code_id": "429c866b6060f6cf",
   "sources": {
-   "experiments/m8/jungle.py": "36b05a3df407d663332854e764fd4054a17b243177270fd8f5e0b3261dc54c71",
+   "experiments/m8/jungle.py": "3c6443e3cd69ce0f02125d7f992dc9c711e54c1685581880ff5d7e0e7c446885",
    "experiments/m8/provenance.py": "68dd4a7be11b281f10afc88133c612b0f77516dd0f94ee77a9289fc3e08ae9f3",
    "riftgame/__init__.py": "ff18aca4961c9e87d8db60b21b2b65a26ad7705ac6c7d0839646bd774d2dac48",
-   "riftgame/champions.py": "092280e1be8302bbb5a7b2782700e3035c189e78b7b20dbafa88211c44bbc7ba",
+   "riftgame/champions.py": "6c88ea6c7c67896b5fc4ca7b915363ebc998196c0df2cd32e054e165a8871720",
    "riftgame/combat.py": "f442f3b9af29eb3abb1d44198e0497d9c11c93a1c489ea9cbe9a36ef4150e396",
    "riftgame/economy.py": "c1d94e4b4b27e23a95ff1a4378ebe6af1e7b88eaed8dc1a3b2493aa10d5d2cf1",
-   "riftgame/harness.py": "7651540748c9c790b6ef0ebb6f64f2ea2cd02a62101f36e7da962e60bbfbbcb5",
+   "riftgame/harness.py": "933ff333707692ca16cae0bb581fc342fa55a6724eab65b01f776e1f88a30ee6",
    "riftgame/jungle.py": "3d354420825b31672ce3371bd5ef08ffee95b510b2a144223ccac962df6c3d2a",
-   "riftgame/lanes.py": "86346de8b7a9b0144d10e04991b1c75680300c586b3a1506c6823d9832c5e985",
+   "riftgame/lanes.py": "7091be8217b4b6ff19d5be3f569ffe0c0ab2f53421d30c954fce44c8afdf9a27",
    "riftgame/map.py": "c9b56a67a0b89a13dbe53edeb646b5250c9c2511c8d20814aa8a7293840a5e9e",
    "riftgame/rng.py": "4fac2cf21c9fac3c3e351f984411225f4841185f01348c3f48fb36adade87c42",
    "riftgame/ruleset.py": "81ceaa224b706cf477548522df668ce2dd6fea384d8f254611015c01dde1ae2b",
    "riftgame/rulesets/map_summoners_rift.toml": "5c29e01890c69bbace2122d75950edf44f24e84a4d161e0aee83db4f0a33f659",
    "riftgame/rulesets/map_summoners_rift_m8.toml": "f4acea380d416e62639c29c3910d3d4d97690b86cb77853bb74ad9d75a6347a0",
    "riftgame/rulesets/patch_26_22.toml": "fe23954210bc24b70236ec24db544c1a3f884e995befe36cc089f63a25478ee1",
-   "riftgame/rulesets/patch_26_22_m8.toml": "849559e7eb7f11e659c2b35e23b604240a000e4d54dc6ad68910a4482b3d8c6e",
-   "riftgame/vision.py": "471fcd20021e8c2a689e784d9366191ad3b00057d922ea7d4de9881b18b26dec",
-   "riftgame/world.py": "e51f570ee74df107ada364cbeb99f86417907ca4b765b7d1dbaa829d10737b08"
+   "riftgame/rulesets/patch_26_22_m8.toml": "28247a736fa476cb53066754ca2788fad4465e7e7028bebc08b653e407832f45",
+   "riftgame/vision.py": "2f3359a7b2ab86e4632ffe8c71cb72f01991cfbeda5c40c9ca7b4bff50ca60a2",
+   "riftgame/world.py": "37dbac13740ceadff45800149b99715706456c1bd11d50907bd6a3bd486f98d5"
   },
   "python": "3.14.7",
   "platform": "Windows-11-10.0.26200-SP0",

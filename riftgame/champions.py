@@ -282,7 +282,10 @@ class Champion:
     `slow_until`. Its own lockdown is ready again from `lockdown_tick` on.
 
     `ward_charges` are the Stealth Wards it can place. `ward_tick` is the tick on which it gets the next one, or -1
-    while it holds them all."""
+    while it holds them all.
+
+    `respawned_tick` is the tick of its latest respawn, or -1 before the first, and `respawned_level` its level then.
+    Kills and respawns are public (M7 section 6.3), and nothing in the kernel reads either field."""
 
     seat: int
     pos: Pos
@@ -301,6 +304,8 @@ class Champion:
     attack_credit: float
     item_charges: int
     respawn_tick: int
+    respawned_tick: int
+    respawned_level: int
     homeguard_tick: int
     homeguard_block: int
     hurt_tick: list[int]
@@ -348,8 +353,8 @@ def spawn(seat: int, allowance: float, ward_tick: int) -> Champion:
     c = Champion(seat=seat, pos=FOUNTAIN[seat // 5], hp=full.max_hp, mana=full.max_mana, xp=0.0, gold=0.0,
                  earned=[0.0] * len(Income), upgrades=0, intent=HOLD, intent_tick=0, channel=0, outcome=Outcome.NONE,
                  outcome_tick=-1, allowance=allowance, attack_credit=0.0, item_charges=0, respawn_tick=-1,
-                 homeguard_tick=NO_HOMEGUARD, homeguard_block=0, hurt_tick=[NEVER] * len(ROLES), slow=0.0, slow_until=0,
-                 lockdown_tick=0, ward_charges=WARD_START, ward_tick=ward_tick if WARD_START < WARD["ward_charges"] else -1)
+                 respawned_tick=-1, respawned_level=0, homeguard_tick=NO_HOMEGUARD, homeguard_block=0, hurt_tick=[NEVER] * len(ROLES),
+                 slow=0.0, slow_until=0, lockdown_tick=0, ward_charges=WARD_START, ward_tick=ward_tick if WARD_START < WARD["ward_charges"] else -1)
     pay(c, Income.STARTING, _E["starting_gold"])
     shop(c)
     return c
@@ -534,36 +539,55 @@ def _within(pos: Pos, target: Pos, reach: float) -> Pos | None:
     return RIFT.advance(target, pos, reach)
 
 
-def _short_of(c: Champion, target: Pos) -> Pos | None:
-    return _within(c.pos, target, capability_of(c).attack_range)
-
-
 def _to_enemy(world: "World", c: Champion) -> Pos | None:
     """A fighter heads for its target by its team's record of it alone (M7 section 7.1). It never reads where the
     target is now or what it intends.
 
     The fighter closes to its attack range of the place where its team sees the target, or with the record out of
-    date of the last-seen place. On a lane, while the target's last step, as the team saw it, took it away from the
-    fighter, it heads instead for its range of where the target will be after one more such step. A fighter at least
-    as fast as a target that keeps walking away along a lane then keeps it in range, whatever its range, and a
-    slower one falls behind. Off the lanes the paths are walked 1.15 times their straight length and range is the
-    straight line, so a melee fighter reaches a target whose step is up to 1.15 times its range without the lead.
+    date of the last-seen place. While the target's last step, as the team saw it, took it away from the fighter,
+    the fighter heads instead for the place `_lead_short` short of where one more such step puts the target. Where
+    that step would carry the target past the end of its lane, or off the lanes past the end of its edge, the
+    fighter heads no further than that node, because the target may go on along any edge from it.
     """
     record = world.memory[c.seat // 5].enemies[FOE[c.intent]]
-    target = record.pos
+    reach = capability_of(c).attack_range
     if record.seen_tick == world.tick and record.was is not None and RIFT.distance(c.pos, record.pos) > RIFT.distance(c.pos, record.was):
-        target = _ahead_on_lane(record.was, record.pos) or record.pos
-    return _short_of(c, target)
+        step = RIFT.distance(record.was, record.pos)
+        ahead, cut = _one_more_step(record.was, record.pos, step)
+        return _within(c.pos, ahead, max(0.0, _lead_short(reach, step) - cut))
+    return _within(c.pos, record.pos, reach)
 
 
-def _ahead_on_lane(was: Pos, pos: Pos) -> Pos | None:
-    """Where a champion that stepped from `was` to `pos` along a lane stands after one more such step, or None
-    if the two places are not on one lane."""
+def _lead_short(reach: float, step: float) -> float:
+    """How far short of the led place a fighter with attack range `reach` heads, against a target seen to step
+    `step` away from it.
+
+    Let the fighter end x past the target's seen place, along the target's way. A target whose next step is a then
+    stays in range when x - reach <= a <= x + reach. With x = 2 step - reach, a target that stops, turns back by
+    its step, or steps up to twice as far, as one does when a slow ends, stays in range. The turn stays only while
+    the step is at most 2/3 of the range. Above that, x = reach - step keeps the turn, the stop, and one more step.
+    Above the range no x keeps both the turn and one more step, and x = step - reach keeps the step and the stop.
+    The fighter heads step - x short of the led place.
+    """
+    return min(reach, max(reach - step, 2 * step - reach))
+
+
+def _one_more_step(was: Pos, pos: Pos, step: float) -> tuple[Pos, float]:
+    """Where a champion that stepped `step` from `was` to `pos` stands after one more such step, and how much of
+    that step the way cut off. On a lane by the lane coordinate, up to the lane's end. Off the lanes along its
+    edge, away from the node it came by, up to the edge's end."""
     for name, lane in RIFT.lanes.items():
         s0, s1 = RIFT.lane_s(name, was), RIFT.lane_s(name, pos)
         if s0 is not None and s1 is not None:
-            return RIFT.lane_pos(name, min(lane.length, max(0.0, 2 * s1 - s0)))
-    return None
+            s = 2 * s1 - s0
+            return RIFT.lane_pos(name, s), max(0.0, -s, s - lane.length)
+    edge = RIFT.edges[pos.edge]
+    if was.edge == pos.edge:
+        toward_b = pos.offset > was.offset
+    else:
+        toward_b = edge.a in (RIFT.edges[was.edge].a, RIFT.edges[was.edge].b)
+    ahead = min(step, edge.length - pos.offset if toward_b else pos.offset)
+    return Pos(pos.edge, pos.offset + (ahead if toward_b else -ahead)), step - ahead
 
 
 def _to_ward_spot(world: "World", c: Champion) -> Pos | None:
@@ -573,7 +597,7 @@ def _to_ward_spot(world: "World", c: Champion) -> Pos | None:
 def _to_tower(world: "World", c: Champion) -> Pos | None:
     lane = SIEGE_LANE[c.intent]
     tower = world.lanes[lane].front_tower(1 - c.seat // 5)
-    return None if tower is None else _short_of(c, RIFT.lane_pos(lane, tower.s))
+    return None if tower is None else _within(c.pos, RIFT.lane_pos(lane, tower.s), capability_of(c).attack_range)
 
 
 def _on_arrival(outcome: Outcome) -> Callable[["World", Champion], Outcome]:

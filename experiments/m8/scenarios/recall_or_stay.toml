@@ -1,0 +1,27 @@
+# M7 section 9.5, row 2. Blue mid is hurt and 100 gold short of its next upgrade. Recall now, stay and farm,
+# shove first, or back off to the tower. The red jungler was last seen at its raptors, by mid, 14 s ago. Hidden:
+# the enemy laner's gold, the enemy jungler's position.
+ruleset = "ref-26.22-r1+m8.3"
+seed = 62
+base = { policy = "scripted_v0", seed = 2, until_s = 580, tick_s = 0.5 }
+
+[[champion]]
+seat = "blue_mid"
+health = 0.4
+upgrades = 1
+gold = 700
+
+[knowledge.blue]
+red_jungle = { last_seen = "enemy_raptors", at_s = 566, health = 0.9 }
+
+[decision]
+seat = "blue_mid"
+kind = "individual"
+horizon_s = 90
+commit_s = 20
+rollouts = 16
+hidden = "activity_v0"
+focus = ["red_jungle"]
+places = ["own_mid_t1"]
+continuation = [{ blue = "standard", red = "standard" }, { blue = "aggressive", red = "aggressive" }]
+alternatives = ["RECALL", "LANE mid last_hit wave", "LANE mid push wave", "MOVE own_mid_t1"]

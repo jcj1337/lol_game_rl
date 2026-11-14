@@ -1,0 +1,24 @@
+# M7 section 9.5, row 1. Blue top freezes, slow-pushes, or shoves its wave. The red jungler was last seen at its
+# krugs, near the top lane, 14 s ago. Hidden: the enemy jungler's position.
+ruleset = "ref-26.22-r1+m8.3"
+seed = 61
+base = { policy = "scripted_v0", seed = 6, until_s = 480, tick_s = 0.5 }
+
+[[champion]]
+seat = "blue_top"
+health = 0.75
+
+[knowledge.blue]
+red_jungle = { last_seen = "enemy_krugs", at_s = 466, health = 0.8 }
+
+[decision]
+seat = "blue_top"
+kind = "individual"
+horizon_s = 90
+commit_s = 30
+rollouts = 16
+hidden = "activity_v0"
+focus = ["red_jungle"]
+places = ["own_top_t1"]
+continuation = [{ blue = "standard", red = "standard" }, { blue = "aggressive", red = "aggressive" }]
+alternatives = ["LANE top last_hit hold", "LANE top thin wave", "LANE top push wave"]

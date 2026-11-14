@@ -9,7 +9,7 @@ TICKS = 600
 
 @pytest.mark.parametrize("n", [2, 4, 10])
 def test_a_run_at_interval_n_equals_a_run_at_interval_1_that_keeps_between_decisions(n):
-    spaced, ended = play(World(Config(decision_ticks=n), seed=12), busy, TICKS)
+    spaced, ended = play(World(Config(tick_s=0.5, decision_ticks=n), seed=12), busy, TICKS)
 
     def keeping_between(o, noise):
         return busy(o, noise) if round(o.time_s / EVERY_TICK.tick_s) % n == 0 else KEEP
@@ -21,7 +21,7 @@ def test_a_run_at_interval_n_equals_a_run_at_interval_1_that_keeps_between_decis
 
 def test_a_policy_that_decides_every_tick_plays_a_different_game_from_one_that_decides_every_tenth():
     every_tick, _ = play(World(EVERY_TICK, seed=11), patient, TICKS)
-    every_tenth, _ = play(World(Config(decision_ticks=10), seed=11), patient, TICKS)
+    every_tenth, _ = play(World(Config(tick_s=0.5, decision_ticks=10), seed=11), patient, TICKS)
     assert every_tick[-1] != every_tenth[-1], "the digest must be able to tell two trajectories apart"
 
 
@@ -74,7 +74,7 @@ def test_a_clock_that_cannot_run_is_refused(bad):
 
 
 def test_actions_are_refused_between_decision_ticks():
-    world = World(Config(decision_ticks=4))
+    world = World(Config(tick_s=0.5, decision_ticks=4))
     world.step([KEEP] * 10)
     with pytest.raises(ValueError):
         world.step([KEEP] * 10)

@@ -14,23 +14,25 @@ from riftgame.world import Config, World
 # The final digest of each replay after 20 game minutes. A change to the state or to the policies moves them, and
 # the pin is then updated on purpose.
 PINNED = {
-    "scripted teams, seed 7": "7dad3ef27f81f78616b590557158c44d1cd7e12b9f9835230c79736c32c747c2",
-    "scripted blue, random red, seed 11": "2886c042a858d8f0c77b338708bceddc0d21a91eb51c914a521ca13db7c68991",
-    "random teams, seed 13": "5da0ac5b648ec8dc02d1d5fc969996b2797ebdc1831a7c53298ab9c7fa1b4b0e",
+    "scripted teams, seed 7": "394aa559680303b161c2492f4d844229ac001fef50aaa49ebc10256b61c2d0d8",
+    "scripted blue, random red, seed 11": "6a8e718c128b0f9d7f23a19b24d0536d1fe6efe30607aa7f8043f21e87161b00",
+    "random teams, seed 13": "97916ca25b4ef9dbcacd665270c2081477c45dde927e36a86696c07fdac305ea",
 }
 
 
 @pytest.mark.parametrize("name", list(REPLAYS))
 def test_three_pinned_replays_reproduce_their_digests_on_every_tick(name):
     seed, blue, red = REPLAYS[name]
-    replay, digests = record(Config(), seed, replay_policies(blue, red), 2400)
+    replay, digests = record(Config(), seed, replay_policies(blue, red), round(1200.0 / Config().tick_s))
     assert rerun(replay) == digests
     assert digests[-1] == PINNED[name]
 
 
-# Seed 3 is in the list because its game provokes the towers often enough that a tower which ignores its provokers
-# breaks the referee's rule. Seeds 0 and 1 do not, which the mutation runner showed.
-@pytest.mark.parametrize("seed", [0, 1, 3])
+# Under the tower rule of `riftgame.policies` few scripted games provoke a tower. In campaign 5, after the fix of
+# `LaneSim._free_to_walk`, 14 of seeds 0 to 49 shot a provoker: seed 35 four times, seed 23 three times, seeds 11, 13,
+# 18, 32, 39, and 41 twice, and seeds 3, 10, 12, 17, 22, and 43 once. The three that shot most are here, so a tower
+# that ignores its provokers breaks the referee's rule (mutation runner).
+@pytest.mark.parametrize("seed", [35, 23, 11])
 def test_a_scripted_game_of_20_minutes_breaks_no_invariant_and_no_rule_of_the_referee(seed):
     run = play((seed, Config(), "scripted", "scripted", 1200.0, True))
     assert run["invariant_error"] is None and run["faults"] == []
@@ -57,9 +59,11 @@ def test_a_scripted_team_beats_a_random_team_on_gold_and_xp_at_15_minutes(script
         assert score[scripted_team] > score[1 - scripted_team], f"seed {seed}"
 
 
+# Seed 2 is in the list because campaign 5 moved the first fall of seed 0 from 1,060 s to 1,094 s, which leaves less
+# than the window of 120 s inside 20 minutes.
 def test_after_an_outer_tower_falls_the_attacking_wave_advances_further_in_that_lane():
-    run = play((0, Config(), "scripted", "random", 1200.0, False))
-    full = [fall for fall in run["falls"] if fall["after_window_s"] >= 120.0]
+    runs = [play((seed, Config(), "scripted", "random", 1200.0, False)) for seed in (0, 2)]
+    full = [fall for run in runs for fall in run["falls"] if fall["after_window_s"] >= 120.0]
     assert full, "a scripted team takes an outer tower from a random one within 20 minutes"
     assert all(fall["after"] > fall["before"] for fall in full)
 

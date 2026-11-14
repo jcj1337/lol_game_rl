@@ -1,0 +1,24 @@
+# M7 section 9.5, row 3. The red jungler was last seen at its gromp, on the bot side, 12 s ago. Blue's carry shoves,
+# freezes by its tower, or backs off. Hidden: the jungler's actual position and the camps it took.
+ruleset = "ref-26.22-r1+m8.3"
+seed = 63
+base = { policy = "scripted_v0", seed = 4, until_s = 540, tick_s = 0.5 }
+
+[[champion]]
+seat = "blue_carry"
+health = 0.8
+
+[knowledge.blue]
+red_jungle = { last_seen = "enemy_gromp", at_s = 528, health = 0.85 }
+
+[decision]
+seat = "blue_carry"
+kind = "individual"
+horizon_s = 90
+commit_s = 20
+rollouts = 16
+hidden = "activity_v0"
+focus = ["red_jungle"]
+places = ["own_bot_t1"]
+continuation = [{ blue = "standard", red = "standard" }, { blue = "aggressive", red = "aggressive" }]
+alternatives = ["LANE bot push wave", "LANE bot last_hit hold", "MOVE own_bot_t1"]
